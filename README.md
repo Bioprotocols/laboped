@@ -1,6 +1,9 @@
 # Instructions for running the PAML Editor in Development
 - Install [node.js](https://nodejs.org/en/download/)
 - Clone this repository (`/` is the root of the cloned repository, below)
+- Set the secret key in `/pamled/pamled/.env`:
+```python -c "import secrets; print(f'SECRET_KEY=\"{secrets.token_urlsafe()}\"')"  > pamled/.env
+```
 - Create a python environment:
 ```
 virutalenv env
