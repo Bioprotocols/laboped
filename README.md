@@ -10,7 +10,7 @@ python -c "import secrets; print(f'SECRET_KEY=\"{secrets.token_urlsafe()}\"')"  
 ```
 virutalenv env
 source /env/bin/activate
-pip install https://github.com/Bioprotocols/paml # or, install locally for dev
+pip install -r requirements.txt
 ```
 - Install the client dependencies
 ```
