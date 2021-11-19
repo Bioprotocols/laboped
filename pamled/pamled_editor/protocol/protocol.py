@@ -1,4 +1,8 @@
-import paml
+import sys
+
+if 'paml' not in sys.modules:
+    import paml
+    
 import sbol3
 
 from io import StringIO

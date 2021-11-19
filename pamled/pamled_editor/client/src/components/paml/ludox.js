@@ -1,4 +1,6 @@
 import Rete from 'rete'; // eslint-disable-line max-classes-per-file
+import VueTextControl from '../TextControl.vue';
+import NumControl from './NumControl';
 
 var numSocket = new Rete.Socket("Number");
 var strSocket = new Rete.Socket("String");
@@ -8,41 +10,34 @@ var controlSocket = new Rete.Socket("Control");
 export class TextControl extends Rete.Control {
   constructor(emitter, key, readonly, type = "text") {
     super(key);
-    this.emitter = emitter;
-    this.key = key;
-    this.type = type;
-    this.template = `<input type="${type}" :readonly="readonly" :value="value" @input="change($event)"/>`;
-
-    this.scope = {
-      value: null,
-      readonly,
-      change: this.change.bind(this)
-    };
+    // this.emitter = emitter;
+    // this.key = key;
+    // this.type = type;
+    // this.render = 'vue';
+    this.props = { emitter, ikey: key, readonly };
+    this.component = VueTextControl;
+    // this.template = `<input type="${type}" :readonly="readonly" :value="value" @input="change($event)"/>`;
   }
 
-  onChange() {}
+  // onChange() {}
 
-  change(e) {
-    this.scope.value =
-      this.type === "number" ? +e.target.value : e.target.value;
-    this.update();
-    this.onChange();
-  }
+  // change(e) {
+  //   this.scope.value =
+  //     this.type === "number" ? +e.target.value : e.target.value;
+  //   this.update();
+  //   this.onChange();
+  // }
 
-  update() {
-    if (this.key) this.putData(this.key, this.scope.value);
-    this.emitter.trigger("process");
-    //this._alight.scan();
-  }
+  // update() {
+  //   if (this.key) this.putData(this.key, this.scope.value);
+  //   this.emitter.trigger("process");
+  //   //this._alight.scan();
+  // }
 
-  mounted() {
-    this.scope.value =
-      this.getData(this.key) || (this.type === "number" ? 0 : "...");
-    this.update();
-  }
 
   setValue(val) {
-    this.scope.value = val;
+    this.vueContext.value = val;
+    //this.update()
     //this._alight.scan();
   }
 }
@@ -81,7 +76,7 @@ export class ModuleComponent extends Rete.Component {
       this.updateModuleSockets(node);
       // node._alight.scan();
     };
-    return node; //.addControl(ctrl);
+    return node.addControl(ctrl);
   }
 
   change(node, item) {
@@ -101,10 +96,10 @@ export class OutputComponent extends Rete.Component {
 
   builder(node) {
     var inp = new Rete.Input("input", "Value", numSocket);
-    var ctrl = new TextControl(this.editor, "name");
+    var ctrl = new TextControl(this.editor, "name", false);
 
     return node
-    //.addControl(ctrl)
+    .addControl(ctrl)
     .addInput(inp);
   }
 }
@@ -221,10 +216,10 @@ export class EmptyContainerComponent extends ObjectNodeComponent {
   }
   builder(node) {
     var in1 = new Rete.Input("after", "After", controlSocket, true);
-    var in2 = new TextControl(this.editor, "spec", false, "string");
+    var in2 = new TextControl(this.editor, "spec", false);
     var out1 = new Rete.Output("samples", "Samples", strSocket);
     var out2 = new Rete.Output("before", "Before", controlSocket);
-    return node.addOutput(out1); // .addControl(in2);
+    return node.addOutput(out1).addControl(in2);
   }
 }
 
@@ -412,15 +407,6 @@ export const modulesData = {
               coordinates: "A1:D1"
             },
             inputs: {
-              source: {
-                connections: [
-                  {
-                    node: 3,
-                    output: "samples",
-                    data: {}
-                  }
-                ]
-              }
             },
             outputs: {
               samples: {
@@ -473,15 +459,6 @@ export const modulesData = {
               coordinates: "A2:D2"
             },
             inputs: {
-              source: {
-                connections: [
-                  {
-                    node: 3,
-                    output: "samples",
-                    data: {}
-                  }
-                ]
-              }
             },
             outputs: {
               samples: {
@@ -524,15 +501,6 @@ export const modulesData = {
               coordinates: "A1:D2"
             },
             inputs: {
-              source: {
-                connections: [
-                  {
-                    node: 3,
-                    output: "samples",
-                    data: {}
-                  }
-                ]
-              }
             },
             outputs: {
               samples: {

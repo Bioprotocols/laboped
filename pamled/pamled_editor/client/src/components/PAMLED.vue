@@ -1,6 +1,16 @@
 <template>
   <div class="pamled">
     <h1>PAML Editor</h1>
+    <div class="modules" ref="modules">
+      <ul id="v-for-object" class="modules">
+        <li v-for="mod_name in modules"
+            v-bind:key="mod_name.name"
+            v-on:click="openModule(mod_name.name)">
+          {{ mod_name }}
+        </li>
+      </ul>
+      <button v-on:click="addModule">Add</button>
+    </div>
     <div class="wrapper"><div class="node-editor" ref="nodeEditor"></div></div>
   </div>
 </template>
@@ -31,15 +41,40 @@ import {
 export default {
   name: 'PAMLED',
   props: {},
+  methods: {
+    addModule() {
+      const mname = Object.keys(this.modules).length;
+      const smname = `module${mname}.rete`;
+      this.modules[smname] = {
+        name: smname,
+        data: this.initialData(),
+      };
+      return this.modules[smname];
+    },
+    initialData() {
+      return { id: 'demo@0.1.0', nodes: {} };
+    },
+    module_names() {
+      return this.modules.keys();
+    },
+    openModule(name) {
+      this.currentModule.data = this.editor.toJSON();
+      this.currentModule = this.modules[name];
+      this.editor.fromJSON(this.currentModule.data).then();
+      this.editor.trigger('process');
+    },
+  },
   data() {
     return {
-      editor: null,
+      modules: {},
+      currentModule: this.addModule(),
+      editor: {},
     };
   },
   async mounted() {
-    const numSocket = new Rete.Socket('Number value');
+    // this.currentModule = this.addModule();
 
-    let currentModule = {};
+    const numSocket = new Rete.Socket('Number value');
 
     class NumControl extends Rete.Control {
       constructor(emitter, key, readonly) {
@@ -70,44 +105,44 @@ export default {
       }
     }
 
-    class AddComponent extends Rete.Component {
-      constructor() {
-        super('Add');
-      }
+    // class AddComponent extends Rete.Component {
+    //   constructor() {
+    //     super('Add');
+    //   }
 
-      builder(node) { // eslint-disable-line class-methods-use-this
-        let inp1 = new Rete.Input('num', 'Number', numSocket);
-        let inp2 = new Rete.Input('num2', 'Number2', numSocket);
-        let out = new Rete.Output('num', 'Number', numSocket);
-        inp1.addControl(new NumControl(this.editor, 'num'));
-        inp2.addControl(new NumControl(this.editor, 'num2'));
-        return node
-          .addInput(inp1)
-          .addInput(inp2)
-          .addControl(new NumControl(this.editor, 'preview', true))
-          .addOutput(out);
-      }
+    //   builder(node) { // eslint-disable-line class-methods-use-this
+    //     let inp1 = new Rete.Input('num', 'Number', numSocket);
+    //     let inp2 = new Rete.Input('num2', 'Number2', numSocket);
+    //     let out = new Rete.Output('num', 'Number', numSocket);
+    //     inp1.addControl(new NumControl(this.editor, 'num'));
+    //     inp2.addControl(new NumControl(this.editor, 'num2'));
+    //     return node
+    //       .addInput(inp1)
+    //       .addInput(inp2)
+    //       .addControl(new NumControl(this.editor, 'preview', true))
+    //       .addOutput(out);
+    //   }
 
-      worker(node, inputs, outputs) {
-        let n1 = inputs.num.length ? inputs.num[0] : node.data.num1;
-        let n2 = inputs.num2.length ? inputs.num2[0] : node.data.num2;
-        let sum = n1 + n2;
-        this.editor.nodes.find((n) => n.id === node.id).controls.get('preview').setValue(sum);
-        outputs.num = sum; // eslint-disable-line no-param-reassign
-      }
-    }
+    //   worker(node, inputs, outputs) {
+    //     let n1 = inputs.num.length ? inputs.num[0] : node.data.num1;
+    //     let n2 = inputs.num2.length ? inputs.num2[0] : node.data.num2;
+    //     let sum = n1 + n2;
+    //     this.editor.nodes.find((n) => n.id === node.id).controls.get('preview').setValue(sum);
+    //     outputs.num = sum; // eslint-disable-line no-param-reassign
+    //   }
+    // }
 
     let container = this.$refs.nodeEditor;
-    let editor = new Rete.NodeEditor('demo@0.1.0', container);
-    editor.use(ConnectionPlugin, { curvature: 0.4 });
-    editor.use(VueRenderPlugin);
-    editor.use(ContextMenuPlugin);
-    editor.use(AreaPlugin);
+    this.editor = new Rete.NodeEditor('demo@0.1.0', container);
+    this.editor.use(ConnectionPlugin, { curvature: 0.4 });
+    this.editor.use(VueRenderPlugin);
+    this.editor.use(ContextMenuPlugin);
+    this.editor.use(AreaPlugin);
     let engine = new Rete.Engine('demo@0.1.0');
 
     let components = [
       new NumComponent(),
-      new AddComponent(),
+      // new AddComponent(),
       new InputComponent(),
       new ModuleComponent(),
       new OutputComponent(),
@@ -120,31 +155,17 @@ export default {
     ];
 
     components.map((c) => { // eslint-disable-line array-callback-return
-      editor.register(c);
+      this.editor.register(c);
       engine.register(c);
       // return 1;
     });
 
-    // const initialData = () => ({ id: 'demo@0.1.0', nodes: {} });
-    const modules = {
+    this.modules = {
       ...modulesData,
     };
 
-    // function addModule() {
-    //   modules['module' + Object.keys(modules).length + '.rete'] = {
-    //     data: initialData()
-    //   };
-    // }
-
-    async function openModule(name) {
-      currentModule.data = editor.toJSON();
-
-      currentModule = modules[name];
-      await editor.fromJSON(currentModule.data);
-      editor.trigger('process');
-    }
-
-    // editor.use(ModulePlugin.default, { engine, modules });
+    // const m = this.get_modules();
+    // this.editor.use(ModulePlugin.default, { engine, m });
 
     // let n1 = await components[0].createNode({ num: 2 });
     // let n2 = await components[0].createNode({ num: 0 });
@@ -161,16 +182,15 @@ export default {
     // editor.connect(n1.outputs.get('num'), add.inputs.get('num'));
     // editor.connect(n2.outputs.get('num'), add.inputs.get('num2'));
 
-    editor.on('process nodecreated noderemoved connectioncreated connectionremoved', async () => {
+    this.editor.on('process nodecreated noderemoved connectioncreated connectionremoved', async () => {
       console.log('process');
       await engine.abort();
-      await engine.process(editor.toJSON());
+      await engine.process(this.editor.toJSON());
     });
-    editor.view.resize();
-    openModule('ludox.rete').then(() => {
-      AreaPlugin.zoomAt(editor);
-    });
-    editor.trigger('process');
+    this.editor.view.resize();
+    this.openModule('ludox.rete');
+    AreaPlugin.zoomAt(this.editor);
+    this.editor.trigger('process');
   },
 };
 </script>
@@ -194,4 +214,29 @@ select, input {
   font-size: 110%;
   width: 170px;
 }
+
+.node .socket.number {
+  background: #96b38a;
+}
+
+.node .socket.control {
+  background: gray;
+}
+
+.node .socket.float {
+  background: red;
+}
+
+.executable {
+  background: #b5b39c;
+}
+
+.objectnode {
+  background: #b3b59c;
+}
+
+.node.selected {
+  background: #bd7ebf;
+}
+
 </style>
