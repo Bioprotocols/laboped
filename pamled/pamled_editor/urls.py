@@ -6,7 +6,7 @@ from django.contrib import admin
 
 router = routers.DefaultRouter()
 router.register(r'primitives', views.PrimitiveView, 'primitive')
-router.register(r'rebuild', views.rebuild_lib, 'rebuild')
+router.register(r'rebuild', views.PrimitiveView, 'rebuild')
 urlpatterns = router.urls
 
 # urlpatterns = [
