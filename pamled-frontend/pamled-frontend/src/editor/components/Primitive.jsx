@@ -1,13 +1,13 @@
 import Rete from "rete";
 import { MyControl } from "./Control";
+import axios from "../../API";
 
-const axios = require('axios').default;
 
 var numSocket = new Rete.Socket("Number value");
 
 export async function loadComponentsFromAPI() {
     let primitives = axios
-        .get("/primitives")
+        .get("/primitives/")
         .then(function (response) { 
           return response.data;
         })
