@@ -7,7 +7,7 @@ var numSocket = new Rete.Socket("Number value");
 
 export async function loadComponentsFromAPI() {
     let primitives = axios
-        .get("/api/primitives")
+        .get("/primitives/")
         .then(function (response) { 
           return response.data;
         })

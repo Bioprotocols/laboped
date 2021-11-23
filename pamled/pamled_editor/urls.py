@@ -6,15 +6,16 @@ from django.contrib import admin
 
 router = routers.DefaultRouter()
 router.register(r'primitives', views.PrimitiveView, 'primitive')
+router.register(r'rebuild', views.rebuild_lib, 'rebuild')
+urlpatterns = router.urls
 
-
-urlpatterns = [
-    # path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
-    path("", views.home, name="home"),
-    # path("protocol/<protocol_id>", views.protocol, name="protocol"),
-    # path("lib", include(router.urls)),
-    # path("lib/rebuild", views.rebuild_lib),
-    # path("lib/<lib>", views.lib),
-    # path("lib/<lib>/<primitive>", views.lib),
-]
+# urlpatterns = [
+#     # path('admin/', admin.site.urls),
+#     path('api/', include(router.urls)),
+#     path("", views.home, name="home"),
+#     # path("protocol/<protocol_id>", views.protocol, name="protocol"),
+#     # path("lib", include(router.urls)),
+#     # path("lib/rebuild", views.rebuild_lib),
+#     # path("lib/<lib>", views.lib),
+#     # path("lib/<lib>/<primitive>", views.lib),
+# ]

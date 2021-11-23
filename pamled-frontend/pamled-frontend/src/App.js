@@ -22,15 +22,15 @@ export default function App() {
             <Pallete />
           </Col>
           <Col>
-          <div class="editor">
-            <div class="container">
+          <div className="editor">
+            <div className="container">
               <div ref={el => el && init(el)} />
             </div>
           </div>
           </Col>
         </Row>
         <Row>
-          <div class="dock" data-toggle="tab"></div>
+          <div className="dock" data-toggle="tab"></div>
         </Row>
       </Container>
     </div>
