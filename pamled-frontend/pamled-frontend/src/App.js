@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import init from "./editor/editor";
 import { Menu } from "./editor/menu";
-import { Pallete } from "./editor/pallete";
+import { Palette } from "./editor/palette";
 import { Container, Row, Col } from "react-bootstrap";
 
 import "./App.css";
@@ -12,14 +12,16 @@ export default function App() {
     <div className="App">
       <Container>
         <Row>
+          <Col>
           <h1>PAML Editor</h1>
+          </Col>
         </Row>
-        <Row>
+        {/* <Row>
           <Menu />
-        </Row>
-        <Row>
-          <Col xs={1}> 
-            <Pallete />
+        </Row> */}
+        <Row lg={2} className="main">
+          <Col md={2}> 
+            <div className="dock" data-toggle="tab"></div>
           </Col>
           <Col>
           <div className="editor">
@@ -28,9 +30,6 @@ export default function App() {
             </div>
           </div>
           </Col>
-        </Row>
-        <Row>
-          <div className="dock" data-toggle="tab"></div>
         </Row>
       </Container>
     </div>

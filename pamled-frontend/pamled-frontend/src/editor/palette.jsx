@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Tabs, Tab } from 'react-bootstrap';
 
-export class Pallete extends Component {
+export class Palette extends Component {
   render() {
     return (
       <Tabs activeKey="home">
