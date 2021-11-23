@@ -1,17 +1,17 @@
 from django.shortcuts import render
 from django.core.files.base import ContentFile
+from pamled_editor.models import Primitive
+from pamled_editor.models import PAMLMapping
 
 from pamled_editor.models import Protocol
 from pamled_editor.protocol.protocol import Protocol as PAMLProtocol
-
-import paml
-
+from pamled_editor.serializers import PrimitiveSerializer
 # Create your views here.
 
 from django.http import HttpResponse
 from django.views.generic import TemplateView
 from django.template import loader
-
+from rest_framework import viewsets
 
 class Index(TemplateView):
     template_name = "pamled/index.html"
@@ -35,13 +35,15 @@ def protocol(request, protocol_id):
     return HttpResponse(f"New Protocol! {p}")
 
 def lib(request, lib=None, primitive=None):
-    primitives = {}
-    for l, lib_doc in paml.loaded_libraries.items():
-        if not lib or l == lib: 
-            primitives[l] = {}
-            for p in lib_doc.objects:
-                if not primitive or p.display_id == primitive:
-                    primitives[l][str(p.display_id)] = str(p)
-            
+    primitives = Primitive.objects.all()            
         
     return HttpResponse(f"Library: {primitives}")
+
+def rebuild_lib(request):
+    PAMLMapping.reload_models()
+        
+    return HttpResponse(f"Rebuilt: {Primitive.objects.all()}")
+
+class PrimitiveView(viewsets.ModelViewSet):
+    serializer_class = PrimitiveSerializer
+    queryset = Primitive.objects.all()

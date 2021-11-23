@@ -5,12 +5,20 @@ import ContextMenuPlugin from "rete-context-menu-plugin";
 import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
 import { MyNode } from "./components/Node";
-import { AddComponent } from "./components/Primitive";
+import { loadComponentsFromAPI } from "./components/Primitive";
+
 
 
 export default async function(container) {
   console.log(container);
-  var components = [new AddComponent()];
+  let components = await loadComponentsFromAPI(); //[new AddComponent()];
+  components = components.map((primitive) => {
+    let c = new Rete.Component(primitive.name);
+    c.builder = function(node) {
+      return node;
+    }
+    return c;
+  });
 
   var editor = new Rete.NodeEditor("demo@0.1.0", container);
   editor.use(ConnectionPlugin);
@@ -41,31 +49,31 @@ export default async function(container) {
     }
   );
 
-  editor.fromJSON({
-    id: "demo@0.1.0",
-    nodes: {
-      "1": {
-        id: 1,
-        data: {},
-        inputs: { num1: { connections: [] } },
-        outputs: {
-          num: { connections: [{ node: 2, input: "num1", data: {} }] }
-        },
-        position: [-285.5, -105.375],
-        name: "Add"
-      },
-      "2": {
-        id: 2,
-        data: {},
-        inputs: {
-          num1: { connections: [{ node: 1, output: "num", data: {} }] }
-        },
-        outputs: { num: { connections: [] } },
-        position: [-16.5, -99.375],
-        name: "Add"
-      }
-    }
-  });
+  // editor.fromJSON({
+  //   id: "demo@0.1.0",
+  //   nodes: {
+  //     "1": {
+  //       id: 1,
+  //       data: {},
+  //       inputs: { num1: { connections: [] } },
+  //       outputs: {
+  //         num: { connections: [{ node: 2, input: "num1", data: {} }] }
+  //       },
+  //       position: [-285.5, -105.375],
+  //       name: "Add"
+  //     },
+  //     "2": {
+  //       id: 2,
+  //       data: {},
+  //       inputs: {
+  //         num1: { connections: [{ node: 1, output: "num", data: {} }] }
+  //       },
+  //       outputs: { num: { connections: [] } },
+  //       position: [-16.5, -99.375],
+  //       name: "Add"
+  //     }
+  //   }
+  // });
 
   editor.view.resize();
   AreaPlugin.zoomAt(editor);

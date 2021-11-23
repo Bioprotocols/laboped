@@ -1,8 +1,24 @@
 import Rete from "rete";
 import { MyControl } from "./Control";
 
+const axios = require('axios').default;
 
 var numSocket = new Rete.Socket("Number value");
+
+export async function loadComponentsFromAPI() {
+    let primitives = axios
+        .get("/api/primitives")
+        .then(function (response) { 
+          return response.data;
+        })
+        .catch(function (error) {
+          // handle error
+          console.log(error);
+          return [];
+        });
+  return primitives;
+}
+
 
 export class AddComponent extends Rete.Component {
     constructor() {

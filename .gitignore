@@ -9,3 +9,6 @@ pamled/.env
 **/node_modules
 **/package-lock.json
 **/.editorconfig
+pamled/general.log
+general.log
+pamled/pamled_editor/migrations

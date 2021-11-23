@@ -17,16 +17,23 @@
 
 .dock {
   height: 100px;
-  /* overflow-x: auto; */
-  overflow-y: hidden;
+  overflow-x: auto;
+  overflow-y: auto;
   white-space: nowrap;
+}
+
+.menu {
+  height: 100px;
+  /* overflow-x: auto;
+  overflow-y: auto;
+  white-space: nowrap; */
 }
 
 .dock-item {
   display: inline-block;
   vertical-align: top;
-  transform: scale(0.5);
-  transform-origin: 50% 0;
+  /* transform: scale(0.5); */
+  /* transform-origin: 50% 0; */
 }
 
 .container {
