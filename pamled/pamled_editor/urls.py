@@ -6,8 +6,10 @@ from django.contrib import admin
 
 router = routers.DefaultRouter()
 router.register(r'primitives', views.PrimitiveView, 'primitive')
-router.register(r'rebuild', views.PrimitiveView, 'rebuild')
-urlpatterns = router.urls
+# router.register(r'rebuild', views.RebuildView, 'rebuild')
+urlpatterns = router.urls + [
+    path("rebuild/", views.rebuild),
+]
 
 # urlpatterns = [
 #     # path('admin/', admin.site.urls),

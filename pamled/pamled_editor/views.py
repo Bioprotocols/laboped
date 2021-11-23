@@ -39,7 +39,7 @@ def lib(request, lib=None, primitive=None):
         
     return HttpResponse(f"Library: {primitives}")
 
-def rebuild_lib(request):
+def rebuild(request):
     PAMLMapping.reload_models()
         
     return HttpResponse(f"Rebuilt: {Primitive.objects.all()}")
