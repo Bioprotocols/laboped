@@ -1,37 +1,19 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import init from "./editor/editor";
-import { Menu } from "./editor/menu";
-import { Palette } from "./editor/palette";
-import { Container, Row, Col } from "react-bootstrap";
+import Editor from "./editor/editor";
+
+// import { Palette } from "./editor/palette";
 
 import "./App.css";
 
-export default function App() {
+export  default function App() {
+  //const reteEditor = new Editor();
+  //const menu = new Menu(reteEditor);
+  //const editorRef = React.createRef();
+
   return (
     <div className="App">
-      <Container>
-        <Row>
-          <Col>
-          <h1>PAML Editor</h1>
-          </Col>
-        </Row>
-        {/* <Row>
-          <Menu />
-        </Row> */}
-        <Row lg={2} className="main">
-          <Col md={2}> 
-            <div className="dock" data-toggle="tab"></div>
-          </Col>
-          <Col>
-          <div className="editor">
-            <div className="container">
-              <div ref={el => el && init(el)} />
-            </div>
-          </div>
-          </Col>
-        </Row>
-      </Container>
+      <Editor />        
     </div>
   );
 }

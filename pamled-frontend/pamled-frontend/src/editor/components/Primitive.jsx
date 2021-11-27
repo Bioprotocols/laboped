@@ -3,7 +3,9 @@ import { MyControl } from "./Control";
 import axios from "../../API";
 
 
-var numSocket = new Rete.Socket("Number value");
+export var numSocket = new Rete.Socket("Number value");
+export var floatSocket = new Rete.Socket("Float");
+
 
 export async function loadComponentsFromAPI() {
     let primitives = axios
@@ -19,6 +21,21 @@ export async function loadComponentsFromAPI() {
   return primitives;
 }
 
+
+export class PAMLComponent extends Rete.Component {
+  constructor(primitive) {
+    super(primitive.name)
+    this.primitive = primitive;
+  }
+
+  async builder(node) {
+    var inputs = this.primitive.inputs.map(i => new Rete.Input(i.name, i.name, numSocket))
+    inputs.forEach(i => node.addInput(i))
+    var outputs = this.primitive.outputs.map(i => new Rete.Output(i.name, i.name, numSocket))
+    outputs.forEach(i => node.addOutput(i))
+    return node;
+  }
+}
 
 export class AddComponent extends Rete.Component {
     constructor() {
