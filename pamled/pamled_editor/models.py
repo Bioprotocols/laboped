@@ -1,12 +1,11 @@
 from django.db import models
 from jsonfield import JSONField
-import jsonfield
 
 # Create your models here.
 
 class Protocol(models.Model):
     name = models.CharField(max_length=100, primary_key=True)
-    graph = JSONField()
+    graph = models.JSONField()
     rdf_file = models.FileField(upload_to='protocols/', null=True)   
 
 class Primitive(models.Model):

@@ -66,7 +66,8 @@ export default class Editor extends Component {
     AreaPlugin.zoomAt(this.editor);
     this.editor.trigger("process");
     this.initializeComponents();
-    this.setProtocol(null);  // Initialize the empty protocol
+    this.retreiveProtocols();
+    //this.setProtocol(null);  // Initialize the empty protocol
   }
 
   async initializeComponents() 
@@ -97,6 +98,8 @@ export default class Editor extends Component {
   }
 
   setProtocol(protocol){
+    
+      // Create a new protocol if none specified
     if (!protocol) {
       protocol = "New Protocol " + Object.keys(this.state.protocols).length;
       this.state.protocols[protocol] = { name: protocol, 
@@ -104,9 +107,14 @@ export default class Editor extends Component {
                                          rdf_file: null
                                         }
     }
+
+    // If there is a current protocol, then save its graph as JSON.
     if(this.state.currentProtocol) {
       this.state.protocols[this.state.currentProtocol].graph = this.editor.toJSON();
+      this.setState({protocols: this.state.protocols})
     }
+
+    // Update the current protocol, load graph, and update state.
     this.state.currentProtocol = protocol;
     this.editor.fromJSON(this.state.protocols[protocol].graph);
     this.setState({currentProtocol: protocol});
@@ -127,13 +135,39 @@ export default class Editor extends Component {
         });
   }
 
+  async retreiveProtocols(){
+    var protocols = await axios.get("/protocol/")
+                        .then(function (response) { 
+                          return response.data;
+                        })
+                        .catch(function (error) {
+                          // handle error
+                          console.log(error);
+                          return [];
+                        });
+    protocols.map((p) => {
+      //p.graph = JSON.parse(p.graph); // read json serialized as string
+      this.updateProtocol(p);
+    });
+  }
+
+  updateProtocol(protocol){
+    var currentProtocols = this.state.protocols;
+    currentProtocols[protocol.name] = protocol;
+    this.setState({protocols: currentProtocols});  
+  }
+
+
   getProtocols(){
     return Object.keys(this.state.protocols);
   }
 
   render() {
     var protocolTabs = this.getProtocols().map((p) => {
-      return (<Tab eventKey={p} title={p}> </Tab>);
+      return (
+        <Tab eventKey={p} title={p}> 
+          <div><pre>{JSON.stringify(this.state.protocols[p].graph, null, 2) }</pre></div>
+        </Tab>);
     });
 
     return (
@@ -146,17 +180,11 @@ export default class Editor extends Component {
         setProtocol={this.setProtocol.bind(this)}
         />
       <Row lg={12}>
-        <Col lg={4} className="editor-pallete">
+        <Col lg={2} className="editor-pallete">
           <div ref={this.palleteRef}/>
         </Col> 
+        
         <Col lg={8}>
-          <Row>
-            <Tabs defaultActiveKey={this.state.currentProtocol} 
-                onSelect={(k) => {this.setProtocol(k)}}
-                className="mb-3">
-            {protocolTabs}
-            </Tabs>
-          </Row>
           <Row>
           <div className="editor-workspace" ref={this.workspaceRef} data-toggle="tab"/>
           </Row>
@@ -172,8 +200,19 @@ export default class Editor extends Component {
             </Modal.Footer>
           </Modal>
         </Col>
+        <Col lg={2}>
+          <Row>
+            <Tabs defaultActiveKey={this.state.currentProtocol} 
+                onSelect={(k) => {this.setProtocol(k)}}
+                className="mb-3">
+            {protocolTabs}
+            </Tabs>
+          </Row>
+        </Col>
       </Row>
       </Container>
     );
   }
 }
+
+
