@@ -13,6 +13,9 @@ import Menu from "./Menu";
 import React from "react";
 import { Component } from "react";
 import { Row, Col, Modal, Button, Container } from "react-bootstrap";
+import Tabs from 'react-bootstrap/Tabs';
+import Tab from 'react-bootstrap/Tab';
+import axios from "../API";
 
 
 export default class Editor extends Component {
@@ -20,12 +23,13 @@ export default class Editor extends Component {
     super(props);
     this.palleteRef = React.createRef();
     this.workspaceRef = React.createRef();
-    this.currentProtocol = {};
+    this.menuRef = React.createRef();
     
-    this.protocols = {};
     this.editor = {};
     this.state = {
       showModal: false,
+      currentProtocol: null,
+      protocols: {},
     }
   }
 
@@ -62,6 +66,7 @@ export default class Editor extends Component {
     AreaPlugin.zoomAt(this.editor);
     this.editor.trigger("process");
     this.initializeComponents();
+    this.setProtocol(null);  // Initialize the empty protocol
   }
 
   async initializeComponents() 
@@ -87,49 +92,74 @@ export default class Editor extends Component {
     });
   }
 
-    // editor.use(ModulePlugin.default, { engine, modules });
-    
-    // function addModule() {
-    //   modules["module" + Object.keys(modules).length + ".rete"] = {
-    //     data: initialData()
-    //   };
-    // }
-
-    // async function openModule(name) {
-    //   currentModule.data = editor.toJSON();
-    
-    //   currentModule = modules[name];
-    //   await editor.fromJSON(currentModule.data);
-    //   editor.trigger("process");
-    // }
-
-  initialData () {
+  initialGraph () {
     return { id: "demo@0.1.0", nodes: {} };
   }
 
-  newProtocol(){
-    var data = this.initialData();
-    console.log(data);
-    this.editor.fromJSON(data);
+  setProtocol(protocol){
+    if (!protocol) {
+      protocol = "New Protocol " + Object.keys(this.state.protocols).length;
+      this.state.protocols[protocol] = { name: protocol, 
+                                         graph: this.initialGraph(), 
+                                         rdf_file: null
+                                        }
+    }
+    if(this.state.currentProtocol) {
+      this.state.protocols[this.state.currentProtocol].graph = this.editor.toJSON();
+    }
+    this.state.currentProtocol = protocol;
+    this.editor.fromJSON(this.state.protocols[protocol].graph);
+    this.setState({currentProtocol: protocol});
   }
 
-  saveProtocol(){
+  async saveProtocol(){
     this.setState({showModal: true})
+
+    axios
+        .post("/protocol/", Object.values(this.state.protocols))
+        .then(function (response) { 
+          return response.data;
+        })
+        .catch(function (error) {
+          // handle error
+          console.log(error);
+          return [];
+        });
+  }
+
+  getProtocols(){
+    return Object.keys(this.state.protocols);
   }
 
   render() {
+    var protocolTabs = this.getProtocols().map((p) => {
+      return (<Tab eventKey={p} title={p}> </Tab>);
+    });
+
     return (
       <Container fluid>
       <Menu 
-        handleNewProtocol={this.newProtocol.bind(this)}
+        ref={this.menuRef}
         handleSave={this.saveProtocol.bind(this)}
+        protocolName={this.state.currentProtocol}
+        getProtocols={this.getProtocols.bind(this)}
+        setProtocol={this.setProtocol.bind(this)}
         />
-      <Row  lg={12}>
-        <Col  lg={4} className="editor-pallete">
+      <Row lg={12}>
+        <Col lg={4} className="editor-pallete">
           <div ref={this.palleteRef}/>
         </Col> 
         <Col lg={8}>
+          <Row>
+            <Tabs defaultActiveKey={this.state.currentProtocol} 
+                onSelect={(k) => {this.setProtocol(k)}}
+                className="mb-3">
+            {protocolTabs}
+            </Tabs>
+          </Row>
+          <Row>
           <div className="editor-workspace" ref={this.workspaceRef} data-toggle="tab"/>
+          </Row>
           <Modal show={this.state.showModal} onHide={() => this.setState({showModal: false})}>
             <Modal.Header closeButton>
               <Modal.Title>Saved Protocol</Modal.Title>

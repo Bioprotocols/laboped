@@ -9,7 +9,7 @@ export var floatSocket = new Rete.Socket("Float");
 
 export async function loadComponentsFromAPI() {
     let primitives = axios
-        .get("/primitives/")
+        .get("/primitive/")
         .then(function (response) { 
           return response.data;
         })

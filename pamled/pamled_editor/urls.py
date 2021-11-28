@@ -5,7 +5,8 @@ from rest_framework import routers
 from django.contrib import admin
 
 router = routers.DefaultRouter()
-router.register(r'primitives', views.PrimitiveView, 'primitive')
+router.register(r'primitive', views.PrimitiveView)
+router.register(r'protocol', views.ProtocolView)
 # router.register(r'rebuild', views.RebuildView, 'rebuild')
 urlpatterns = router.urls + [
     path("rebuild/", views.rebuild),
