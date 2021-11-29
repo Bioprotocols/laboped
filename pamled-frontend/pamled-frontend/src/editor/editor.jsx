@@ -30,6 +30,7 @@ export default class Editor extends Component {
       showModal: false,
       currentProtocol: null,
       protocols: {},
+      primitiveComponents: {}
     }
   }
 
@@ -74,10 +75,10 @@ export default class Editor extends Component {
   {
     let components = await loadComponentsFromAPI(); //[new AddComponent()];
     components = components.map((primitive) => {
-      let c = new Rete.Component(primitive.name);
-      c.builder = function(node) {
-        return node;
-      }
+      let c = new PAMLComponent(primitive);
+      // c.builder = function(node) {
+      //   return node;
+      // }
       return c;
     });
     components = components.concat([ 
@@ -86,11 +87,18 @@ export default class Editor extends Component {
       new OutputComponent(),
       new OutputFloatComponent(),
     ]) ;
-    components.map(c => {
-      this.editor.register(c);
-      this.engine.register(c);
-      return c;
-    });
+
+    components.map(c => this.addComponent(c));
+  }
+
+  addComponent(component){
+    if (Object.keys(this.state.primitiveComponents).indexOf(component.name) < 0){
+      var components = this.state.primitiveComponents;
+      components[component.name] = component;
+      this.editor.register(component);
+      this.engine.register(component);
+      this.setState({components: components});      
+      }
   }
 
   initialGraph () {
@@ -151,6 +159,19 @@ export default class Editor extends Component {
     });
   }
 
+  async rebuildPrimitives(){
+    await axios.get("/rebuild/")
+                        .then(function (response) { 
+                          return response.data;
+                        })
+                        .catch(function (error) {
+                          // handle error
+                          console.log(error);
+                          return [];
+                        });
+    this.initializeComponents()
+  }
+
   updateProtocol(protocol){
     var currentProtocols = this.state.protocols;
     currentProtocols[protocol.name] = protocol;
@@ -174,10 +195,11 @@ export default class Editor extends Component {
       <Container fluid>
       <Menu 
         ref={this.menuRef}
-        handleSave={this.saveProtocol.bind(this)}
-        protocolName={this.state.currentProtocol}
-        getProtocols={this.getProtocols.bind(this)}
-        setProtocol={this.setProtocol.bind(this)}
+        editor={this}
+        // handleSave={this.saveProtocol.bind(this)}
+        // protocolName={this.state.currentProtocol}
+        // getProtocols={this.getProtocols.bind(this)}
+        // setProtocol={this.setProtocol.bind(this)}
         />
       <Row lg={12}>
         <Col lg={2} className="editor-pallete">
@@ -200,7 +222,9 @@ export default class Editor extends Component {
             </Modal.Footer>
           </Modal>
         </Col>
-        <Col lg={2}>
+      </Row>
+      <Row>
+        <Col>
           <Row>
             <Tabs defaultActiveKey={this.state.currentProtocol} 
                 onSelect={(k) => {this.setProtocol(k)}}
