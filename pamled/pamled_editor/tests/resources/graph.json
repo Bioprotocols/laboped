@@ -1,0 +1,60 @@
+{
+    "id": "demo@0.1.0",
+    "name" : "Test_Protocol",
+    "nodes": {
+      "9": {
+        "id": 9,
+        "data": {
+            "name" : "wavelength",
+            "type" : "sbol3.OM_MEASURE",
+            "optional" : true,
+            "default" : "sbol3.Measure(600, tyto.OM.nanometer)"
+        },
+        "inputs": {},
+        "outputs": {
+          "output": {
+            "connections": [
+              {
+                "node": 17,
+                "input": "input",
+                "data": {
+                    
+                }
+              }
+            ]
+          }
+        },
+        "position": [
+          -197.984375,
+          -294
+        ],
+        "name": "Input"
+      },
+      "17": {
+        "id": 17,
+        "data": {
+            "name" : "absorbance",
+            "type" : "sbol3.OM_MEASURE",
+            "optional" : true,
+            "default" : "sbol3.Measure(600, tyto.OM.nanometer)"
+        },
+        "inputs": {
+          "input": {
+            "connections": [
+              {
+                "node": 9,
+                "output": "output",
+                "data": {}
+              }
+            ]
+          }
+        },
+        "outputs": {},
+        "position": [
+          155.171875,
+          -125
+        ],
+        "name": "Output"
+      }
+    }
+  }
