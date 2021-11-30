@@ -1,10 +1,12 @@
-import paml
+import sys
 import sbol3
-
 from io import StringIO
 
 class Protocol:
     def __init__(self, name) -> None:
+        import paml    
+        import sbol3
+
         self.doc = sbol3.Document()
         sbol3.set_namespace('https://bbn.com/scratch/')
         self.protocol: paml.Protocol = paml.Protocol(name)

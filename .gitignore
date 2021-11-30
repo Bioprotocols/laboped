@@ -2,9 +2,13 @@
 pamled/media/**/
 pamled/pamled_editor/static/**
 pamled/pamled_editor/templates/**
-.vscode/**
+**/.vscode
 pamled/db.sqlite3
 pamled/pamled_editor/client/.editorconfig
-pamled/pamled_editor/client/node_modules
-pamled/pamled_editor/client/package-lock.json
 pamled/.env
+**/node_modules
+**/package-lock.json
+**/.editorconfig
+pamled/general.log
+general.log
+pamled/pamled_editor/migrations
