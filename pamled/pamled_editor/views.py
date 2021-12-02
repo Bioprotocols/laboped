@@ -12,15 +12,24 @@ from pamled_editor.serializers import PrimitiveSerializer, ProtocolSerializer
 from django.http import HttpResponse
 from rest_framework import viewsets
 
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 def rebuild(request):
     PAMLMapping.reload_models()
     return HttpResponse(f"Rebuilt: {Primitive.objects.all()}")
 
-class PrimitiveView(viewsets.ModelViewSet):
+class PrimitiveView(APIView):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = PrimitiveSerializer
     queryset = Primitive.objects.all()
 
-class ProtocolView(viewsets.ModelViewSet):
+class ProtocolView(APIView):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = ProtocolSerializer
     queryset = Protocol.objects.all()
 

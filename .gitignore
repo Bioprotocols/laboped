@@ -12,3 +12,4 @@ pamled/.env
 pamled/general.log
 general.log
 pamled/pamled_editor/migrations
+pamled/api/migrations
