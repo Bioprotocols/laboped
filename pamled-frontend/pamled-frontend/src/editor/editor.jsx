@@ -15,7 +15,7 @@ import { Component } from "react";
 import { Row, Col, Modal, Button, Container } from "react-bootstrap";
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
-import axios from "../API";
+import axios, { axios_csrf_options } from "../API";
 
 
 export default class Editor extends Component {
@@ -147,7 +147,7 @@ export default class Editor extends Component {
   }
 
   async retreiveProtocols(){
-    var protocols = await axios.get("/protocol/", {withCredentials: true})
+    var protocols = await axios.get("/protocol/", axios_csrf_options)
                         .then(function (response) { 
                           return response.data;
                         })
@@ -156,10 +156,11 @@ export default class Editor extends Component {
                           console.log(error);
                           return [];
                         });
-    protocols.map((p) => {
-      //p.graph = JSON.parse(p.graph); // read json serialized as string
-      this.updateProtocol(p);
-    });
+    console.log(typeof protocols);
+    // protocols.map((p) => {
+    //   //p.graph = JSON.parse(p.graph); // read json serialized as string
+    //   this.updateProtocol(p);
+    // });
   }
 
   async rebuildPrimitives(){

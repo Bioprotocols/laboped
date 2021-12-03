@@ -1,4 +1,4 @@
-from django.http.response import ResponseHeaders
+from django.http.response import JsonResponse, ResponseHeaders
 from django.shortcuts import render
 from django.core.files.base import ContentFile
 from pamled_editor.models import Primitive
@@ -15,19 +15,19 @@ from rest_framework import viewsets
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework import generics
 
 def rebuild(request):
     PAMLMapping.reload_models()
     return HttpResponse(f"Rebuilt: {Primitive.objects.all()}")
 
-class PrimitiveView(APIView):
+class PrimitiveView(generics.ListAPIView):
     authentication_classes = [SessionAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = PrimitiveSerializer
     queryset = Primitive.objects.all()
 
-class ProtocolView(APIView):
+class ProtocolView(generics.ListCreateAPIView):
     authentication_classes = [SessionAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = ProtocolSerializer
