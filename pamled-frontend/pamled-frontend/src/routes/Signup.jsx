@@ -1,29 +1,21 @@
 import React from "react";
 import { withRouter } from "../utils";
+import LoginStatus from '../login/LoginStatus';
 
 class Signup extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      csrf: "",
-      email: "",
-      password: "",
-      passwordConfirm: "",
-      error: "",
-      isAuthenticated: false,
+      isAuthenticated: null,
     };
 
-    this.getCSRF = this.getCSRF.bind(this);
-    this.getSession = this.getSession.bind(this);
     this.signup = this.signup.bind(this);
     this.handlePasswordChange = this.handlePasswordChange.bind(this);
     this.handlePasswordConfirmChange = this.handlePasswordConfirmChange.bind(this);
     this.handleEmailChange = this.handleEmailChange.bind(this);
-    this.isResponseOk = this.isResponseOk.bind(this);
-  }
+    this.onAuthenticationChanged = this.onAuthenticationChanged.bind(this);
 
-  componentDidMount() {
-    this.getSession();
+    this.loginStatus = React.createRef();
   }
   
   handlePasswordChange(event) {
@@ -38,45 +30,11 @@ class Signup extends React.Component {
     this.setState({email: event.target.value});
   }
 
-  isResponseOk(response) {
-    if (response.status >= 200 && response.status <= 299) {
-      return response.json();
-    } else {
-      throw Error(response.statusText);
+  onAuthenticationChanged(isAuthenticated) {
+    this.setState({ isAuthenticated: isAuthenticated });
+    if (isAuthenticated) {
+      this.props.navigate("/login");
     }
-  }
-
-  getCSRF() {
-    fetch("/api/csrf/", {
-      credentials: "same-origin",
-    })
-      .then((res) => {
-        let csrfToken = res.headers.get("X-CSRFToken");
-        this.setState({ csrf: csrfToken });
-        console.log(csrfToken);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }
-
-  getSession() {
-    fetch("/api/session/", {
-      credentials: "same-origin",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.isAuthenticated) {
-          this.setState({ isAuthenticated: true });
-          this.props.navigate("/login");
-        } else {
-          this.setState({ isAuthenticated: false });
-          this.getCSRF();
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
   }
 
   signup(event) {
@@ -86,56 +44,55 @@ class Signup extends React.Component {
       this.setState({ error: "Password does not match." });
       return;
     }
-    fetch("/api/signup/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": this.state.csrf,
+    this.loginStatus.current.signup(this.state.email, this.state.password,
+      () => {
+        console.log("Logged in as: ", this.state.email);
       },
-      credentials: "same-origin",
-      body: JSON.stringify({ email: this.state.email, password: password }),
-    })
-      .then(this.isResponseOk)
-      .then((_) => {
-        this.setState({ isAuthenticated: true, email: "", password: "", error: "" });
-      })
-      .catch((err) => {
-        this.setState({ error: "Wrong email or password." });
+      () => {
+        this.setState({ error: "Failed to signup" });
       });
   }
 
-  render() {
-    if (!this.state.isAuthenticated) {
-      return (
-        <div className="container mt-3">
-          <h1>Signup</h1>
-          <br />
-          <form onSubmit={this.signup}>
-            <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <input type="text" className="form-control" id="email" name="email" value={this.state.email} onChange={this.handleEmailChange} />
-            </div>
-            <div className="form-group">
-              <label htmlFor="email">Password</label>
-              <input type="password" className="form-control" id="password" name="password" value={this.state.password} onChange={this.handlePasswordChange} />
-              <label htmlFor="password">Confirm Password</label>
-              <input type="password" className="form-control" id="password-confirm" name="password-confiem" value={this.state.passwordConfirm} onChange={this.handlePasswordConfirmChange} />
-              <div>
-                {this.state.error &&
-                  <small className="text-danger">
-                    {this.state.error}
-                  </small>
-                }
-              </div>
-            </div>
-            <button type="submit" className="btn btn-primary">Login</button>
-          </form>
-        </div>
-      );
+  renderSignup() {
+    if (this.state.isAuthenticated === null || this.state.isAuthenticated) {
+      return (null);
     }
     return (
       <div className="container mt-3">
-        <h1>Loading...</h1>
+        <h1>PAML Editor</h1>
+        <br />
+        <h2>Sign Up</h2>
+        <form onSubmit={this.signup}>
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input type="text" className="form-control" id="email" name="email" value={this.state.email} onChange={this.handleEmailChange} />
+          </div>
+          <div className="form-group">
+            <label htmlFor="email">Password</label>
+            <input type="password" className="form-control" id="password" name="password" value={this.state.password} onChange={this.handlePasswordChange} />
+            <label htmlFor="password">Confirm Password</label>
+            <input type="password" className="form-control" id="password-confirm" name="password-confiem" value={this.state.passwordConfirm} onChange={this.handlePasswordConfirmChange} />
+            <div>
+              {this.state.error &&
+                <small className="text-danger">
+                  {this.state.error}
+                </small>
+              }
+            </div>
+          </div>
+          <br />
+          <button type="submit" className="btn btn-primary">Sign up</button>
+          <button type="button" className="btn btn-link" onClick={() => this.props.navigate("/login")}>Login</button>
+        </form>
+      </div>
+    );
+  }
+
+  render() {
+    return (
+      <div className="container mt-3">
+        <LoginStatus ref={this.loginStatus} onAuthenticationChanged={this.onAuthenticationChanged} />
+        {this.renderSignup()}
       </div>
     )
   }

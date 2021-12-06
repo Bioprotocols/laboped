@@ -3,29 +3,29 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {
   BrowserRouter,
+  Navigate,
   Route,
   Routes,
 } from "react-router-dom";
 //import './index.css';
 import App from './App';
-import Login from "./routes/Login"
-import Signup from "./routes/Signup"
+import { Login, Signup, Editor } from "./routes"
 import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<App />} />
+        <Route
+          path="/"
+          element={<Navigate to="/login" />}
+        />
+        <Route path="/editor" element={<Editor />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route
           path="*"
-          element={
-            <main style={{ padding: "1rem" }}>
-              <p>There's nothing here!</p>
-            </main>
-          }
+          element={<Navigate to="/login" />}
         />
       </Routes>
     </BrowserRouter>
