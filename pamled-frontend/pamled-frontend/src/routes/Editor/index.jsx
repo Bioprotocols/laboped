@@ -1,7 +1,9 @@
 import React from "react";
-import { withRouter } from "../utils";
-import LoginStatus from '../login/LoginStatus';
-import { default as Workspace } from "../editor/editor";
+import { withRouter } from "../../utils";
+import LoginStatus from '../../login/LoginStatus';
+import { default as Workspace } from "../../editor/editor";
+import { Col, Container, Row } from "react-bootstrap";
+import "./Editor.css"
 
 class Editor extends React.Component {
     constructor(props) {
@@ -37,10 +39,10 @@ class Editor extends React.Component {
 
     render() {
         return (
-            <div className="container mt-3">
+            <Container className="p-0 editor-route" fluid={true}>
                 <LoginStatus ref={this.loginStatus} onAuthenticationChanged={this.onAuthenticationChanged} />
                 {this.renderEditor()}
-            </div>
+            </Container>
         )
     }
 }
