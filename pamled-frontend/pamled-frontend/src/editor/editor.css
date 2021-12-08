@@ -1,0 +1,37 @@
+.editor-container {
+    height: 100%;
+    background-color: white;
+    padding: 0;
+}
+
+.editor {
+    height: calc(100% - 40px);
+    padding: 0px 10px;
+}
+
+.editor-pallete-column
+{
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: 100%;
+}
+
+.editor-workspace-column {
+    overflow: hidden;
+    height: 100%;
+    padding: 0;
+}
+
+.editor-inspector-column {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    border: 1px solid black;
+    height: 100%;
+}
+
+.editor-workspace-background {
+    z-index: -2;
+    background-color: gainsboro;
+    background-size: 40px 40px;
+    background-image: radial-gradient(circle, #000000 2px, rgba(0, 0, 0, 0) 1px);
+}

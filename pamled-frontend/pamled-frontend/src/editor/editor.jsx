@@ -16,6 +16,7 @@ import { Row, Col, Modal, Button, Container } from "react-bootstrap";
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
 import axios, { axios_csrf_options } from "../API";
+import "./editor.css"
 
 
 export default class Editor extends Component {
@@ -24,7 +25,7 @@ export default class Editor extends Component {
     this.palleteRef = React.createRef();
     this.workspaceRef = React.createRef();
     this.menuRef = React.createRef();
-    
+
     this.editor = {};
     this.state = {
       showModal: false,
@@ -47,16 +48,21 @@ export default class Editor extends Component {
     });
     this.editor.use(ReactRenderPlugin
       , {
-      component: MyNode
-    }
+        component: MyNode
+      }
     );
     this.editor.use(ContextMenuPlugin);
     this.engine = new Rete.Engine("demo@0.1.0");
 
     this.editor.on("process nodecreated noderemoved connectioncreated connectionremoved", this.processHandler);
 
-    
+
     this.editor.view.resize();
+
+    const background = document.createElement('div');
+    background.classList = 'editor-workspace-background';
+    this.editor.use(AreaPlugin, { background });
+
     AreaPlugin.zoomAt(this.editor);
     this.editor.trigger("process");
     this.initializeComponents();
@@ -74,8 +80,7 @@ export default class Editor extends Component {
     await this.engine.process(this.editor.toJSON());
   }
 
-  async initializeComponents() 
-  {
+  async initializeComponents() {
     let components = await loadComponentsFromAPI(); //[new AddComponent()];
     components = components.map((primitive) => {
       let c = new PAMLComponent(primitive);
@@ -84,78 +89,79 @@ export default class Editor extends Component {
       // }
       return c;
     });
-    components = components.concat([ 
+    components = components.concat([
       new InputComponent(),
       new ModuleComponent(),
       new OutputComponent(),
       new OutputFloatComponent(),
-    ]) ;
+    ]);
 
     components.map(c => this.addComponent(c));
   }
 
-  addComponent(component){
-    if (Object.keys(this.state.primitiveComponents).indexOf(component.name) < 0){
+  addComponent(component) {
+    if (Object.keys(this.state.primitiveComponents).indexOf(component.name) < 0) {
       var components = this.state.primitiveComponents;
       components[component.name] = component;
       this.editor.register(component);
       this.engine.register(component);
-      this.setState({components: components});      
-      }
+      this.setState({ components: components });
+    }
   }
 
-  initialGraph () {
+  initialGraph() {
     return { id: "demo@0.1.0", nodes: {} };
   }
 
-  setProtocol(protocol){
-    
-      // Create a new protocol if none specified
+  setProtocol(protocol) {
+
+    // Create a new protocol if none specified
     if (!protocol) {
       protocol = "New Protocol " + Object.keys(this.state.protocols).length;
-      this.state.protocols[protocol] = { name: protocol, 
-                                         graph: this.initialGraph(), 
-                                         rdf_file: null
-                                        }
+      this.state.protocols[protocol] = {
+        name: protocol,
+        graph: this.initialGraph(),
+        rdf_file: null
+      }
     }
 
     // If there is a current protocol, then save its graph as JSON.
-    if(this.state.currentProtocol) {
+    if (this.state.currentProtocol) {
       this.state.protocols[this.state.currentProtocol].graph = this.editor.toJSON();
-      this.setState({protocols: this.state.protocols})
+      this.setState({ protocols: this.state.protocols })
     }
 
     // Update the current protocol, load graph, and update state.
     this.state.currentProtocol = protocol;
     this.editor.fromJSON(this.state.protocols[protocol].graph);
-    this.setState({currentProtocol: protocol});
+    this.setState({ currentProtocol: protocol });
   }
 
-  async saveProtocol(){
-    this.setState({showModal: true})
+  async saveProtocol() {
+    this.setState({ showModal: true })
 
     axios
-        .post("/protocol/", Object.values(this.state.protocols))
-        .then(function (response) { 
-          return response.data;
-        })
-        .catch(function (error) {
-          // handle error
-          console.log(error);
-          return [];
-        });
+      .post("/protocol/", Object.values(this.state.protocols))
+      .then(function (response) {
+        return response.data;
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+        return [];
+      });
   }
 
-  async retreiveProtocols(){
+  async retreiveProtocols() {
     var protocols = await axios.get("/protocol/", axios_csrf_options)
-                        .then(function (response) { 
-                          return response.data;
-                        })
-                        .catch(function (error) {
-                          // handle error
-                          console.log(error);
-                          return [];
-                        });
+      .then(function (response) {
+        return response.data;
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+        return [];
+      });
     console.log(typeof protocols);
     // protocols.map((p) => {
     //   //p.graph = JSON.parse(p.graph); // read json serialized as string
@@ -163,81 +169,76 @@ export default class Editor extends Component {
     // });
   }
 
-  async rebuildPrimitives(){
+  async rebuildPrimitives() {
     await axios.get("/rebuild/")
-                        .then(function (response) { 
-                          return response.data;
-                        })
-                        .catch(function (error) {
-                          // handle error
-                          console.log(error);
-                          return [];
-                        });
+      .then(function (response) {
+        return response.data;
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+        return [];
+      });
     this.initializeComponents()
   }
 
-  updateProtocol(protocol){
+  updateProtocol(protocol) {
     var currentProtocols = this.state.protocols;
     currentProtocols[protocol.name] = protocol;
-    this.setState({protocols: currentProtocols});  
+    this.setState({ protocols: currentProtocols });
   }
 
 
-  getProtocols(){
+  getProtocols() {
     return Object.keys(this.state.protocols);
   }
 
   render() {
     var protocolTabs = this.getProtocols().map((p) => {
       return (
-        <Tab eventKey={p} title={p}> 
-          <div><pre>{JSON.stringify(this.state.protocols[p].graph, null, 2) }</pre></div>
+        <Tab eventKey={p} title={p}>
+          <div><pre>{JSON.stringify(this.state.protocols[p].graph, null, 2)}</pre></div>
         </Tab>);
     });
 
     return (
-      <Container fluid>
-      <Menu 
-        ref={this.menuRef}
-        editor={this}
+      <Container className="editor-container border border-secondary" fluid={true}>
+        <Menu
+          ref={this.menuRef}
+          editor={this}
         // handleSave={this.saveProtocol.bind(this)}
         // protocolName={this.state.currentProtocol}
         // getProtocols={this.getProtocols.bind(this)}
         // setProtocol={this.setProtocol.bind(this)}
         />
-      <Row lg={12}>
-        <Col lg={2} className="editor-pallete">
-          <div ref={this.palleteRef}/>
-        </Col> 
-        
-        <Col lg={8}>
-          <Row>
-          <div className="editor-workspace" ref={this.workspaceRef} data-toggle="tab"/>
-          </Row>
-          <Modal show={this.state.showModal} onHide={() => this.setState({showModal: false})}>
-            <Modal.Header closeButton>
-              <Modal.Title>Saved Protocol</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>Saved!</Modal.Body>
-            <Modal.Footer>
-              <Button variant="primary" onClick={() => this.setState({showModal: false})}>
-                Close
-              </Button>
-            </Modal.Footer>
-          </Modal>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <Row>
-            <Tabs defaultActiveKey={this.state.currentProtocol} 
-                onSelect={(k) => {this.setProtocol(k)}}
+        <Row className="editor" xs={12} sm={12}>
+          <Col xs={2} sm={2} className="editor-pallete-column">
+            <div ref={this.palleteRef} />
+          </Col>
+          <Col xs={8} sm={8} className="editor-workspace-column">
+            <div className="editor-workspace" ref={this.workspaceRef} data-toggle="tab" />
+            <Modal show={this.state.showModal} onHide={() => this.setState({ showModal: false })}>
+              <Modal.Header closeButton>
+                <Modal.Title>Saved Protocol</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>Saved!</Modal.Body>
+              <Modal.Footer>
+                <Button variant="primary" onClick={() => this.setState({ showModal: false })}>
+                  Close
+                </Button>
+              </Modal.Footer>
+            </Modal>
+          </Col>
+          <Col xs={2} sm={2} className="editor-inspector-column">
+            <Row>
+              <Tabs defaultActiveKey={this.state.currentProtocol}
+                onSelect={(k) => { this.setProtocol(k) }}
                 className="mb-3">
-            {protocolTabs}
-            </Tabs>
-          </Row>
-        </Col>
-      </Row>
+                {protocolTabs}
+              </Tabs>
+            </Row>
+          </Col>
+        </Row>
       </Container>
     );
   }
