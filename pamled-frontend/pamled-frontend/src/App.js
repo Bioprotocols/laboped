@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import Editor from "./editor/editor";
 
 // import { Palette } from "./editor/palette";
@@ -17,6 +16,3 @@ export  default function App() {
     </div>
   );
 }
-
-const rootElement = document.getElementById("root");
-ReactDOM.render(<App />, rootElement);

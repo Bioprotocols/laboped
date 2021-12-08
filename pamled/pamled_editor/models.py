@@ -133,7 +133,7 @@ class PAMLMapping():
 
         
     def reload_models():
-        paml = PAMLMapping._load_paml()
+        paml, _ = PAMLMapping._load_paml()
         for l, lib_doc in paml.loaded_libraries.items():
             for p in lib_doc.objects:
                 PAMLMapping._initialize_primitive(p, l)

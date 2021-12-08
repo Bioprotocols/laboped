@@ -1,6 +1,6 @@
 import Rete from "rete";
 import { MyControl } from "./Control";
-import axios from "../../API";
+import axios, { axios_csrf_options } from "../../API";
 
 
 export var numSocket = new Rete.Socket("Number value");
@@ -9,7 +9,7 @@ export var floatSocket = new Rete.Socket("Float");
 
 export async function loadComponentsFromAPI() {
     let primitives = axios
-        .get("/primitive/")
+        .get("/primitive/", axios_csrf_options)
         .then(function (response) { 
           return response.data;
         })

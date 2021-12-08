@@ -8,14 +8,14 @@ import AreaPlugin from "rete-area-plugin";
 import { MyNode } from "./components/Node";
 import { loadComponentsFromAPI, PAMLComponent } from "./components/Primitive";
 import { ModuleComponent, InputComponent, OutputComponent, OutputFloatComponent } from "./components/Control";
-import Menu from "./Menu";
+import Menu from "./menu";
 
 import React from "react";
 import { Component } from "react";
 import { Row, Col, Modal, Button, Container } from "react-bootstrap";
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
-import axios from "../API";
+import axios, { axios_csrf_options } from "../API";
 
 
 export default class Editor extends Component {
@@ -32,6 +32,8 @@ export default class Editor extends Component {
       protocols: {},
       primitiveComponents: {}
     }
+
+    this.processHandler = this.processHandler.bind(this);
   }
 
   componentDidMount() {
@@ -49,18 +51,9 @@ export default class Editor extends Component {
     }
     );
     this.editor.use(ContextMenuPlugin);
-
     this.engine = new Rete.Engine("demo@0.1.0");
 
-   
-    this.editor.on(
-      "process nodecreated noderemoved connectioncreated connectionremoved",
-      async () => {
-        console.log("process");
-        await this.engine.abort();
-        await this.engine.process(this.editor.toJSON());
-      }
-    );
+    this.editor.on("process nodecreated noderemoved connectioncreated connectionremoved", this.processHandler);
 
     
     this.editor.view.resize();
@@ -69,6 +62,16 @@ export default class Editor extends Component {
     this.initializeComponents();
     this.retreiveProtocols();
     //this.setProtocol(null);  // Initialize the empty protocol
+  }
+
+  componentWillUnmount() {
+    this.editor.destroy();
+  }
+
+  async processHandler() {
+    console.log("process");
+    await this.engine.abort();
+    await this.engine.process(this.editor.toJSON());
   }
 
   async initializeComponents() 
@@ -144,7 +147,7 @@ export default class Editor extends Component {
   }
 
   async retreiveProtocols(){
-    var protocols = await axios.get("/protocol/")
+    var protocols = await axios.get("/protocol/", axios_csrf_options)
                         .then(function (response) { 
                           return response.data;
                         })
@@ -153,10 +156,11 @@ export default class Editor extends Component {
                           console.log(error);
                           return [];
                         });
-    protocols.map((p) => {
-      //p.graph = JSON.parse(p.graph); // read json serialized as string
-      this.updateProtocol(p);
-    });
+    console.log(typeof protocols);
+    // protocols.map((p) => {
+    //   //p.graph = JSON.parse(p.graph); // read json serialized as string
+    //   this.updateProtocol(p);
+    // });
   }
 
   async rebuildPrimitives(){

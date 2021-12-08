@@ -4,6 +4,7 @@ import Navbar from "react-bootstrap/Navbar";
 import Nav from "react-bootstrap/Nav";
 import Container from "react-bootstrap/Container";
 import NavDropdown from 'react-bootstrap/NavDropdown';
+import { Button } from 'react-bootstrap';
 
 export default class Menu extends Component {
   constructor(props){
@@ -33,6 +34,14 @@ export default class Menu extends Component {
               <Nav className="me-auto">
                 <NavDropdown title="Tools" id="basic-nav-dropdown">
                 <NavDropdown.Item href="#" onClick={() => this.editor.rebuildPrimitives()}>Rebuild Primitives</NavDropdown.Item>
+                </NavDropdown>        
+              </Nav>
+            </Navbar.Collapse>
+            <Navbar.Collapse id="basic-navbar-nav">
+              <Nav className="me-auto">
+                <NavDropdown title="Account" id="basic-nav-dropdown">
+                <NavDropdown.Header>Signed in as {this.editor.props.currentUser.email}</NavDropdown.Header>
+                <NavDropdown.Item href="#" onClick={this.editor.props.onLogout}>Logout</NavDropdown.Item>
                 </NavDropdown>        
               </Nav>
             </Navbar.Collapse>
