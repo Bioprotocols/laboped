@@ -202,7 +202,7 @@ export default class Editor extends Component {
     });
 
     return (
-      <Container className="editor-container border border-secondary" fluid={true}>
+      <Container className="editor-container" fluid={true}>
         <Menu
           ref={this.menuRef}
           editor={this}
@@ -213,7 +213,7 @@ export default class Editor extends Component {
         />
         <Row className="editor" xs={12} sm={12}>
           <Col xs={2} sm={2} className="editor-pallete-column">
-            <div ref={this.palleteRef} />
+            <div className="editor-pallete" ref={this.palleteRef} />
           </Col>
           <Col xs={8} sm={8} className="editor-workspace-column">
             <div className="editor-workspace" ref={this.workspaceRef} data-toggle="tab" />

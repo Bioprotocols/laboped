@@ -6,7 +6,8 @@
 
 .editor {
     height: calc(100% - 40px);
-    padding: 0px 10px;
+    width: 100%;
+    margin: 0px;
 }
 
 .editor-pallete-column
@@ -14,6 +15,10 @@
     overflow-y: scroll;
     overflow-x: hidden;
     height: 100%;
+}
+
+.editor-pallete {
+    padding-left: 10px;
 }
 
 .editor-workspace-column {
