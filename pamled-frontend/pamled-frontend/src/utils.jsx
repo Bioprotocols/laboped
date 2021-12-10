@@ -32,14 +32,27 @@ export function querySession(dataHandler, errorHandler) {
 }
 
 export function queryCSRF(dataHandler, errorHandler) {
-  axios.get("/api/csrf/")
-    .then(function (response) {
-      let csrfToken = response.headers["x-csrftoken"];
-      dataHandler(csrfToken);
-    })
-    .catch(function (error) {
-      handleError(error, errorHandler);
-    });
+  fetch("http://localhost:8000/api/csrf/", {
+    credentials: "same-origin",
+  })
+  .then((res) => {
+    let csrfToken = res.headers.get("X-CSRFToken");
+    dataHandler(csrfToken);
+  })
+  .catch((error) => {
+    handleError(error, errorHandler);
+  });
+  // axios.get("/api/csrf/", {
+  //   xsrfCookieName: 'csrftoken',
+  //   xsrfHeaderName: 'X-CSRFToken',
+  // })
+  //   .then(function (response) {
+  //     let csrfToken = response.headers["X-CSRFToken"];
+  //     dataHandler(csrfToken);
+  //   })
+  //   .catch(function (error) {
+  //     handleError(error, errorHandler);
+  //   });
 }
 
 export function queryLoginStatus(dataHandler, errorHandler) {

@@ -6,7 +6,7 @@
     ],
     "settings": {
         "python.envFile": "${workspaceFolder}/.env",
-        "python.pythonPath": "${workspaceFolder}/env/bin/python",
+        "python.pythonPath": "${workspaceFolder}/../paml/env/bin/python",
         "python.terminal.activateEnvironment": false
     },
     "launch": {
