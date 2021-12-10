@@ -118,21 +118,23 @@ export default class Editor extends Component {
     // Create a new protocol if none specified
     if (!protocol) {
       protocol = "New Protocol " + Object.keys(this.state.protocols).length;
-      this.state.protocols[protocol] = {
-        name: protocol,
-        graph: this.initialGraph(),
-        rdf_file: null
-      }
+      let protocols = this.state.protocols;
+      protocols[protocol] = { name: protocol, 
+                              graph: this.initialGraph(), 
+                              rdf_file: null
+                            };
+      this.setState({protocols: protocols});
     }
 
     // If there is a current protocol, then save its graph as JSON.
-    if (this.state.currentProtocol) {
-      this.state.protocols[this.state.currentProtocol].graph = this.editor.toJSON();
-      this.setState({ protocols: this.state.protocols })
+    if(this.state.currentProtocol) {
+      let protocols = this.state.protocols
+      protocols[this.state.currentProtocol].graph = this.editor.toJSON();
+      this.setState({protocols: protocols})
     }
 
     // Update the current protocol, load graph, and update state.
-    this.state.currentProtocol = protocol;
+    
     this.editor.fromJSON(this.state.protocols[protocol].graph);
     this.setState({ currentProtocol: protocol });
   }
