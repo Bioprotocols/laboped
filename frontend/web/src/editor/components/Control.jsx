@@ -75,10 +75,9 @@ export class InputComponent extends Rete.Component {
 
   builder(node) {
     var out1 = new Rete.Output("output", "Input", numSocket);
-    var ctrl = new TextControl(this.editor, "name");
+    // var ctrl = new TextControl(this.editor, "name");
 
-    return node.//addControl(ctrl).
-    addOutput(out1);
+    return node.addOutput(out1);//addControl(ctrl).
   }
 }
 

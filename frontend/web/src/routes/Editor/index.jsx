@@ -2,7 +2,7 @@ import React from "react";
 import { withRouter } from "../../utils";
 import LoginStatus from '../../login/LoginStatus';
 import { default as Workspace } from "../../editor/editor";
-import { Col, Container, Row } from "react-bootstrap";
+import { Container } from "react-bootstrap";
 import "./Editor.css"
 
 class Editor extends React.Component {

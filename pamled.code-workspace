@@ -5,9 +5,10 @@
         }
     ],
     "settings": {
-        "python.envFile": "${workspaceFolder}/.env",
-        "python.pythonPath": "${workspaceFolder}/../paml/env/bin/python",
-        "python.terminal.activateEnvironment": false
+        "python.pipenvPath": "pipenv",
+        "python.terminal.activateEnvironment": false,
+        "python.linting.pylintEnabled": true,
+        "files.trimTrailingWhitespace": true
     },
     "launch": {
         "version": "0.2.0",
@@ -16,7 +17,7 @@
                 "name": "Django",
                 "type": "python",
                 "request": "launch",
-                "program": "${workspaceFolder}/pamled/manage.py",
+                "program": "${workspaceFolder}/backend/manage.py",
                 "args": [
                     "runserver"
                 ],
@@ -26,7 +27,7 @@
                 "name": "React",
                 "type": "node",
                 "request": "launch",
-                "cwd": "${workspaceRoot}/pamled-frontend/pamled-frontend",
+                "cwd": "${workspaceRoot}/frontend/web",
                 "runtimeExecutable": "npm",
                 "runtimeArgs": ["run", "start"],
                 "env": {
@@ -38,14 +39,14 @@
                 "type": "firefox",
                 "request": "launch",
                 "url": "http://localhost:3000",
-                "webRoot": "${workspaceRoot}/pamled-frontend/pamled-frontend/src"
+                "webRoot": "${workspaceRoot}/frontend/web/src"
             },
             {
                 "name": "Chrome",
                 "type": "chrome",
                 "request": "launch",
                 "url": "http://localhost:3000",
-                "webRoot": "${workspaceRoot}/pamled-frontend/pamled-frontend/src"
+                "webRoot": "${workspaceRoot}/frontend/web/src"
             }
         ],
         "compounds": [
@@ -73,9 +74,11 @@
             {
                 "label": "Make Migrations",
                 "type": "process",
-                "command": "${config:python.pythonPath}",
+                "command": "${config:python.pipenvPath}",
                 "args": [
-                    "${workspaceFolder}/pamled/manage.py",
+                    "run",
+                    "python",
+                    "${workspaceFolder}/backend/manage.py",
                     "makemigrations",
                     "pamled_editor",
                     "api",
@@ -93,9 +96,11 @@
             {
                 "label": "Migrate",
                 "type": "process",
-                "command": "${config:python.pythonPath}",
+                "command": "${config:python.pipenvPath}",
                 "args": [
-                    "${workspaceFolder}/pamled/manage.py",
+                    "run",
+                    "python",
+                    "${workspaceFolder}/backend/manage.py",
                     "migrate",
                 ],
                 "presentation": {
@@ -111,9 +116,11 @@
             {
                 "label": "Create SuperUser",
                 "type": "process",
-                "command": "${config:python.pythonPath}",
+                "command": "${config:python.pipenvPath}",
                 "args": [
-                    "${workspaceFolder}/pamled/manage.py",
+                    "run",
+                    "python",
+                    "${workspaceFolder}/backend/manage.py",
                     "createsuperuser",
                 ],
                 "presentation": {
@@ -131,9 +138,9 @@
                 "type": "process",
                 "command": "${workspaceFolder}/scripts/clean-all.sh",
                 "args": [
-                    "${workspaceFolder}/pamled/db.sqlite3",
-                    "${workspaceFolder}/pamled_editor/migrations",
-                    "${workspaceFolder}/api/migrations",
+                    "${workspaceFolder}/backend/db.sqlite3",
+                    "${workspaceFolder}/backend/pamled_editor/migrations",
+                    "${workspaceFolder}/backend/api/migrations",
                 ],
                 "presentation": {
                     "echo": true,

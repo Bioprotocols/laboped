@@ -1,0 +1,25 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[dev-packages]
+pylint = "*"
+
+[packages]
+setuptools = "<=57.5.0"
+pyparsing = "==2.4.7"
+pyshacl = "==0.14.0"
+rdflib = "==5.0.0"
+rdflib-jsonld = "==0.5.0"
+sbol3 = "==1.0b5"
+sbol-factory = "==1.0a6"
+tyto = "==1.0a5"
+pamled-frontend = {editable = true, path = "./frontend"}
+pamled-backend = {editable = true, path = "./backend"}
+
+[requires]
+python_version = "3.9"
+
+[pipenv]
+allow_prereleases = true

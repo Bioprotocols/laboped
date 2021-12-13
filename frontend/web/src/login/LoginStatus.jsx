@@ -1,6 +1,6 @@
 import React from "react";
 import { querySession, queryCSRF, queryLoginStatus } from "../utils";
-import axios, { axios_csrf_options } from "../API";
+import axios from "../API";
 
 export default class LoginStatus extends React.Component {
     constructor(props) {

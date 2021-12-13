@@ -11,7 +11,7 @@ from .models import User
 
 def get_csrf(request):
     response = JsonResponse({'detail': 'CSRF cookie set'})
-    response['X-CSRFToken'] = get_token(request)
+    response.headers['x-csrftoken'] = get_token(request)
     return response
 
 @require_POST

@@ -3,7 +3,7 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import axios, { axios_csrf_options } from "./API";
+import axios from "./API";
 
 export function withRouter(Component) {
   return (props) => {
