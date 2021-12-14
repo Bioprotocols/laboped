@@ -26,9 +26,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = [ 'localhost', '127.0.0.1' ]
+ALLOWED_HOSTS = [ 'localhost', '127.0.0.1', 'pamled-nginx' ]
 
 AUTH_USER_MODEL = 'api.User'
 
@@ -163,37 +163,39 @@ CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = (
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'http://pamled-nginx:80',
 )
 CSRF_TRUSTED_ORIGINS = [
     'localhost:3000',
     '127.0.0.1:3000'
+    'pamled-nginx:80',
 ]
 
-# LOGGING = {
-#     'version': 1,                       # the dictConfig format version
-#     'disable_existing_loggers': False,  # retain the default loggers
-#     'handlers': {
-#         'file': {
-#             'class': 'logging.FileHandler',
-#             'filename': 'general.log',
-#             'level': 'DEBUG',
-#             'formatter': 'verbose',
-#         },
-#     },
-#     'loggers': {
-#         '': {
-#             'level': 'DEBUG',
-#             'handlers': ['file'],
-#         },
-#     },
-#     'formatters': {
-#         'verbose': {
-#             'format': '{name} {levelname} {asctime} {module} {process:d} {thread:d} {message}',
-#             'style': '{',
-#         },
-#         'simple': {
-#             'format': '{levelname} {message}',
-#             'style': '{',
-#         },
-#     },
-# }
+LOGGING = {
+    'version': 1,                       # the dictConfig format version
+    'disable_existing_loggers': False,  # retain the default loggers
+    'handlers': {
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'general.log',
+            'level': 'DEBUG',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        '': {
+            'level': 'DEBUG',
+            'handlers': ['file'],
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '{name} {levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+}
