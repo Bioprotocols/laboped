@@ -22,19 +22,15 @@ class Primitive(models.Model):
     
 
 class Pin(models.Model):
-    name = models.CharField(max_length=100, primary_key=True)
+    name = models.CharField(max_length=100)
     type = models.CharField(max_length=100)
     units = models.CharField(max_length=100)
 
 
 class PrimitiveInput(Pin):
-    pass
-    #input = models.ForeignKey(Parameter, related_name='input_parameter', on_delete=models.CASCADE)
     primitive = models.ForeignKey(Primitive, related_name='inputs', on_delete=models.CASCADE)
 
 class PrimitiveOutput(Pin):
-    pass
-    # output = models.ForeignKey(Parameter, related_name='output_parameter', on_delete=models.CASCADE)
     primitive = models.ForeignKey(Primitive, related_name='outputs', on_delete=models.CASCADE)
 
 class PAMLMappingException(Exception):
