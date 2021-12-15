@@ -26,9 +26,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = [ 'localhost', '127.0.0.1', 'pamled-nginx' ]
+ALLOWED_HOSTS = [ 'localhost', '127.0.0.1' ]
 
 AUTH_USER_MODEL = 'api.User'
 
@@ -160,15 +160,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = (
+CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://pamled-nginx:80',
-)
+    'http://127.0.0.1:3000'
+]
 CSRF_TRUSTED_ORIGINS = [
     'localhost:3000',
     '127.0.0.1:3000'
-    'pamled-nginx:80',
 ]
 
 LOGGING = {
