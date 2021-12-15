@@ -12,7 +12,7 @@ import Menu from "./menu";
 
 import React from "react";
 import { Component } from "react";
-import { Row, Col, Modal, Button, Container } from "react-bootstrap";
+import { Row, Col, Modal, Button, Container, Navbar } from "react-bootstrap";
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
 import axios, { axios_csrf_options } from "../API";
@@ -31,7 +31,8 @@ export default class Editor extends Component {
       showModal: false,
       currentProtocol: null,
       protocols: {},
-      primitiveComponents: {}
+      primitiveComponents: {},
+      portTypes: {}
     }
 
     this.processHandler = this.processHandler.bind(this);
@@ -80,10 +81,20 @@ export default class Editor extends Component {
     await this.engine.process(this.editor.toJSON());
   }
 
+  getPortTypeSocket(portType){
+    // Return one socket unique to each type
+    let portTypes = this.state.portTypes;
+    if (Object.keys(portTypes).indexOf(portType) < 0) {
+      portTypes[portType] = new Rete.Socket(portType);
+      this.setState({portTypes: portTypes});
+    }
+    return portTypes[portType];
+  }
+  
   async initializeComponents() {
     let components = await loadComponentsFromAPI(); //[new AddComponent()];
     components = components.map((primitive) => {
-      let c = new PAMLComponent(primitive);
+      let c = new PAMLComponent(this.getPortTypeSocket.bind(this), primitive);
       // c.builder = function(node) {
       //   return node;
       // }
@@ -118,30 +129,39 @@ export default class Editor extends Component {
     // Create a new protocol if none specified
     if (!protocol) {
       protocol = "New Protocol " + Object.keys(this.state.protocols).length;
-      this.state.protocols[protocol] = {
-        name: protocol,
-        graph: this.initialGraph(),
-        rdf_file: null
-      }
+      let protocols = this.state.protocols;
+      protocols[protocol] = { name: protocol, 
+                              graph: this.initialGraph(), 
+                              rdf_file: null
+                            };
+      this.setState({protocols: protocols});
     }
 
-    // If there is a current protocol, then save its graph as JSON.
-    if (this.state.currentProtocol) {
-      this.state.protocols[this.state.currentProtocol].graph = this.editor.toJSON();
-      this.setState({ protocols: this.state.protocols })
-    }
+    this.saveProtocolGraphInState();
 
     // Update the current protocol, load graph, and update state.
-    this.state.currentProtocol = protocol;
+    
     this.editor.fromJSON(this.state.protocols[protocol].graph);
     this.setState({ currentProtocol: protocol });
   }
 
-  async saveProtocol() {
-    this.setState({ showModal: true })
+  saveProtocolGraphInState(){
+    // If there is a current protocol, then save its graph as JSON.
+    if(this.state.currentProtocol) {
+      let protocols = this.state.protocols
+      protocols[this.state.currentProtocol].graph = this.editor.toJSON();
+      this.setState({protocols: protocols})
+    }
 
+  }
+
+  async saveProtocol() {
+    // Retreive the current protocol from the Rete editor
+    this.saveProtocolGraphInState();
+
+    this.setState({ showModal: true })
     axios
-      .post("/protocol/", Object.values(this.state.protocols))
+      .post("/protocol/", Object.values(this.state.protocols), axios_csrf_options)
       .then(function (response) {
         return response.data;
       })
@@ -163,10 +183,10 @@ export default class Editor extends Component {
         return [];
       });
     console.log(typeof protocols);
-    // protocols.map((p) => {
-    //   //p.graph = JSON.parse(p.graph); // read json serialized as string
-    //   this.updateProtocol(p);
-    // });
+    protocols.map((p) => {
+      //p.graph = JSON.parse(p.graph); // read json serialized as string
+      this.updateProtocol(p);
+    });
   }
 
   async rebuildPrimitives() {
@@ -195,8 +215,19 @@ export default class Editor extends Component {
 
   render() {
     var protocolTabs = this.getProtocols().map((p) => {
+      var nodes = this.state.protocols[p].graph.nodes;
+      var nodeTabs = Object.keys(nodes).map((n) => {
+        var content = JSON.stringify(this.state.protocols[p].graph.nodes[n], null, 2);
+        return (<Tab eventKey={n} title={n}>
+                  <div><pre>{content}</pre></div>
+                </Tab>);
+      });
       return (
         <Tab eventKey={p} title={p}>
+          <Tabs className="mb-3">
+                <Navbar.Brand>Steps</Navbar.Brand>
+                {nodeTabs}
+          </Tabs>
           <div><pre>{JSON.stringify(this.state.protocols[p].graph, null, 2)}</pre></div>
         </Tab>);
     });

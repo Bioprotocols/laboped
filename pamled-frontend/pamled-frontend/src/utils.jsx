@@ -33,13 +33,13 @@ export function querySession(dataHandler, errorHandler) {
 
 export function queryCSRF(dataHandler, errorHandler) {
   axios.get("/api/csrf/")
-    .then(function (response) {
-      let csrfToken = response.headers["x-csrftoken"];
-      dataHandler(csrfToken);
-    })
-    .catch(function (error) {
-      handleError(error, errorHandler);
-    });
+  .then(function (response) {
+    let csrfToken = response.headers["x-csrftoken"];
+    dataHandler(csrfToken);
+  })
+  .catch(function (error) {
+    handleError(error, errorHandler);
+  });
 }
 
 export function queryLoginStatus(dataHandler, errorHandler) {

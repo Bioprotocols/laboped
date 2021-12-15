@@ -23,37 +23,17 @@ export async function loadComponentsFromAPI() {
 
 
 export class PAMLComponent extends Rete.Component {
-  constructor(primitive) {
+  constructor(socketFn, primitive) {
     super(primitive.name)
     this.primitive = primitive;
+    this.socketFn = socketFn;
   }
 
   async builder(node) {
-    var inputs = this.primitive.inputs.map(i => new Rete.Input(i.name, i.name, numSocket))
+    var inputs = this.primitive.inputs.map(i => new Rete.Input(i.name, i.name, this.socketFn(i.type)))
     inputs.forEach(i => node.addInput(i))
-    var outputs = this.primitive.outputs.map(i => new Rete.Output(i.name, i.name, numSocket))
+    var outputs = this.primitive.outputs.map(i => new Rete.Output(i.name, i.name, this.socketFn(i.type)))
     outputs.forEach(i => node.addOutput(i))
     return node;
   }
 }
-
-export class AddComponent extends Rete.Component {
-    constructor() {
-      super("Add");
-    }
-  
-    builder(node) {
-      var inp = new Rete.Input("num1", "Number", numSocket);
-      var out = new Rete.Output("num", "Number", numSocket);
-      var ctrl = new MyControl(this.editor, "greeting", "#username");
-  
-      return node
-        .addInput(inp)
-        .addOutput(out)
-        .addControl(ctrl);
-    }
-  
-    worker(node, inputs, outputs) {
-      console.log(node.data.greeting);
-    }
-  }
