@@ -50,6 +50,7 @@ pamled/.env
 **/.editorconfig
 pamled/general.log
 general.log
-pamled/pamled_editor/migrations
-pamled/api/migrations
+
+backend/pamled_editor/migrations
+backend/api/migrations
 
