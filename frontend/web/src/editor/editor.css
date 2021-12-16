@@ -34,7 +34,7 @@
     height: 100%;
 }
 
-.editor-workspace-background {
+.editor-workspace-background.rete-background {
     z-index: -2;
     background-color: gainsboro;
     background-size: 40px 40px;
