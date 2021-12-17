@@ -26,9 +26,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config("PAMLED_DEBUG", default=False, cast=bool)
+PAMLED_COOKIE_SECURE = config("PAMLED_COOKIE_SECURE", default=True, cast=bool)
 
 ALLOWED_HOSTS = [ 'localhost', '127.0.0.1' ]
+
+PAMLED_HOST = config("PAMLED_HOST", default=None)
+if PAMLED_HOST is not None:
+    ALLOWED_HOSTS += PAMLED_HOST
 
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -53,7 +58,7 @@ CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 
 # PROD ONLY
-if DEBUG is False:
+if DEBUG is False and PAMLED_COOKIE_SECURE is True:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
 
@@ -160,14 +165,26 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000'
-]
-CSRF_TRUSTED_ORIGINS = [
-    'localhost:3000',
-    '127.0.0.1:3000'
-]
+
+PAMLED_ORIGIN = config("PAMLED_ORIGIN", default=None)
+
+if PAMLED_ORIGIN is None:
+    CORS_ALLOWED_ORIGINS = [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000'
+    ]
+    CSRF_TRUSTED_ORIGINS = [
+        'localhost:3000',
+        '127.0.0.1:3000'
+    ]
+else:
+    CORS_ALLOWED_ORIGINS = [
+        f"http://{PAMLED_ORIGIN}"
+    ]
+    CSRF_TRUSTED_ORIGINS = [
+        PAMLED_ORIGIN
+    ]
+
 
 LOGGING = {
     'version': 1,                       # the dictConfig format version
