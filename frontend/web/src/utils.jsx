@@ -3,7 +3,7 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import axios from "./API";
+import { axios, endpoint } from "./API";
 
 export function withRouter(Component) {
   return (props) => {
@@ -22,7 +22,7 @@ function handleError(error, errorHandler) {
 }
 
 export function querySession(dataHandler, errorHandler) {
-  axios.get("/api/session/")
+  axios.get(endpoint.accounts.session)
     .then(function (response) {
       dataHandler(response.data);
     })
@@ -32,7 +32,7 @@ export function querySession(dataHandler, errorHandler) {
 }
 
 export function queryCSRF(dataHandler, errorHandler) {
-  axios.get("/api/csrf/")
+  axios.get(endpoint.accounts.csrf)
   .then(function (response) {
     let csrfToken = response.headers["x-csrftoken"];
     dataHandler(csrfToken);
@@ -43,7 +43,7 @@ export function queryCSRF(dataHandler, errorHandler) {
 }
 
 export function queryLoginStatus(dataHandler, errorHandler) {
-  axios.get("/api/whoami/")
+  axios.get(endpoint.accounts.whoami)
     .then(function (response) {
       dataHandler(response.data);
     })

@@ -8,7 +8,7 @@ import tyto
 class Protocol(models.Model):
     name = models.CharField(max_length=100, primary_key=True)
     graph = models.JSONField()
-    rdf_file = models.FileField(upload_to='protocols/', null=True)   
+    rdf_file = models.FileField(upload_to='editor/protocols/', null=True)
 
 class Primitive(models.Model):
     name = models.CharField(max_length=100, primary_key=True)
@@ -16,10 +16,10 @@ class Primitive(models.Model):
 
     def get_inputs(self):
         return PrimitiveInput.objects.filter(primitive=self).distinct()
-    
+
     def get_outputs(self):
         return PrimitiveOutput.objects.filter(primitive=self).distinct()
-    
+
 
 class Pin(models.Model):
     name = models.CharField(max_length=100)
@@ -42,7 +42,7 @@ class PAMLMapping():
     The mapping from paml to models is incomplete so that the front end can include less data.
     """
 
-    paml_libraries = ['liquid_handling', 'plate_handling', 
+    paml_libraries = ['liquid_handling', 'plate_handling',
                                    'spectrophotometry', 'sample_arrays']
 
     def _load_paml():
@@ -57,7 +57,7 @@ class PAMLMapping():
         Convert an editor graph to a PAML protocol.
         """
         paml, uml = PAMLMapping._load_paml()
-        
+
         doc = sbol3.Document()
         sbol3.set_namespace('https://bbn.com/scratch/')
         protocol: paml.Protocol = paml.Protocol(graph['name'])
@@ -73,9 +73,9 @@ class PAMLMapping():
         # Create protocol edges
         for _, node in graph["nodes"].items():
             PAMLMapping.make_incoming_edges(protocol, graph, node, node_to_call_behavior)
-        
+
         return protocol
-            
+
     def make_incoming_edges(protocol, graph, node, node_to_call_behavior,
                             skipped_nodes=["Input"]):
         """
@@ -105,8 +105,8 @@ class PAMLMapping():
 
         if node["name"] == "Input":
             param = protocol.input_value(
-                node["data"]['name'], 
-                eval(node["data"]['type']), 
+                node["data"]['name'],
+                eval(node["data"]['type']),
                 optional=node["data"]['optional'],
                 default_value=eval(node["data"]['default'])
                 )
@@ -115,19 +115,19 @@ class PAMLMapping():
             source = graph["nodes"][str(node['id'])]['inputs']['input']['connections'][0] #FIXME assumes that the source is present
 
             param = protocol.add_output(
-                node["data"]['name'], 
+                node["data"]['name'],
                 node["data"]['type']
                 )
-            param_node = uml.ActivityParameterNode(parameter=param) 
+            param_node = uml.ActivityParameterNode(parameter=param)
             protocol.nodes.append(param_node)
-                
+
             return param
         else:
             raise PAMLMappingException(f"Do not know how to covert node: {node}")
 
 
 
-        
+
     def reload_models():
         paml, _ = PAMLMapping._load_paml()
         for l, lib_doc in paml.loaded_libraries.items():
@@ -140,17 +140,17 @@ class PAMLMapping():
         """
         p_instance = Primitive(name=p.display_id, library=library)
         p_instance.save()
-        
-        inputs = [ PrimitiveInput(name=i.property_value.name, 
+
+        inputs = [ PrimitiveInput(name=i.property_value.name,
                                   type=i.property_value.type,
-                                  primitive=p_instance) 
+                                  primitive=p_instance)
                    for i in p.get_inputs() ]
-        
-        outputs = [ PrimitiveOutput(name=i.property_value.name, 
+
+        outputs = [ PrimitiveOutput(name=i.property_value.name,
                                     type=i.property_value.type,
-                                    primitive=p_instance) 
+                                    primitive=p_instance)
                    for i in p.get_outputs() ]
-        
-        for param in inputs + outputs: 
+
+        for param in inputs + outputs:
             param.save()
-        
+

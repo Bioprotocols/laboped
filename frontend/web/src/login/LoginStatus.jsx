@@ -1,6 +1,6 @@
 import React from "react";
 import { querySession, queryCSRF, queryLoginStatus } from "../utils";
-import axios from "../API";
+import { axios, endpoint } from "../API";
 
 export default class LoginStatus extends React.Component {
     constructor(props) {
@@ -70,7 +70,7 @@ export default class LoginStatus extends React.Component {
 
     login(email, password, onLogin, onError) {
         let payload = JSON.stringify({ email: email, password: password });
-        axios.post("/api/login/", payload, {
+        axios.post(`${endpoint.accounts.login}/`, payload, {
                 xsrfCookieName: 'csrftoken',
                 xsrfHeaderName: 'X-CSRFToken',
                 headers: {
@@ -92,7 +92,7 @@ export default class LoginStatus extends React.Component {
     }
 
     logout(onLogout, onError) {
-        axios.get("/api/logout")
+        axios.get(`${endpoint.accounts.logout}`)
             .then((_) => {
                 this.onAuthenticationLost();
                 if(onLogout !== undefined) {
@@ -110,7 +110,7 @@ export default class LoginStatus extends React.Component {
 
     signup(email, password, onLogin, onError) {
         let payload = JSON.stringify({ email: email, password: password });
-        axios.post("/api/signup/", payload, {
+        axios.post(`${endpoint.accounts.signup}/`, payload, {
                 xsrfCookieName: 'csrftoken',
                 xsrfHeaderName: 'X-CSRFToken',
                 headers: {

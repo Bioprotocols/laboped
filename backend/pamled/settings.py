@@ -30,7 +30,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [ 'localhost', '127.0.0.1' ]
 
-AUTH_USER_MODEL = 'api.User'
+AUTH_USER_MODEL = 'accounts.User'
 
 # Application definition
 
@@ -43,8 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-    'api.apps.ApiConfig',
-    'pamled_editor',
+    'accounts.apps.AccountsConfig',
+    'editor.apps.EditorConfig',
 ]
 
 CSRF_COOKIE_SAMESITE = 'Strict'
