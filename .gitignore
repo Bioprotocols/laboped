@@ -47,8 +47,6 @@ pamled/.env
 **/.editorconfig
 pamled/general.log
 general.log
-
-pamled/db.sqlite3
-pamled/media/**/
-backend/*/migrations
-
+backend/pamled_editor/migrations
+backend/api/migrations
+dan.pamled.code-workspace
