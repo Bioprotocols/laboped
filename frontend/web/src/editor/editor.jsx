@@ -15,7 +15,7 @@ import { Component } from "react";
 import { Row, Col, Modal, Button, Container, Navbar } from "react-bootstrap";
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
-import axios, { axios_csrf_options } from "../API";
+import { axios, axios_csrf_options, endpoint } from "../API";
 import "./editor.css"
 
 
@@ -44,7 +44,7 @@ export default class Editor extends Component {
     this.editor.use(ConnectionPlugin);
     this.editor.use(DockPlugin, {
       container: this.palleteRef.current,
-      itemClass: 'item', // default: dock-item 
+      itemClass: 'item', // default: dock-item
       plugins: [ReactRenderPlugin], // render plugins
     });
     this.editor.use(ReactRenderPlugin
@@ -90,7 +90,7 @@ export default class Editor extends Component {
     }
     return portTypes[portType];
   }
-  
+
   async initializeComponents() {
     let components = await loadComponentsFromAPI(); //[new AddComponent()];
     components = components.map((primitive) => {
@@ -130,8 +130,8 @@ export default class Editor extends Component {
     if (!protocol) {
       protocol = "New Protocol " + Object.keys(this.state.protocols).length;
       let protocols = this.state.protocols;
-      protocols[protocol] = { name: protocol, 
-                              graph: this.initialGraph(), 
+      protocols[protocol] = { name: protocol,
+                              graph: this.initialGraph(),
                               rdf_file: null
                             };
       this.setState({protocols: protocols});
@@ -140,7 +140,7 @@ export default class Editor extends Component {
     this.saveProtocolGraphInState();
 
     // Update the current protocol, load graph, and update state.
-    
+
     this.editor.fromJSON(this.state.protocols[protocol].graph);
     this.setState({ currentProtocol: protocol });
   }
@@ -161,7 +161,7 @@ export default class Editor extends Component {
 
     this.setState({ showModal: true })
     axios
-      .post("/protocol/", Object.values(this.state.protocols), axios_csrf_options)
+      .post(`${endpoint.editor.protocol}/`, Object.values(this.state.protocols), axios_csrf_options)
       .then(function (response) {
         return response.data;
       })
@@ -173,7 +173,7 @@ export default class Editor extends Component {
   }
 
   async retreiveProtocols() {
-    var protocols = await axios.get("/protocol/", axios_csrf_options)
+    var protocols = await axios.get(`${endpoint.editor.protocol}/`, axios_csrf_options)
       .then(function (response) {
         return response.data;
       })
@@ -190,7 +190,7 @@ export default class Editor extends Component {
   }
 
   async rebuildPrimitives() {
-    await axios.get("/rebuild/")
+    await axios.get(`${endpoint.editor.rebuild}/`)
       .then(function (response) {
         return response.data;
       })

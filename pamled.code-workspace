@@ -80,8 +80,8 @@
                     "python",
                     "${workspaceFolder}/backend/manage.py",
                     "makemigrations",
-                    "pamled_editor",
-                    "api",
+                    "accounts",
+                    "editor",
                 ],
                 "presentation": {
                     "echo": true,
@@ -139,8 +139,8 @@
                 "command": "${workspaceFolder}/scripts/clean-all.sh",
                 "args": [
                     "${workspaceFolder}/backend/db.sqlite3",
-                    "${workspaceFolder}/backend/pamled_editor/migrations",
-                    "${workspaceFolder}/backend/api/migrations",
+                    "${workspaceFolder}/backend/accounts/migrations",
+                    "${workspaceFolder}/backend/editor/migrations",
                 ],
                 "presentation": {
                     "echo": true,

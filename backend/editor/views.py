@@ -1,12 +1,12 @@
 from django.http.response import JsonResponse, ResponseHeaders
 from django.shortcuts import render
 from django.core.files.base import ContentFile
-from pamled_editor.models import Primitive
-from pamled_editor.models import PAMLMapping
+from editor.models import Primitive
+from editor.models import PAMLMapping
 
-from pamled_editor.models import Protocol
-from pamled_editor.protocol.protocol import Protocol as PAMLProtocol
-from pamled_editor.serializers import PrimitiveSerializer, ProtocolSerializer
+from editor.models import Protocol
+from editor.protocol.protocol import Protocol as PAMLProtocol
+from editor.serializers import PrimitiveSerializer, ProtocolSerializer
 # Create your views here.
 
 from django.http import HttpResponse

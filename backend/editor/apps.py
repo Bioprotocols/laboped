@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class PamledEditorConfig(AppConfig):
+class EditorConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'pamled_editor'
+    name = 'editor'

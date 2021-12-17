@@ -1,7 +1,7 @@
 from django.test import TestCase
 import os
 import json
-from pamled_editor.models import PAMLMapping
+from editor.models import PAMLMapping
 
 # Create your tests here.
 
