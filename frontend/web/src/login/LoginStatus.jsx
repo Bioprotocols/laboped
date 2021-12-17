@@ -37,6 +37,7 @@ export default class LoginStatus extends React.Component {
     }
 
     onAuthenticationGained() {
+        this.refreshCSRF();
         queryLoginStatus((data) => {
             this.setState({
                 isAuthenticated: true,
@@ -70,7 +71,7 @@ export default class LoginStatus extends React.Component {
 
     login(email, password, onLogin, onError) {
         let payload = JSON.stringify({ email: email, password: password });
-        axios.post(`${endpoint.accounts.login}/`, payload, {
+        axios.post(endpoint.accounts.login, payload, {
                 xsrfCookieName: 'csrftoken',
                 xsrfHeaderName: 'X-CSRFToken',
                 headers: {
@@ -92,7 +93,7 @@ export default class LoginStatus extends React.Component {
     }
 
     logout(onLogout, onError) {
-        axios.get(`${endpoint.accounts.logout}`)
+        axios.get(endpoint.accounts.logout)
             .then((_) => {
                 this.onAuthenticationLost();
                 if(onLogout !== undefined) {
@@ -110,7 +111,7 @@ export default class LoginStatus extends React.Component {
 
     signup(email, password, onLogin, onError) {
         let payload = JSON.stringify({ email: email, password: password });
-        axios.post(`${endpoint.accounts.signup}/`, payload, {
+        axios.post(endpoint.accounts.signup, payload, {
                 xsrfCookieName: 'csrftoken',
                 xsrfHeaderName: 'X-CSRFToken',
                 headers: {

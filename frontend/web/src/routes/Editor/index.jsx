@@ -33,7 +33,7 @@ class Editor extends React.Component {
             return (null);
         }
         return (
-            <Workspace onLogout={this.onLogout} currentUser={this.loginStatus.current.state.user} />
+            <Workspace onLogout={this.onLogout} loginStatus={this.loginStatus.current} />
         )
     }
 

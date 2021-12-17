@@ -35,7 +35,7 @@ export default class Menu extends Component {
 
               <Nav>
                 <NavDropdown menuVariant="dark" align={{ sm: 'end' }} title="Account" id="basic-nav-dropdown">
-                  <NavDropdown.Header href="#">Signed in as {this.editor.props.currentUser.email}</NavDropdown.Header>
+                  <NavDropdown.Header href="#">Signed in as {this.editor.props.loginStatus.state.user.email}</NavDropdown.Header>
                   <NavDropdown.Item href="#" onClick={this.editor.props.onLogout}>Logout</NavDropdown.Item>
                 </NavDropdown>
               </Nav>

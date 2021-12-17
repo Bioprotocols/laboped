@@ -26,6 +26,8 @@ export default class Editor extends Component {
     this.workspaceRef = React.createRef();
     this.menuRef = React.createRef();
 
+    this.loginStatus = props.loginStatus;
+
     this.editor = {};
     this.state = {
       showModal: false,
@@ -160,8 +162,15 @@ export default class Editor extends Component {
     this.saveProtocolGraphInState();
 
     this.setState({ showModal: true })
-    axios
-      .post(`${endpoint.editor.protocol}/`, Object.values(this.state.protocols), axios_csrf_options)
+    axios.post(endpoint.editor.protocol, Object.values(this.state.protocols), {
+                withCredentials: true,
+                xsrfCookieName: 'csrftoken',
+                xsrfHeaderName: 'x-csrftoken',
+                headers: {
+                    "Content-Type": "application/json",
+                    'x-csrftoken': this.loginStatus.state.csrf,
+                }
+            })
       .then(function (response) {
         return response.data;
       })
@@ -173,7 +182,7 @@ export default class Editor extends Component {
   }
 
   async retreiveProtocols() {
-    var protocols = await axios.get(`${endpoint.editor.protocol}/`, axios_csrf_options)
+    var protocols = await axios.get(endpoint.editor.protocol, axios_csrf_options)
       .then(function (response) {
         return response.data;
       })
@@ -182,7 +191,6 @@ export default class Editor extends Component {
         console.log(error);
         return [];
       });
-    console.log(typeof protocols);
     protocols.map((p) => {
       //p.graph = JSON.parse(p.graph); // read json serialized as string
       this.updateProtocol(p);
@@ -190,7 +198,7 @@ export default class Editor extends Component {
   }
 
   async rebuildPrimitives() {
-    await axios.get(`${endpoint.editor.rebuild}/`)
+    await axios.get(endpoint.editor.rebuild)
       .then(function (response) {
         return response.data;
       })
