@@ -33,7 +33,7 @@ ALLOWED_HOSTS = [ 'localhost', '127.0.0.1' ]
 
 PAMLED_HOST = config("PAMLED_HOST", default=None)
 if PAMLED_HOST is not None:
-    ALLOWED_HOSTS += PAMLED_HOST
+    ALLOWED_HOSTS.append(PAMLED_HOST)
 
 AUTH_USER_MODEL = 'accounts.User'
 
