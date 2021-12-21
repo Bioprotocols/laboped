@@ -1,5 +1,6 @@
 django==3.2.9
 django-cors-headers
+django-oso
 djangorestframework
 jsonfield
 python-decouple
