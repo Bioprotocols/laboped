@@ -3,10 +3,15 @@ from jsonfield import JSONField
 import sbol3
 import tyto
 
+from accounts.models import User
+from django_oso.models import AuthorizedModel
+
 # Create your models here.
 
-class Protocol(models.Model):
-    name = models.CharField(max_length=100, primary_key=True)
+class Protocol(AuthorizedModel):
+    id = models.BigAutoField(primary_key=True, editable=False)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
     graph = models.JSONField()
     rdf_file = models.FileField(upload_to='editor/protocols/', null=True)
 
