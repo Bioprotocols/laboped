@@ -13,18 +13,16 @@ django-oso = "*"
 djangorestframework = "*"
 jsonfield = "*"
 python-decouple = "*"
-paml = {ref = "347788ece9daacc2c3ea180c56159e97113638e1", git = "https://github.com/SD2E/paml.git"}
+paml = {ref = "f0102179c2494d6f2b785aa9b32b1c6a80604c2f", git = "https://github.com/SD2E/paml.git"}
 pyparsing = "==2.4.7"
 pyshacl = "==0.14.0"
 rdflib = "==5.0.0"
-rdflib-jsonld = "==0.5.0"
-sbol3 = "==1.0b5"
-sbol-factory = "==1.0a6"
 tyto = "==1.0a5"
 Django = "==3.2.9"
+rdflib-jsonld = "==0.6.1"
 
 [requires]
-python_version = "3.9"
+python_version = "3.10"
 
 [pipenv]
 allow_prereleases = true
