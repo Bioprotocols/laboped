@@ -20,9 +20,10 @@ rdflib = "==5.0.0"
 tyto = "==1.0a5"
 Django = "==3.2.9"
 rdflib-jsonld = "==0.6.1"
+django-oso = "*"
 
 [requires]
-python_version = "3.10"
+python_version = "3.9"
 
 [pipenv]
 allow_prereleases = true

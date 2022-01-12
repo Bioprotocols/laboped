@@ -175,8 +175,8 @@ if PAMLED_ORIGIN is None:
         'http://127.0.0.1:3000'
     ]
     CSRF_TRUSTED_ORIGINS = [
-        'localhost:3000',
-        '127.0.0.1:3000'
+        'https://localhost:3000',
+        'https://127.0.0.1:3000'
     ]
 else:
     CORS_ALLOWED_ORIGINS = [
