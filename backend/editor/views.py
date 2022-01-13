@@ -57,14 +57,17 @@ class ProtocolViewSet(viewsets.ModelViewSet):
         if not request.user.is_authenticated:
             raise NotAuthenticated
         user = request.user
-        protocols = [Protocol(owner=user,
-                              id=p['id'],
-                              name=p['name'],
-                              graph=p['graph'],
-                              rdf_file=p['rdf_file'])
-                    for p in request.data]
-        for p in protocols:
+        for p in request.data:
+            try:
+                protocol = Protocol.create(owner=user,
+                                    name=p['name'],
+                                    graph=p['graph'],
+                                    rdf_file=p['rdf_file'])
+            except Exception as e:
+                pass
+
             p.save()
+
         return HttpResponse(f"Saved {len(request.data)} protocols.")
         # my_protocol = PAMLProtocol(protocol_id)
         # cf = ContentFile(my_protocol.to_rdf())

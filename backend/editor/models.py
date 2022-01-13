@@ -5,6 +5,7 @@ import tyto
 
 from accounts.models import User
 from django_oso.models import AuthorizedModel
+from django.core.files.base import ContentFile
 
 # Create your models here.
 
@@ -14,6 +15,20 @@ class Protocol(AuthorizedModel):
     name = models.CharField(max_length=100)
     graph = models.JSONField()
     rdf_file = models.FileField(upload_to='editor/protocols/', null=True)
+
+    @classmethod
+    def create(cls, **kwargs):
+        protocol = cls(**kwargs)
+        p_rdf = Protocol.to_rdf(protocol.graph)
+        cf = ContentFile(p_rdf.document.write_string("nt"))
+        protocol.rdf_file = cf
+        protocol.rdf_file.save(f"{protocol.name}.nt", cf)
+        return protocol
+
+    @classmethod
+    def to_rdf(cls, graph):
+        return PAMLMapping.graph_to_protocol(graph)
+
 
 class Primitive(models.Model):
     name = models.CharField(max_length=100, primary_key=True)
@@ -65,8 +80,11 @@ class PAMLMapping():
 
         doc = sbol3.Document()
         sbol3.set_namespace('https://bbn.com/scratch/')
-        protocol: paml.Protocol = paml.Protocol(graph['name'])
-        protocol.name = graph['name']
+
+        name = "".join([c for c in graph['id'] if c.isalpha() or c.isdecimal()])
+
+        protocol: paml.Protocol = paml.Protocol(name)
+        protocol.name = name
         # FIXME protocol.description = DOCSTRING
         doc.add(protocol)
 
@@ -86,9 +104,20 @@ class PAMLMapping():
         """
         Add incoming edges to protocol node from graph edges
         """
-        if node["name"] == "Output":
+        import paml
+        import uml
+        protocol_node = node_to_call_behavior[node['id']]
+
+        if isinstance(protocol_node, uml.CallBehaviorAction):
+            for input_pin_id, input_pin in node['inputs'].items():
+                for source in input_pin["connections"]:
+                    source_node_id = source['node']
+                    source_output_id = source["output"]
+                    source_call_behavior = node_to_call_behavior[str(source_node_id)]
+                    source_pin = source_call_behavior.get_output(source_output_id)
+                    node.use_value(source_pin, node)
+        elif node["name"] == "Output":
             #source = graph["nodes"][str(node['id'])]['inputs']['input']['connections'][0] #FIXME assumes that the source is present
-            protocol_node = node_to_call_behavior[str(node['id'])]
             for input_pin_id, input_pin in node['inputs'].items():
                 for source in input_pin["connections"]:
                     source_node_id = source['node']
@@ -107,8 +136,17 @@ class PAMLMapping():
         Convert a node representing a protocol activity into a call behavior
         """
         import uml
+        import paml
 
-        if node["name"] == "Input":
+        primitive = None
+        try:
+            primitive = paml.get_primitive(protocol.document, name=node["name"])
+        except Exception as e:
+            pass
+
+        if primitive:
+            return protocol.execute_primitive(primitive)
+        elif node["name"] == "Input":
             param = protocol.input_value(
                 node["data"]['name'],
                 eval(node["data"]['type']),
