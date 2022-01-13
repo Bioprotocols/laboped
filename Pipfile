@@ -9,6 +9,7 @@ pylint = "*"
 [packages]
 setuptools = "<=57.5.0"
 django-cors-headers = "*"
+django-oso = "*"
 djangorestframework = "*"
 jsonfield = "*"
 python-decouple = "*"

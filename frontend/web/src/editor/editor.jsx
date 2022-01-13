@@ -19,6 +19,16 @@ import { axios, axios_csrf_options, endpoint } from "../API";
 import "./editor.css"
 
 
+function downloadStringAsFile(data, filename) {
+  let url = window.URL.createObjectURL(new Blob([data]))
+  let link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', filename)
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+}
+
 export default class Editor extends Component {
   constructor(props) {
     super(props);
@@ -210,6 +220,18 @@ export default class Editor extends Component {
     this.initializeComponents()
   }
 
+  async downloadCurrentGraph() {
+    // TODO I need to convert the protocol storage on the client to
+    // match the server side primary key (id) instead of using the
+    // protocol name.
+    if (this.state.currentProtocol == null) {
+      console.error(`Must select a protocol to download`)
+      return
+    }
+    var currentProtocol = this.state.protocols[this.state.currentProtocol]
+    downloadStringAsFile(JSON.stringify(currentProtocol.graph, null, 2), "graph.json")
+  }
+
   async downloadCurrentProtocol() {
     // TODO I need to convert the protocol storage on the client to
     // match the server side primary key (id) instead of using the
@@ -240,13 +262,7 @@ export default class Editor extends Component {
             filename = matches[1].replace(/['"]/g, '');
           }
         }
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', filename);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
+        downloadStringAsFile(response.data, filename)
         return response;
       })
       .catch(function (error) {

@@ -33,7 +33,8 @@ export default class Menu extends Component {
                   <NavDropdown.Item href="#" onClick={() => this.editor.rebuildPrimitives()}>Rebuild Primitives</NavDropdown.Item>
                 </NavDropdown>
                 <NavDropdown menuVariant="dark" title={<FaFileDownload />}>
-                  <NavDropdown.Item href="#" onClick={() => this.editor.downloadCurrentProtocol()}>Placeholder</NavDropdown.Item>
+                  <NavDropdown.Item href="#" onClick={() => this.editor.downloadCurrentGraph()}>Current Rete Graph</NavDropdown.Item>
+                  <NavDropdown.Item href="#" onClick={() => this.editor.downloadCurrentProtocol()}>Current Protocol</NavDropdown.Item>
                 </NavDropdown>
               </Nav>
 
