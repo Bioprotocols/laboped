@@ -132,7 +132,8 @@ export default class Editor extends Component {
     if (!protocol) {
       protocol = "New Protocol " + Object.keys(this.state.protocols).length;
       let protocols = this.state.protocols;
-      protocols[protocol] = { name: protocol,
+      protocols[protocol] = { id: null,
+                              name: protocol,
                               graph: this.initialGraph(),
                               rdf_file: null
                             };
@@ -154,7 +155,6 @@ export default class Editor extends Component {
       protocols[this.state.currentProtocol].graph = this.editor.toJSON();
       this.setState({protocols: protocols})
     }
-
   }
 
   async saveProtocol() {
@@ -208,6 +208,52 @@ export default class Editor extends Component {
         return [];
       });
     this.initializeComponents()
+  }
+
+  async downloadCurrentProtocol() {
+    // TODO I need to convert the protocol storage on the client to
+    // match the server side primary key (id) instead of using the
+    // protocol name.
+    if (this.state.currentProtocol == null) {
+      console.error(`Must select a protocol to download`)
+      return
+    }
+    var currentProtocol = this.state.protocols[this.state.currentProtocol]
+    if (currentProtocol.id == null) {
+      // TODO new protocols should either be created on the server side or
+      // we should popup a modal to allow saving right now. The server backend
+      // is needed to convert the protocol into RDF for download.
+      console.error(`${currentProtocol.name} was never saved so it cannot be downloaded`)
+      return
+    }
+    await axios.get(`${endpoint.editor.protocol}${currentProtocol.id}/download/`, {
+        responseType: 'blob'
+      })
+      .then(function (response) {
+        let disposition = response.headers['content-disposition'];
+        var filename = 'unknown_file'
+        // from https://stackoverflow.com/a/40940790
+        if (disposition && disposition.indexOf('attachment') !== -1) {
+          var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+          var matches = filenameRegex.exec(disposition);
+          if (matches != null && matches[1]) {
+            filename = matches[1].replace(/['"]/g, '');
+          }
+        }
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        return response;
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+        return [];
+      });
   }
 
   updateProtocol(protocol) {

@@ -10,9 +10,18 @@ router = routers.DefaultRouter()
 # router.register(r'primitive', views.PrimitiveView)
 # router.register(r'protocol', views.ProtocolView)
 # router.register(r'rebuild', views.RebuildView, 'rebuild')
+
 urlpatterns = router.urls + [
-    path("primitive/", views.PrimitiveView.as_view(), name='api-editor-primitive'),
-    path("protocol/", views.ProtocolView.as_view(), name='api-editor-protocol'),
+    path("primitive/", views.PrimitiveViewSet.as_view({
+        'post': 'create'
+    }), name='api-editor-primitive'),
+    path("protocol/", views.ProtocolViewSet.as_view({
+        'get': 'list',
+        'post': 'create'
+    }), name='api-editor-protocol-list'),
+    path('protocol/<int:pk>/download/', views.ProtocolViewSet.as_view({
+        'get': 'download'
+    }), name='api-editor-protocol-download'),
     path("rebuild/", views.rebuild, name='api-editor-rebuild'),
 ]
 
