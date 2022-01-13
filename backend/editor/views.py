@@ -22,15 +22,30 @@ from rest_framework.decorators import action
 
 from django_oso.auth import authorize
 
-def rebuild(request):
-    PAMLMapping.reload_models()
-    return HttpResponse(f"Rebuilt: {Primitive.objects.all()}")
 
 class PrimitiveViewSet(viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = PrimitiveSerializer
     queryset = Primitive.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False)
+    def rebuild(self, request, *args, **kwargs):
+        print("Rebuilding primitives...")
+        PAMLMapping.reload_models()
+        return HttpResponse(f"Rebuilt: {Primitive.objects.all()}")
+
 
 class ProtocolViewSet(viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication]

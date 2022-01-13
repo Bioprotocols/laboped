@@ -167,12 +167,13 @@ export default class Editor extends Component {
     }
   }
 
+  // TODO this should probably just save the current protocol
   async saveProtocol() {
     // Retreive the current protocol from the Rete editor
     this.saveProtocolGraphInState();
 
     this.setState({ showModal: true })
-    axios.post(endpoint.editor.protocol, Object.values(this.state.protocols), {
+    await axios.post(endpoint.editor.protocol, Object.values(this.state.protocols), {
                 withCredentials: true,
                 xsrfCookieName: 'csrftoken',
                 xsrfHeaderName: 'x-csrftoken',
@@ -189,6 +190,11 @@ export default class Editor extends Component {
         console.log(error);
         return [];
       });
+    // FIXME retreive all the protocols again since we are not saving just a specific
+    // protocol and I do not want to rummage through all of the protocols to determine
+    // what ID was assigned to any newly saved (previous local-only) protocols.
+    // Note: Might become OBE if we just make all protocols stores remotely (no local-only)
+    this.retreiveProtocols()
   }
 
   async retreiveProtocols() {
