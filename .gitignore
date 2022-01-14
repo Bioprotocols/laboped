@@ -51,3 +51,4 @@ backend/pamled_editor/migrations
 backend/api/migrations
 backend/editor/migrations
 backend/accounts/migrations
+backend/media/
