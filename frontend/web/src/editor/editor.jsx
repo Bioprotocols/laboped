@@ -6,7 +6,7 @@ import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
 
 import { MyNode } from "./components/Node";
-import { loadComponentsFromAPI, PAMLComponent } from "./components/Primitive";
+import { floatSocket, loadComponentsFromAPI, PAMLComponent } from "./components/Primitive";
 import { ModuleComponent, InputComponent, OutputComponent, OutputFloatComponent } from "./components/Control";
 import Menu from "./menu";
 
@@ -97,7 +97,7 @@ export default class Editor extends Component {
     // Return one socket unique to each type
     let portTypes = this.state.portTypes;
     if (Object.keys(portTypes).indexOf(portType) < 0) {
-      portTypes[portType] = new Rete.Socket(portType);
+      portTypes[portType] = floatSocket; // new Rete.Socket(portType);
       this.setState({portTypes: portTypes});
     }
     return portTypes[portType];
@@ -119,17 +119,16 @@ export default class Editor extends Component {
       new OutputFloatComponent(),
     ]);
 
-    components.map(c => this.addComponent(c));
-  }
-
-  addComponent(component) {
-    if (Object.keys(this.state.primitiveComponents).indexOf(component.name) < 0) {
-      var components = this.state.primitiveComponents;
-      components[component.name] = component;
-      this.editor.register(component);
-      this.engine.register(component);
-      this.setState({ components: components });
-    }
+    var primitiveComponents = this.state.primitiveComponents;
+    components.map(c => {
+      if (Object.keys(primitiveComponents).indexOf(c.name) < 0) {
+        primitiveComponents[c.name] = c;
+        this.editor.register(c);
+        this.engine.register(c);
+        }
+        return c;
+    });
+    this.setState({ primitiveComponents: components });
   }
 
   initialGraph() {
@@ -207,10 +206,17 @@ export default class Editor extends Component {
         console.log(error);
         return [];
       });
+
+    var currentProtocols = this.state.protocols;
     protocols.map((p) => {
       //p.graph = JSON.parse(p.graph); // read json serialized as string
-      this.updateProtocol(p);
+      currentProtocols[p.name] = p;
+      return p;
     });
+    this.setState({ protocols: currentProtocols });
+    if (!this.state.currentProtocol){
+      this.setState({currentProtocol: Object.keys(currentProtocols)[0]})
+    }
   }
 
   async rebuildPrimitives() {
@@ -300,13 +306,22 @@ export default class Editor extends Component {
       });
       return (
         <Tab eventKey={p} title={p}>
-          <Tabs className="mb-3">
+          <Tabs className="mb-3" >
                 <Navbar.Brand>Steps</Navbar.Brand>
                 {nodeTabs}
           </Tabs>
           <div><pre>{JSON.stringify(this.state.protocols[p].graph, null, 2)}</pre></div>
         </Tab>);
     });
+
+    var inspector;
+    if (protocolTabs.length > 0){
+      inspector = (<Tabs defaultActiveKey={this.state.currentProtocol}
+        onSelect={(k) => { this.setProtocol(k) }}
+        className="mb-3">
+        {protocolTabs}
+      </Tabs>)
+    }
 
     return (
       <Container className="editor-container" fluid={true}>
@@ -338,11 +353,7 @@ export default class Editor extends Component {
           </Col>
           <Col xs={2} sm={2} className="editor-inspector-column">
             <Row>
-              <Tabs defaultActiveKey={this.state.currentProtocol}
-                onSelect={(k) => { this.setProtocol(k) }}
-                className="mb-3">
-                {protocolTabs}
-              </Tabs>
+              {inspector}
             </Row>
           </Col>
         </Row>

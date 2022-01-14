@@ -113,9 +113,10 @@ class PAMLMapping():
                 for source in input_pin["connections"]:
                     source_node_id = source['node']
                     source_output_id = source["output"]
-                    source_call_behavior = node_to_call_behavior[str(source_node_id)]
-                    source_pin = source_call_behavior.get_output(source_output_id)
-                    node.use_value(source_pin, node)
+                    source_call_behavior = node_to_call_behavior[source_node_id]
+                    source_pin = source_call_behavior.output_pin(source_output_id)
+                    cba_input_pin = protocol_node.input_pin(input_pin_id)
+                    protocol.use_value(source_pin, cba_input_pin)
         elif node["name"] == "Output":
             #source = graph["nodes"][str(node['id'])]['inputs']['input']['connections'][0] #FIXME assumes that the source is present
             for input_pin_id, input_pin in node['inputs'].items():
@@ -147,11 +148,15 @@ class PAMLMapping():
         if primitive:
             return protocol.execute_primitive(primitive)
         elif node["name"] == "Input":
+            name = "foo" # node["data"]['name']
+            node_type = sbol3.Identified # eval(node["data"]['type'])
+            optional = True # node["data"]['optional']
+            default_value = None # eval(node["data"]['default'])
             param = protocol.input_value(
-                node["data"]['name'],
-                eval(node["data"]['type']),
-                optional=node["data"]['optional'],
-                default_value=eval(node["data"]['default'])
+                name,
+                node_type,
+                optional=optional,
+                default_value=default_value
                 )
             return param
         elif node["name"] == "Output":

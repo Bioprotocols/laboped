@@ -59,21 +59,23 @@ class ProtocolViewSet(viewsets.ModelViewSet):
         user = request.user
         for p in request.data:
             try:
-                protocol = Protocol.create(owner=user,
-                                    name=p['name'],
-                                    graph=p['graph'],
-                                    rdf_file=p['rdf_file'])
+                protocol = Protocol.objects.get(name=p['name'])
+                if protocol:
+                    protocol.name = p['name']
+                    protocol.graph = p['graph']
+                    protocol.rdf_file = p['rdf_file']
+                else:
+                    protocol = Protocol.create(owner=user,
+                                        name=p['name'],
+                                        graph=p['graph'],
+                                        rdf_file=p['rdf_file'])
+                protocol.save()
             except Exception as e:
                 pass
 
-            p.save()
+
 
         return HttpResponse(f"Saved {len(request.data)} protocols.")
-        # my_protocol = PAMLProtocol(protocol_id)
-        # cf = ContentFile(my_protocol.to_rdf())
-        # p = Protocol(name=protocol_id, rdf_file=cf)
-        # p.rdf_file.save(f"{p.name}.nt", cf)
-        # p.save()
 
     def list(self, request):
         if not request.user.is_authenticated:
