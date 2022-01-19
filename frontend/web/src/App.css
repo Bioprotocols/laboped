@@ -3,8 +3,16 @@
 }
 
 .node {
-  background: rgb(110, 158, 160);
+  background: rgb(103, 140, 170);
 }
 
+.node .socket.timepoint {
+  background: #49d30f;
+  
+}
+
+.node .socket.number {
+  background: gray;
+}
 
 

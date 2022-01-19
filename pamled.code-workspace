@@ -151,6 +151,19 @@
                     "clear": true
                 },
                 "problemMatcher": []
+            },
+            {
+                "label": "Clean All",
+                "dependsOn": [
+                    "Nuke DB & Migrations",
+                    "Make Migrations",
+                    "Migrate",
+                    "Create SuperUser"
+                ],
+                "dependsOrder": "sequence",
+                "problemMatcher": [
+                    "$go"
+                ]
             }
         ]
     }

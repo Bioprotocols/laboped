@@ -4,6 +4,7 @@ import Navbar from "react-bootstrap/Navbar";
 import Nav from "react-bootstrap/Nav";
 import Container from "react-bootstrap/Container";
 import NavDropdown from 'react-bootstrap/NavDropdown';
+import { FaFileDownload } from 'react-icons/fa'
 import "./menu.css"
 
 export default class Menu extends Component {
@@ -30,6 +31,10 @@ export default class Menu extends Component {
                 </NavDropdown>
                 <NavDropdown menuVariant="dark" title="Tools">
                   <NavDropdown.Item href="#" onClick={() => this.editor.rebuildPrimitives()}>Rebuild Primitives</NavDropdown.Item>
+                </NavDropdown>
+                <NavDropdown menuVariant="dark" title={<FaFileDownload />}>
+                  <NavDropdown.Item href="#" onClick={() => this.editor.downloadCurrentGraph()}>Current Rete Graph</NavDropdown.Item>
+                  <NavDropdown.Item href="#" onClick={() => this.editor.downloadCurrentProtocol()}>Current Protocol</NavDropdown.Item>
                 </NavDropdown>
               </Nav>
 

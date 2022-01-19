@@ -1,7 +1,7 @@
 from django.test import TestCase
 import os
 import json
-from editor.models import PAMLMapping
+from editor.models import Protocol
 
 # Create your tests here.
 
@@ -13,5 +13,5 @@ class GraphToPAMLTestCase(TestCase):
             self.json_graph = json.load(f)
 
     def test_graph_to_paml(self):
-        paml_protocol = PAMLMapping.graph_to_protocol(self.json_graph)
+        paml_protocol = Protocol.to_rdf(None, self.json_graph)
         assert(paml_protocol)

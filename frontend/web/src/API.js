@@ -15,7 +15,7 @@ export let endpoint = {
   editor: {
     protocol:`${EDITOR_API_URL}/protocol/`,
     primitive:`${EDITOR_API_URL}/primitive/`,
-    rebuild:`${EDITOR_API_URL}/rebuild/`,
+    rebuild:`${EDITOR_API_URL}/primitive/rebuild/`,
   },
   accounts: {
     csrf: `${ACCOUNTS_API_URL}/csrf/`,

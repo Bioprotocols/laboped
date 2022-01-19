@@ -18,4 +18,4 @@ class PrimitiveSerializer(serializers.ModelSerializer):
 class ProtocolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Protocol
-        fields = ('name', 'graph', 'rdf_file')
+        fields = ('id', 'name', 'graph', 'rdf_file')

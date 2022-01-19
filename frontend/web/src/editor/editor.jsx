@@ -6,18 +6,28 @@ import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
 
 import { MyNode } from "./components/Node";
-import { loadComponentsFromAPI, PAMLComponent } from "./components/Primitive";
+import { numSocket, loadComponentsFromAPI, PAMLComponent } from "./components/Primitive";
 import { ModuleComponent, InputComponent, OutputComponent, OutputFloatComponent } from "./components/Control";
 import Menu from "./menu";
 
 import React from "react";
 import { Component } from "react";
-import { Row, Col, Modal, Button, Container, Navbar } from "react-bootstrap";
+import { Row, Col, Modal, Button, Container, Tab } from "react-bootstrap";
 import Tabs from 'react-bootstrap/Tabs';
-import Tab from 'react-bootstrap/Tab';
 import { axios, axios_csrf_options, endpoint } from "../API";
 import "./editor.css"
+import { ProtocolInspector } from "./components/ProtocolInspector";
 
+
+function downloadStringAsFile(data, filename) {
+  let url = window.URL.createObjectURL(new Blob([data]))
+  let link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', filename)
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+}
 
 export default class Editor extends Component {
   constructor(props) {
@@ -78,7 +88,7 @@ export default class Editor extends Component {
   }
 
   async processHandler() {
-    console.log("process");
+    // console.log("process");
     await this.engine.abort();
     await this.engine.process(this.editor.toJSON());
   }
@@ -87,7 +97,7 @@ export default class Editor extends Component {
     // Return one socket unique to each type
     let portTypes = this.state.portTypes;
     if (Object.keys(portTypes).indexOf(portType) < 0) {
-      portTypes[portType] = new Rete.Socket(portType);
+      portTypes[portType] = numSocket; // new Rete.Socket(portType);
       this.setState({portTypes: portTypes});
     }
     return portTypes[portType];
@@ -109,17 +119,16 @@ export default class Editor extends Component {
       new OutputFloatComponent(),
     ]);
 
-    components.map(c => this.addComponent(c));
-  }
-
-  addComponent(component) {
-    if (Object.keys(this.state.primitiveComponents).indexOf(component.name) < 0) {
-      var components = this.state.primitiveComponents;
-      components[component.name] = component;
-      this.editor.register(component);
-      this.engine.register(component);
-      this.setState({ components: components });
-    }
+    var primitiveComponents = this.state.primitiveComponents;
+    components.map(c => {
+      if (Object.keys(primitiveComponents).indexOf(c.name) < 0) {
+        primitiveComponents[c.name] = c;
+        this.editor.register(c);
+        this.engine.register(c);
+        }
+        return c;
+    });
+    this.setState({ primitiveComponents: components });
   }
 
   initialGraph() {
@@ -132,7 +141,8 @@ export default class Editor extends Component {
     if (!protocol) {
       protocol = "New Protocol " + Object.keys(this.state.protocols).length;
       let protocols = this.state.protocols;
-      protocols[protocol] = { name: protocol,
+      protocols[protocol] = { id: null,
+                              name: protocol,
                               graph: this.initialGraph(),
                               rdf_file: null
                             };
@@ -154,15 +164,15 @@ export default class Editor extends Component {
       protocols[this.state.currentProtocol].graph = this.editor.toJSON();
       this.setState({protocols: protocols})
     }
-
   }
 
+  // TODO this should probably just save the current protocol
   async saveProtocol() {
     // Retreive the current protocol from the Rete editor
     this.saveProtocolGraphInState();
 
     this.setState({ showModal: true })
-    axios.post(endpoint.editor.protocol, Object.values(this.state.protocols), {
+    await axios.post(endpoint.editor.protocol, Object.values(this.state.protocols), {
                 withCredentials: true,
                 xsrfCookieName: 'csrftoken',
                 xsrfHeaderName: 'x-csrftoken',
@@ -179,6 +189,11 @@ export default class Editor extends Component {
         console.log(error);
         return [];
       });
+    // FIXME retreive all the protocols again since we are not saving just a specific
+    // protocol and I do not want to rummage through all of the protocols to determine
+    // what ID was assigned to any newly saved (previous local-only) protocols.
+    // Note: Might become OBE if we just make all protocols stores remotely (no local-only)
+    this.retreiveProtocols()
   }
 
   async retreiveProtocols() {
@@ -191,10 +206,17 @@ export default class Editor extends Component {
         console.log(error);
         return [];
       });
+
+    var currentProtocols = this.state.protocols;
     protocols.map((p) => {
       //p.graph = JSON.parse(p.graph); // read json serialized as string
-      this.updateProtocol(p);
+      currentProtocols[p.name] = p;
+      return p;
     });
+    this.setState({ protocols: currentProtocols });
+    if (!this.state.currentProtocol){
+      this.setState({currentProtocol: Object.keys(currentProtocols)[0]})
+    }
   }
 
   async rebuildPrimitives() {
@@ -210,6 +232,58 @@ export default class Editor extends Component {
     this.initializeComponents()
   }
 
+  async downloadCurrentGraph() {
+    // TODO I need to convert the protocol storage on the client to
+    // match the server side primary key (id) instead of using the
+    // protocol name.
+    if (this.state.currentProtocol == null) {
+      console.error(`Must select a protocol to download`)
+      return
+    }
+    var currentProtocol = this.state.protocols[this.state.currentProtocol]
+    downloadStringAsFile(JSON.stringify(currentProtocol.graph, null, 2), "graph.json")
+  }
+
+  async downloadCurrentProtocol() {
+    // TODO I need to convert the protocol storage on the client to
+    // match the server side primary key (id) instead of using the
+    // protocol name.
+    if (this.state.currentProtocol == null) {
+      console.error(`Must select a protocol to download`)
+      return
+    }
+    var currentProtocol = this.state.protocols[this.state.currentProtocol]
+    if (currentProtocol.id == null) {
+      // TODO new protocols should either be created on the server side or
+      // we should popup a modal to allow saving right now. The server backend
+      // is needed to convert the protocol into RDF for download.
+      console.error(`${currentProtocol.name} was never saved so it cannot be downloaded`)
+      return
+    }
+    await axios.get(`${endpoint.editor.protocol}${currentProtocol.id}/download/`, {
+        responseType: 'blob'
+      })
+      .then(function (response) {
+        let disposition = response.headers['content-disposition'];
+        var filename = 'unknown_file'
+        // from https://stackoverflow.com/a/40940790
+        if (disposition && disposition.indexOf('attachment') !== -1) {
+          var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+          var matches = filenameRegex.exec(disposition);
+          if (matches != null && matches[1]) {
+            filename = matches[1].replace(/['"]/g, '');
+          }
+        }
+        downloadStringAsFile(response.data, filename)
+        return response;
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+        return [];
+      });
+  }
+
   updateProtocol(protocol) {
     var currentProtocols = this.state.protocols;
     currentProtocols[protocol.name] = protocol;
@@ -223,22 +297,21 @@ export default class Editor extends Component {
 
   render() {
     var protocolTabs = this.getProtocols().map((p) => {
-      var nodes = this.state.protocols[p].graph.nodes;
-      var nodeTabs = Object.keys(nodes).map((n) => {
-        var content = JSON.stringify(this.state.protocols[p].graph.nodes[n], null, 2);
-        return (<Tab eventKey={n} title={n}>
-                  <div><pre>{content}</pre></div>
-                </Tab>);
-      });
+      console.log(p);
       return (
         <Tab eventKey={p} title={p}>
-          <Tabs className="mb-3">
-                <Navbar.Brand>Steps</Navbar.Brand>
-                {nodeTabs}
-          </Tabs>
-          <div><pre>{JSON.stringify(this.state.protocols[p].graph, null, 2)}</pre></div>
-        </Tab>);
+          <ProtocolInspector protocol={this.state.protocols[p]}/>
+        </Tab>)
     });
+
+    var inspector;
+    if (protocolTabs.length > 0){
+      inspector = (<Tabs defaultActiveKey={this.state.currentProtocol}
+        onSelect={(k) => { this.setProtocol(k) }}
+        className="mb-3">
+        {protocolTabs}
+      </Tabs>)
+    }
 
     return (
       <Container className="editor-container" fluid={true}>
@@ -270,11 +343,7 @@ export default class Editor extends Component {
           </Col>
           <Col xs={2} sm={2} className="editor-inspector-column">
             <Row>
-              <Tabs defaultActiveKey={this.state.currentProtocol}
-                onSelect={(k) => { this.setProtocol(k) }}
-                className="mb-3">
-                {protocolTabs}
-              </Tabs>
+            {inspector}
             </Row>
           </Col>
         </Row>
