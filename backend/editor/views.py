@@ -99,7 +99,8 @@ class ProtocolViewSet(viewsets.ModelViewSet):
         protocol: Protocol = self.get_object()
         authorize(request, protocol)
         fname = slugify(protocol.name)
-        file_data = "TODO: serialize protocol"
+        with protocol.rdf_file.open() as f:
+            file_data = f.read()
         response = HttpResponse(file_data, content_type="application/octet-stream")
         response['Content-Disposition'] = f'attachment;filename="{fname}.txt"'
         return response

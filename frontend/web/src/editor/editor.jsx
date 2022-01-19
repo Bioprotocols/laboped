@@ -6,17 +6,17 @@ import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
 
 import { MyNode } from "./components/Node";
-import { floatSocket, loadComponentsFromAPI, PAMLComponent } from "./components/Primitive";
+import { numSocket, loadComponentsFromAPI, PAMLComponent } from "./components/Primitive";
 import { ModuleComponent, InputComponent, OutputComponent, OutputFloatComponent } from "./components/Control";
 import Menu from "./menu";
 
 import React from "react";
 import { Component } from "react";
-import { Row, Col, Modal, Button, Container, Navbar } from "react-bootstrap";
+import { Row, Col, Modal, Button, Container, Tab } from "react-bootstrap";
 import Tabs from 'react-bootstrap/Tabs';
-import Tab from 'react-bootstrap/Tab';
 import { axios, axios_csrf_options, endpoint } from "../API";
 import "./editor.css"
+import { ProtocolInspector } from "./components/ProtocolInspector";
 
 
 function downloadStringAsFile(data, filename) {
@@ -88,7 +88,7 @@ export default class Editor extends Component {
   }
 
   async processHandler() {
-    console.log("process");
+    // console.log("process");
     await this.engine.abort();
     await this.engine.process(this.editor.toJSON());
   }
@@ -97,7 +97,7 @@ export default class Editor extends Component {
     // Return one socket unique to each type
     let portTypes = this.state.portTypes;
     if (Object.keys(portTypes).indexOf(portType) < 0) {
-      portTypes[portType] = floatSocket; // new Rete.Socket(portType);
+      portTypes[portType] = numSocket; // new Rete.Socket(portType);
       this.setState({portTypes: portTypes});
     }
     return portTypes[portType];
@@ -297,21 +297,11 @@ export default class Editor extends Component {
 
   render() {
     var protocolTabs = this.getProtocols().map((p) => {
-      var nodes = this.state.protocols[p].graph.nodes;
-      var nodeTabs = Object.keys(nodes).map((n) => {
-        var content = JSON.stringify(this.state.protocols[p].graph.nodes[n], null, 2);
-        return (<Tab eventKey={n} title={n}>
-                  <div><pre>{content}</pre></div>
-                </Tab>);
-      });
+      console.log(p);
       return (
         <Tab eventKey={p} title={p}>
-          <Tabs className="mb-3" >
-                <Navbar.Brand>Steps</Navbar.Brand>
-                {nodeTabs}
-          </Tabs>
-          <div><pre>{JSON.stringify(this.state.protocols[p].graph, null, 2)}</pre></div>
-        </Tab>);
+          <ProtocolInspector protocol={this.state.protocols[p]}/>
+        </Tab>)
     });
 
     var inspector;
@@ -353,7 +343,7 @@ export default class Editor extends Component {
           </Col>
           <Col xs={2} sm={2} className="editor-inspector-column">
             <Row>
-              {inspector}
+            {inspector}
             </Row>
           </Col>
         </Row>

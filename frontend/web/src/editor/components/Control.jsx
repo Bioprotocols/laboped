@@ -10,7 +10,7 @@ class MyReactControl extends React.Component {
     this.setState({
       name: this.props.name
     });
-    console.log(this.props);
+    //console.log(this.props);
     this.props.putData(this.props.id, this.props.name);
   }
   onChange(event) {
@@ -79,23 +79,23 @@ export class InputComponent extends Rete.Component {
 
   builder(node) {
     var out1 = new Rete.Output("output", "", numSocket);
-    //var ctrl = new TextControl(this.editor, "name");
-    var typectrl = new ListControl(this.editor, "type",
-    [
-      "one", "two"
-    ]
-    )
+    var ctrl = new TextControl(this.editor, "name");
+    //var typectrl = new ListControl(this.editor, "type",
+    // [
+    //   "one", "two"
+    // ]
+    // )
 
     return node
                .addOutput(out1)
-              //  .addControl(ctrl)
-               .addControl(typectrl);
+               .addControl(ctrl)
+              //  .addControl(typectrl);
                ;
   }
 
   worker(node, inputs, outputs){
     // node.controls.apply(c => node.data[c.key] = c.value)
-    node.data['type'] = node.controls.type;
+    // node.data['type'] = node.controls.type;
   }
 }
 
