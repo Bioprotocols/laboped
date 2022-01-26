@@ -52,3 +52,4 @@ backend/api/migrations
 backend/editor/migrations
 backend/accounts/migrations
 backend/media/
+oso
