@@ -13,10 +13,10 @@ import Menu from "./menu";
 import React from "react";
 import { Component } from "react";
 import { Row, Col, Modal, Button, Container, Tab } from "react-bootstrap";
-import Tabs from 'react-bootstrap/Tabs';
+
 import { axios, axios_csrf_options, endpoint } from "../API";
 import "./editor.css"
-import { ProtocolInspector } from "./components/ProtocolInspector";
+import { ProtocolInspectorGroup } from "./components/ProtocolInspector";
 
 
 function downloadStringAsFile(data, filename) {
@@ -36,6 +36,7 @@ export default class Editor extends Component {
     this.workspaceRef = React.createRef();
     this.menuRef = React.createRef();
 
+
     this.loginStatus = props.loginStatus;
 
     this.editor = {};
@@ -44,10 +45,12 @@ export default class Editor extends Component {
       currentProtocol: null,
       protocols: {},
       primitiveComponents: {},
-      portTypes: {}
+      portTypes: {},
+      keys: {}
     }
 
     this.processHandler = this.processHandler.bind(this);
+    this.setProtocol = this.setProtocol.bind(this);
   }
 
   componentDidMount() {
@@ -153,14 +156,15 @@ export default class Editor extends Component {
 
     // Update the current protocol, load graph, and update state.
 
-    this.editor.fromJSON(this.state.protocols[protocol].graph);
+
     this.setState({ currentProtocol: protocol });
+    this.editor.fromJSON(this.state.protocols[protocol].graph);
   }
 
   saveProtocolGraphInState(){
     // If there is a current protocol, then save its graph as JSON.
     if(this.state.currentProtocol) {
-      let protocols = this.state.protocols
+      let protocols = this.state.protocols;
       protocols[this.state.currentProtocol].graph = this.editor.toJSON();
       this.setState({protocols: protocols})
     }
@@ -213,10 +217,12 @@ export default class Editor extends Component {
       currentProtocols[p.name] = p;
       return p;
     });
-    this.setState({ protocols: currentProtocols });
+
     if (!this.state.currentProtocol){
       this.setState({currentProtocol: Object.keys(currentProtocols)[0]})
     }
+    this.setState({ protocols: currentProtocols });
+    this.editor.fromJSON(currentProtocols[this.state.currentProtocol].graph)
   }
 
   async rebuildPrimitives() {
@@ -296,22 +302,6 @@ export default class Editor extends Component {
   }
 
   render() {
-    var protocolTabs = this.getProtocols().map((p) => {
-      console.log(p);
-      return (
-        <Tab eventKey={p} title={p}>
-          <ProtocolInspector protocol={this.state.protocols[p]}/>
-        </Tab>)
-    });
-
-    var inspector;
-    if (protocolTabs.length > 0){
-      inspector = (<Tabs defaultActiveKey={this.state.currentProtocol}
-        onSelect={(k) => { this.setProtocol(k) }}
-        className="mb-3">
-        {protocolTabs}
-      </Tabs>)
-    }
 
     return (
       <Container className="editor-container" fluid={true}>
@@ -343,7 +333,11 @@ export default class Editor extends Component {
           </Col>
           <Col xs={2} sm={2} className="editor-inspector-column">
             <Row>
-            {inspector}
+              <ProtocolInspectorGroup
+                                      editor={this}
+                                      currentProtocol={this.state.currentProtocol}
+                                      protocols={this.state.protocols}
+                                      />
             </Row>
           </Col>
         </Row>

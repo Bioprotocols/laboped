@@ -2,6 +2,9 @@ from django.http.response import JsonResponse, ResponseHeaders
 from django.shortcuts import render
 from django.core.files.base import ContentFile
 from django.utils.text import slugify
+from django.db.models import Min
+from django.db.models.query import QuerySet
+
 from rest_framework import viewsets
 from editor.models import Primitive
 from editor.models import PAMLMapping
@@ -59,8 +62,9 @@ class ProtocolViewSet(viewsets.ModelViewSet):
         user = request.user
         for p in request.data:
             try:
-                protocol = Protocol.objects.get(name=p['name'])
-                if protocol:
+                protocol = Protocol.objects.filter(name=p['name']).order_by('-id')
+                if protocol.first():
+                    protocol = protocol.first()
                     protocol.name = p['name']
                     protocol.graph = p['graph']
                     protocol.rdf_file = p['rdf_file']
@@ -80,8 +84,14 @@ class ProtocolViewSet(viewsets.ModelViewSet):
     def list(self, request):
         if not request.user.is_authenticated:
             raise NotAuthenticated
+
         qset = Protocol.objects.authorize(request, action="GET")
         queryset = self.filter_queryset(qset)
+        #current_versions = qset.values('name').annotate(id=Max('id'))
+        #newest = Protocol.objects.filter(id=OuterRef("pk")).
+        current_versions = qset.values('name').annotate(current=Min('pk'))
+        queryset = queryset.filter(pk__in=current_versions.values('current'))
+
 
         page = self.paginate_queryset(queryset)
         if page is not None:

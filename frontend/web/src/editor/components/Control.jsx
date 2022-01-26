@@ -5,17 +5,19 @@ import { MyNode } from "./Node";
 import { numSocket, floatSocket } from "./Primitive"
 
 class MyReactControl extends React.Component {
+
   state = {};
   componentDidMount() {
     this.setState({
       name: this.props.name
     });
     //console.log(this.props);
-    this.props.putData(this.props.id, this.props.name);
+    //this.props.putData(this.props.id, this.props.name);
   }
   onChange(event) {
-    this.props.putData(this.props.id, event.target.value);
-    this.props.emitter.trigger("process");
+    // this.props.putData(this.props.id, event.target.value);
+    this.props.onChange(event);
+    // this.props.emitter.trigger("process");
     this.setState({
       name: event.target.value
     });
@@ -70,32 +72,31 @@ export class InputComponent extends Rete.Component {
   constructor() {
     super("Input");
     // this.module = {
-    //   nodeType: "input",
+    //   nodeType: 'input',
     //   socket: numSocket
-    // };
-    //this.data = {};
-    this.data.component = MyNode;
+    // }
+    //this.data.component = MyNode;
   }
 
   builder(node) {
     var out1 = new Rete.Output("output", "", numSocket);
     var ctrl = new TextControl(this.editor, "name");
-    //var typectrl = new ListControl(this.editor, "type",
-    // [
-    //   "one", "two"
-    // ]
-    // )
+    var typectrl = new ListControl(this.editor, "type",
+    [
+      "one", "two"
+    ]
+    )
 
     return node
                .addOutput(out1)
                .addControl(ctrl)
-              //  .addControl(typectrl);
+               .addControl(typectrl);
                ;
   }
 
-  worker(node, inputs, outputs){
-    // node.controls.apply(c => node.data[c.key] = c.value)
-    // node.data['type'] = node.controls.type;
+  async worker(node, inputs, outputs) {
+    if (!outputs['num'])
+        outputs['num'] = node.data.number; // here you can modify received outputs of Input node
   }
 }
 
@@ -137,20 +138,30 @@ export class OutputFloatComponent extends Rete.Component {
 
 class ReactListControl extends React.Component {
 
-
+  state = {};
+  componentDidMount() {
+    this.setState({
+      name: this.props.value
+    });
+    //console.log(this.props);
+    //this.props.putData(this.props.id, this.props.name);
+  }
   onChange(event) {
-    this.props.putData(this.props.value, event);
-    //this.props.emitter.trigger("process");
-    //this.setState({value: event});
+    // this.props.putData(this.props.id, event.target.value);
+    this.props.onChange(event);
+    // this.props.emitter.trigger("process");
+    this.setState({
+      name: event
+    });
   }
 
   render() {
     var items = this.props.values.map(o => <Dropdown.Item key={o} href={o}>{o}</Dropdown.Item>)
 
     return (
-      <Dropdown onSelect={this.onChange.bind(this)}>
+      <Dropdown onSelect={(k) => { this.onChange.bind(this) }}>
         <Dropdown.Toggle variant="success" id="dropdown-basic">
-          {this.props.id}={this.props.value}
+          {this.props.id}={this.state.name}
         </Dropdown.Toggle>
 
         <Dropdown.Menu>
@@ -171,68 +182,93 @@ class ListControl extends Rete.Control{
       id: key,
       value: values[0],
       values: values,
-      putData: () => this.putData.apply(this, arguments),
-      getData: () => this.getData.apply(this, arguments)
+      onChange: (e) => this.change(e)
+      // putData: () => this.putData.apply(this, arguments),
+      // getData: () => this.getData.apply(this, arguments)
     };
-    // this.emitter = emitter;
-    // this.key = key;
-    // // this.type = type;
+    this.emitter = emitter;
+    this.key = key;
+    this.type = "text";
     // // this.template = `<input type="${type}" :readonly="readonly" :value="value" @input="change($event)"/>`;
 
-    // this.scope = {
-    //   value: null,
-    //   readonly,
-    //   change: this.change.bind(this)
-    // };
+    this.scope = {
+      value: null,
+      // readonly,
+      change: this.change.bind(this),
+      update: this.doUpdate.bind(this)
+    };
+  }
+  onChange() {}
+
+  change(e) {
+    this.scope.value = e;
+    this.doUpdate();
+    this.onChange();
   }
 
+  doUpdate() {
+    if (this.key) this.putData(this.key, this.scope.value);
+    this.emitter.trigger("process");
+  }
+
+  mounted() {
+    this.scope.value =
+      this.getData(this.key) || (this.type === "number" ? 0 : "...");
+    this.doUpdate();
+  }
+
+  setValue(val) {
+    this.scope.value = val;
+  }
 }
 
 class TextControl extends Rete.Control {
-  constructor(emitter, key) {
+  constructor(emitter, key, type="text") {
     super(key);
     this.render = "react";
     this.component = MyReactControl;
     this.props = {
-      emitter,
+      // emitter,
       id: key,
-      putData: () => this.putData.apply(this, arguments)
+      name: key,
+      // putData: () => this.putData.apply(this, arguments),
+      onChange: (e) => this.change(e)
     };
-    // this.emitter = emitter;
-    // this.key = key;
-    // this.type = type;
+
+    this.emitter = emitter;
+    this.key = key;
+    this.type = type;
     // // this.template = `<input type="${type}" :readonly="readonly" :value="value" @input="change($event)"/>`;
 
-    // this.scope = {
-    //   value: null,
-    //   readonly,
-    //   change: this.change.bind(this)
-    // };
+    this.scope = {
+      value: null,
+      // readonly,
+      change: this.change.bind(this),
+      update: this.doUpdate.bind(this)
+    };
   }
 
-  // onChange() {}
+  onChange() {}
 
-  // change(e) {
-  //   this.scope.value =
-  //     this.type === "number" ? +e.target.value : e.target.value;
-  //   this.update();
-  //   this.onChange();
-  // }
+  change(e) {
+    this.scope.value =
+      this.type === "number" ? +e.target.value : e.target.value;
+    this.doUpdate();
+    this.onChange();
+  }
 
-  // update() {
-  //   if (this.key) this.putData(this.key, this.scope.value);
-  //   this.emitter.trigger("process");
-  //   //this._alight.scan();
-  // }
+  doUpdate() {
+    if (this.key) this.putData(this.key, this.scope.value);
+    this.emitter.trigger("process");
+  }
 
-  // mounted() {
-  //   this.scope.value =
-  //     this.getData(this.key) || (this.type === "number" ? 0 : "...");
-  //   this.update();
-  // }
+  mounted() {
+    this.scope.value =
+      this.getData(this.key) || (this.type === "number" ? 0 : "...");
+    this.doUpdate();
+  }
 
-  // setValue(val) {
-  //   this.scope.value = val;
-  //   //this._alight.scan();
-  // }
+  setValue(val) {
+    this.scope.value = val;
+  }
 }

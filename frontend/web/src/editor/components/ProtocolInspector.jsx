@@ -1,27 +1,52 @@
 import React, { Component } from 'react';
-// import { Tab } from 'react-bootstrap';
+import { Tab, Tabs, Nav, Row, Col } from 'react-bootstrap';
 
-export class ProtocolInspector extends Component {
-  constructor(props){
-      super(props)
-      this.protocol = props.protocol;
-  }
 
-  render() {
-    // var nodes = this.protocol.graph.nodes;
-    // var nodeTabs = Object.keys(nodes).map((n) => {
-    //   var content = JSON.stringify(this.protocol.graph.nodes[n], null, 2);
-    //   return (<Tab eventKey={n} title={n}>
-    //             <div><pre>{content}</pre></div>
-    //           </Tab>);
-    // });
-    return (
-        // <Tabs className="mb-3" >
-        //       <Navbar.Brand>Steps</Navbar.Brand>
-        //       {nodeTabs}
-        // </Tabs>
-        <div><pre>{JSON.stringify(this.protocol.graph, null, 2)}</pre></div>
-      );
-  }
-}
 
+export function ProtocolInspectorGroup(props) {
+    let tabs = Object.entries(props.protocols).map(
+                  ([pname, protocol])  =>  (
+                    <Nav.Item>
+                      <Nav.Link eventKey={pname}>{pname}</Nav.Link>
+                    </Nav.Item>
+                  ))
+
+    let panes = Object.entries(props.protocols).map(
+      ([pname, protocol])  =>  (
+        <Tab.Pane eventKey={pname}>
+          <ProtocolInspector key={pname} protocol={protocol}></ProtocolInspector>
+        </Tab.Pane>
+      ))
+
+  let tabcontainer = (
+    <Tab.Container id="protocol-inspector-group"
+                   activeKey={props.currentProtocol}>
+      <Col>
+        <Row>
+          <Nav variant="pills" className="flex-column"
+               onSelect={(k) => { props.editor.setProtocol(k) }}>
+            {tabs}
+          </Nav>
+        </Row>
+        <Row>
+          <Tab.Content>
+            {panes}
+          </Tab.Content>
+        </Row>
+      </Col>
+
+    </Tab.Container>
+  )
+  return tabcontainer
+};
+
+function ProtocolInspector(props) {
+  return (
+    <div>
+      <pre>
+        {JSON.stringify(props.protocol.graph, null, 2)}
+      </pre>
+    </div>
+  );
+
+};
