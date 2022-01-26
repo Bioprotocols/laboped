@@ -45,8 +45,8 @@ class MyReactControl extends React.Component {
 // }
 
 export class ModuleComponent extends Rete.Component {
-  constructor() {
-    super("Module");
+  constructor(name) {
+    super(name);
     this.module = {
       nodeType: "module"
     };
@@ -71,11 +71,11 @@ export class ModuleComponent extends Rete.Component {
 export class InputComponent extends Rete.Component {
   constructor() {
     super("Input");
-    // this.module = {
-    //   nodeType: 'input',
-    //   socket: numSocket
-    // }
-    //this.data.component = MyNode;
+    this.module = {
+      nodeType: 'input',
+      socket: numSocket
+    }
+    this.data.component = MyNode;
   }
 
   builder(node) {
@@ -109,6 +109,7 @@ export class OutputComponent extends Rete.Component {
       nodeType: "output",
       socket: numSocket
     };
+    this.data.component = MyNode;
   }
 
   builder(node) {
@@ -116,6 +117,11 @@ export class OutputComponent extends Rete.Component {
     var ctrl = new TextControl(this.editor, "name");
 
     return node.addControl(ctrl).addInput(inp);
+  }
+  
+  async worker(node, inputs, outputs) {
+    if (!outputs['num'])
+        outputs['num'] = node.data.number; // here you can modify received outputs of Input node
   }
 }
 
@@ -222,7 +228,7 @@ class ListControl extends Rete.Control{
   }
 }
 
-class TextControl extends Rete.Control {
+export class TextControl extends Rete.Control {
   constructor(emitter, key, type="text") {
     super(key);
     this.render = "react";

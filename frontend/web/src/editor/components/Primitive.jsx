@@ -1,7 +1,7 @@
 import Rete from "rete";
 import { axios, axios_csrf_options, endpoint } from "../../API";
 import { MyNode } from "./Node";
-
+import { TextControl, ModuleComponent } from "./Control";
 
 export var numSocket = new Rete.Socket("Number");
 export var floatSocket = new Rete.Socket("Float");
@@ -52,6 +52,44 @@ export class PAMLComponent extends Rete.Component {
     var end = new TimepointOut("End", "End", timeSocket);
     node.addInput(start);
     node.addOutput(end);
+    return node;
+  }
+}
+
+export class PAMLProtocolComponent extends ModuleComponent {
+  constructor(socketFn, protocol) {
+    super(protocol.name)
+    this.protocol = protocol;
+    this.socketFn = socketFn;
+    this.data.component = MyNode;
+
+  }
+
+  async builder(node) {
+
+    var inputs = Object.values(this.protocol.graph.nodes).filter(
+      n => n.name == "Input"
+    ).map(i =>
+      new Rete.Input(i.data.name, i.data.name, this.socketFn(i.type))
+    );
+    inputs.forEach(i => node.addInput(i))
+
+    var outputs = Object.values(this.protocol.graph.nodes).filter(
+      n => n.name == "Output"
+    ).map(i =>
+      new Rete.Output(i.data.name, i.data.name, this.socketFn(i.type))
+    );
+    outputs.forEach(i => node.addOutput(i))
+
+
+    // var outputs = this.primitive.outputs.map(i => new Rete.Output(i.name, i.name, this.socketFn(i.type)))
+    // outputs.forEach(i => node.addOutput(i))
+    // var start = new TimepointIn("Start", "Start", timeSocket);
+    // var end = new TimepointOut("End", "End", timeSocket);
+    // node.addInput(start);
+    // node.addOutput(end);
+
+
     return node;
   }
 }

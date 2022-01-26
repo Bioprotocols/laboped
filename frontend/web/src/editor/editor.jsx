@@ -6,7 +6,7 @@ import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
 
 import { MyNode } from "./components/Node";
-import { numSocket, loadComponentsFromAPI, PAMLComponent } from "./components/Primitive";
+import { numSocket, loadComponentsFromAPI, PAMLComponent, PAMLProtocolComponent } from "./components/Primitive";
 import { ModuleComponent, InputComponent, OutputComponent, OutputFloatComponent } from "./components/Control";
 import Menu from "./menu";
 
@@ -46,7 +46,7 @@ export default class Editor extends Component {
       protocols: {},
       primitiveComponents: {},
       portTypes: {},
-      keys: {}
+      modules: {}
     }
 
     this.processHandler = this.processHandler.bind(this);
@@ -117,9 +117,8 @@ export default class Editor extends Component {
     });
     components = components.concat([
       new InputComponent(),
-      new ModuleComponent(),
       new OutputComponent(),
-      new OutputFloatComponent(),
+      //new OutputFloatComponent(),
     ]);
 
     var primitiveComponents = this.state.primitiveComponents;
@@ -166,7 +165,8 @@ export default class Editor extends Component {
     if(this.state.currentProtocol) {
       let protocols = this.state.protocols;
       protocols[this.state.currentProtocol].graph = this.editor.toJSON();
-      this.setState({protocols: protocols})
+      this.setState({protocols: protocols});
+      this.updateProtocolComponent(this.state.currentProtocol);
     }
   }
 
@@ -223,6 +223,28 @@ export default class Editor extends Component {
     }
     this.setState({ protocols: currentProtocols });
     this.editor.fromJSON(currentProtocols[this.state.currentProtocol].graph)
+
+    Object.keys(currentProtocols).map((name, p) => {this.updateProtocolComponent(name); return p;})
+  }
+
+  updateProtocolComponent(protocol) {
+
+    var primitiveComponents = this.state.primitiveComponents;
+    let protocolComponent = new PAMLProtocolComponent(this.getPortTypeSocket.bind(this), this.state.protocols[protocol]);
+    primitiveComponents[protocolComponent.name] = protocolComponent;
+
+    if (this.editor.components.has(protocolComponent.name)){
+      this.editor.components.set(protocolComponent.name, protocolComponent);
+    } else {
+      this.editor.register(protocolComponent);
+    }
+    if (this.engine.components.has(protocolComponent.name)){
+      this.engine.components.set(protocolComponent.name, protocolComponent);
+    } else {
+      this.engine.register(protocolComponent);
+    }
+    this.setState({ primitiveComponents: primitiveComponents });
+    this.editor.trigger("process");
   }
 
   async rebuildPrimitives() {
