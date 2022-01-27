@@ -80,7 +80,11 @@ export class InputComponent extends Rete.Component {
 
   builder(node) {
     var out1 = new Rete.Output("output", "", numSocket);
-    var ctrl = new TextControl(this.editor, "name");
+
+    var ctrlName = Object.keys(node.data).find(k => k == "name")
+    ctrlName = ctrlName ? node.data[ctrlName] : "name";
+    var ctrl = new TextControl(this.editor, ctrlName);
+
     var typectrl = new ListControl(this.editor, "type",
     [
       "one", "two"
@@ -114,7 +118,10 @@ export class OutputComponent extends Rete.Component {
 
   builder(node) {
     var inp = new Rete.Input("input", "Value", numSocket);
-    var ctrl = new TextControl(this.editor, "name");
+
+    var ctrlName = Object.keys(node.data).find(k => k == "name")
+    ctrlName = ctrlName ? node.data[ctrlName] : "name";
+    var ctrl = new TextControl(this.editor, ctrlName);
 
     return node.addControl(ctrl).addInput(inp);
   }

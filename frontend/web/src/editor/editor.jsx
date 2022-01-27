@@ -340,7 +340,6 @@ export default class Editor extends Component {
     }
     this.setState({ primitiveComponents: primitiveComponents });
     this.editor.trigger("process");
-
   }
 
   async rebuildPrimitives() {
