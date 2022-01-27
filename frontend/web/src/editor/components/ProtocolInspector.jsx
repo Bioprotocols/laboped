@@ -1,18 +1,24 @@
 import React, { Component } from 'react';
-import { Tab, Tabs, Nav, Row, Col, Modal, Button, NavDropdown, Container } from 'react-bootstrap';
+import { Tab, Nav, Row, Col, Dropdown, SplitButton } from 'react-bootstrap';
 
-
+function DebugID(protocol) {
+  if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+    return (<Dropdown.Header href="#">Debug ID: {protocol.id}</Dropdown.Header>)
+  }
+  return null
+}
 
 export function ProtocolInspectorGroup(props) {
   let emptyProtocol = "+";
   let tabs = Object.entries(props.protocols).map(
                 ([pname, protocol], i)  =>  (
-                  <NavDropdown title={pname} key={i} id="nav-dropdown">
-                    <NavDropdown.Item key={pname+"open"} eventKey={pname}>Open</NavDropdown.Item>
-                    <NavDropdown.Item key={pname+"rename"} eventKey={pname}>Rename</NavDropdown.Item>
-                    <NavDropdown.Divider />
-                    <NavDropdown.Item eventKey={pname+"del"}>Delete</NavDropdown.Item>
-                  </NavDropdown>
+                  <SplitButton size="sm" variant="outline-primary" title={pname} key={i} id="nav-dropdown" onClick={() => props.editor.openProtocol(protocol)}>
+                    {DebugID(protocol)}
+                    <Dropdown.Item key={pname+"save"} onClick={() => props.editor.saveProtocol(protocol)}>Save</Dropdown.Item>
+                    <Dropdown.Item key={pname+"rename"} onClick={() => props.editor.renameProtocol(protocol)}>Rename</Dropdown.Item>
+                    <Dropdown.Divider />
+                    <Dropdown.Item key={pname+"del"} onClick={() => props.editor.deleteProtocol(protocol)}>Delete</Dropdown.Item>
+                  </SplitButton>
                   // <Nav.Item>
                   //   <Nav.Link eventKey={pname}>{pname}</Nav.Link>
                   // </Nav.Item>

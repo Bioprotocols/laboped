@@ -60,6 +60,7 @@ class ProtocolViewSet(viewsets.ModelViewSet):
         if not request.user.is_authenticated:
             raise NotAuthenticated
         user = request.user
+        saved = []
         for p in request.data:
             try:
                 if p['id'] is not None:
@@ -76,12 +77,13 @@ class ProtocolViewSet(viewsets.ModelViewSet):
                                         graph=p['graph'],
                                         rdf_file=p['rdf_file'])
                 protocol.save()
+                saved.append(protocol)
             except Exception as e:
                 pass
-
-
-
-        return HttpResponse(f"Saved {len(request.data)} protocols.")
+        return JsonResponse({
+            'message': f"Saved {len(request.data)} protocols.",
+            'saved': saved
+            })
 
     def list(self, request):
         if not request.user.is_authenticated:
@@ -111,3 +113,12 @@ class ProtocolViewSet(viewsets.ModelViewSet):
         response = HttpResponse(file_data, content_type="application/octet-stream")
         response['Content-Disposition'] = f'attachment;filename="{fname}.txt"'
         return response
+
+    @action(detail=True)
+    def delete(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            raise NotAuthenticated
+        protocol: Protocol = self.get_object()
+        authorize(request, protocol, action="DELETE")
+        protocol.delete()
+        return HttpResponse(f"Deleted protocol {protocol.id}.")

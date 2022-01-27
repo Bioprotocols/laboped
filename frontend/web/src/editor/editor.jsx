@@ -17,6 +17,7 @@ import { Row, Col, Modal, Button, Container, Tab } from "react-bootstrap";
 import { axios, axios_csrf_options, endpoint } from "../API";
 import "./editor.css"
 import { ProtocolInspectorGroup } from "./components/ProtocolInspector";
+import RenameProtocolModal from "./RenameProtocolModal";
 
 
 function downloadStringAsFile(data, filename) {
@@ -50,6 +51,9 @@ export default class Editor extends Component {
 
     this.processHandler = this.processHandler.bind(this);
     this.setProtocol = this.setProtocol.bind(this);
+    this.openProtocol = this.openProtocol.bind(this);
+    this.renameProtocol = this.renameProtocol.bind(this);
+    this.deleteProtocol = this.deleteProtocol.bind(this);
   }
 
   componentDidMount() {
@@ -185,8 +189,33 @@ export default class Editor extends Component {
     }
   }
 
+  async saveProtocol(protocol) {
+    let result = await axios.post(endpoint.editor.protocol, [protocol], {
+      withCredentials: true,
+      xsrfCookieName: 'csrftoken',
+      xsrfHeaderName: 'x-csrftoken',
+      headers: {
+        "Content-Type": "application/json",
+        'x-csrftoken': this.loginStatus.state.csrf,
+      }
+    }).then(function (response) {
+      return response.data.saved[0];
+    })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+        return null;
+      });
+
+    if (result) {
+      var currentProtocols = this.state.protocols;
+      currentProtocols[result.name] = result;
+      this.setState({ protocols: currentProtocols });
+    }
+  }
+
   // TODO this should probably just save the current protocol
-  async saveProtocol() {
+  async saveAllProtocols() {
     // Retreive the current protocol from the Rete editor
     this.saveProtocolGraphInState();
 
@@ -343,6 +372,73 @@ export default class Editor extends Component {
     return Object.keys(this.state.protocols);
   }
 
+  openProtocol(protocol) {
+    this.setProtocol(protocol.name)
+  }
+
+  renameProtocol(protocol) {
+    this.setState({ renameProtocol: protocol });
+  }
+
+  async deleteProtocol(protocol) {
+    let success = await axios.post(`${endpoint.editor.protocol}${protocol.id}/delete/`, [], {
+      withCredentials: true,
+      xsrfCookieName: 'csrftoken',
+      xsrfHeaderName: 'x-csrftoken',
+      headers: {
+        "Content-Type": "application/json",
+        'x-csrftoken': this.loginStatus.state.csrf,
+      }
+    }).then(function (response) {
+        return response.status == 200;
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+        return false;
+      });
+
+    if (success) {
+      var currentProtocols = this.state.protocols;
+      delete currentProtocols[protocol.name];
+      this.setState({ protocols: currentProtocols });
+    } else {
+      console.error(`Failed to delete ${protocol.name}`)
+    }
+  }
+
+  onCancelRename() {
+    this.setState({
+      renameProtocol: null,
+      renameProtocolError: null
+    });
+  }
+
+  onConfirmRename(protocol, name) {
+    if (!name) {
+      return "Name must not be empty"
+    }
+    if (protocol.name == name) {
+      return "Name must be new assignment"
+    }
+    var currentProtocols = this.state.protocols;
+    if (name in currentProtocols) {
+      return "Name already exists"
+    }
+
+    delete currentProtocols[protocol.name]
+    protocol.name = name
+    currentProtocols[protocol.name] = protocol
+
+    this.setState({
+      renameProtocol: null,
+      renameProtocolError: null,
+      protocols: currentProtocols
+    });
+    this.saveProtocol(protocol)
+    return null
+  }
+
   render() {
 
     let workspaceComponent = () => (
@@ -375,6 +471,13 @@ export default class Editor extends Component {
 
           </Col>
         </Row>
+
+        <RenameProtocolModal
+            show={this.state.renameProtocol != null}
+            protocol={this.state.renameProtocol}
+            handleCancel={() => this.onCancelRename()}
+            handleRename={(p, n) => this.onConfirmRename(p, n)}
+        />
       </Container>
     );
   }

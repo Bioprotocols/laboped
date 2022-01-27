@@ -27,7 +27,7 @@ export default class Menu extends Component {
               <Nav className="me-auto">
                 <NavDropdown menuVariant="dark" title="File">
                   <NavDropdown.Item href="#" onClick={() => this.editor.setProtocol(null)}>New Protocol</NavDropdown.Item>
-                  <NavDropdown.Item href="#" onClick={() => this.editor.saveProtocol()}>Save</NavDropdown.Item>
+                  <NavDropdown.Item href="#" onClick={() => this.editor.saveAllProtocols()}>Save</NavDropdown.Item>
                 </NavDropdown>
                 <NavDropdown menuVariant="dark" title="Tools">
                   <NavDropdown.Item href="#" onClick={() => this.editor.rebuildPrimitives()}>Rebuild Primitives</NavDropdown.Item>
