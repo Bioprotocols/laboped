@@ -17,8 +17,21 @@
     height: 100%;
 }
 
+.editor-main-column
+{
+    /* overflow-y: hidden;
+    overflow-x: hidden; */
+    height: 100%;
+}
+
+
 .editor-pallete {
     padding-left: 10px;
+    height: 100%;
+}
+
+.editor-workspace-inspector-row {
+    height: 85%;
 }
 
 .editor-workspace-column {
@@ -26,6 +39,7 @@
     height: 100%;
     padding: 0;
 }
+
 
 .editor-inspector-column {
     overflow-y: scroll;

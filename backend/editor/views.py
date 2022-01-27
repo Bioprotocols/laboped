@@ -62,14 +62,16 @@ class ProtocolViewSet(viewsets.ModelViewSet):
         user = request.user
         for p in request.data:
             try:
-                protocol = Protocol.objects.filter(name=p['name']).order_by('-id')
-                if protocol.first():
-                    protocol = protocol.first()
+                if p['id'] is not None:
+                    protocol = Protocol.objects.get(id=p['id'])
+                    protocol.id = p['id']
                     protocol.name = p['name']
                     protocol.graph = p['graph']
                     protocol.rdf_file = p['rdf_file']
                 else:
-                    protocol = Protocol.create(owner=user,
+                    protocol = Protocol.create(
+                                        id=p['id'],
+                                        owner=user,
                                         name=p['name'],
                                         graph=p['graph'],
                                         rdf_file=p['rdf_file'])
@@ -87,11 +89,6 @@ class ProtocolViewSet(viewsets.ModelViewSet):
 
         qset = Protocol.objects.authorize(request, action="GET")
         queryset = self.filter_queryset(qset)
-        #current_versions = qset.values('name').annotate(id=Max('id'))
-        #newest = Protocol.objects.filter(id=OuterRef("pk")).
-        current_versions = qset.values('name').annotate(current=Min('pk'))
-        queryset = queryset.filter(pk__in=current_versions.values('current'))
-
 
         page = self.paginate_queryset(queryset)
         if page is not None:

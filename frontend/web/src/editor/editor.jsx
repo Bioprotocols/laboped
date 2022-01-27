@@ -137,27 +137,40 @@ export default class Editor extends Component {
     return { id: "demo@0.1.0", nodes: {} };
   }
 
+
+  newProtocol(){
+    let protocol = "New Protocol " + Object.keys(this.state.protocols).length;
+    return {  id: null,
+              name: protocol,
+              graph: this.initialGraph(),
+              rdf_file: null
+            };
+  }
+
   setProtocol(protocol) {
+    var protocolObj = null;
 
     // Create a new protocol if none specified
     if (!protocol) {
-      protocol = "New Protocol " + Object.keys(this.state.protocols).length;
+      protocolObj = this.newProtocol();
+      protocol = protocolObj.name;
       let protocols = this.state.protocols;
-      protocols[protocol] = { id: null,
-                              name: protocol,
-                              graph: this.initialGraph(),
-                              rdf_file: null
-                            };
+      protocols[protocol] = protocolObj;
       this.setState({protocols: protocols});
+    } else {
+      protocolObj = this.state.protocols[protocol]
     }
-
-    this.saveProtocolGraphInState();
 
     // Update the current protocol, load graph, and update state.
 
+    this.saveProtocolGraphInState();
+    let graph = protocolObj.graph;
+    // if (graph.nodes > 0){
+      this.editor.fromJSON(graph);
+    // }
+    this.editor.trigger("process");
+    this.editor.view.resize();
 
-    this.setState({ currentProtocol: protocol });
-    this.editor.fromJSON(this.state.protocols[protocol].graph);
   }
 
   saveProtocolGraphInState(){
@@ -221,8 +234,11 @@ export default class Editor extends Component {
     if (!this.state.currentProtocol){
       this.setState({currentProtocol: Object.keys(currentProtocols)[0]})
     }
+
     this.setState({ protocols: currentProtocols });
-    this.editor.fromJSON(currentProtocols[this.state.currentProtocol].graph)
+    //this.setProtocol(this.state.currentProtocol)
+
+     this.editor.fromJSON(currentProtocols[this.state.currentProtocol].graph)
 
     Object.keys(currentProtocols).map((name, p) => {this.updateProtocolComponent(name); return p;})
   }
@@ -325,6 +341,10 @@ export default class Editor extends Component {
 
   render() {
 
+    let workspaceComponent = () => (
+        <div className="editor-workspace" ref={this.workspaceRef} />
+    )
+
     return (
       <Container className="editor-container" fluid={true}>
         <Menu
@@ -335,32 +355,20 @@ export default class Editor extends Component {
         // getProtocols={this.getProtocols.bind(this)}
         // setProtocol={this.setProtocol.bind(this)}
         />
-        <Row className="editor" xs={12} sm={12}>
+        <Row className="editor" >
           <Col xs={2} sm={2} className="editor-pallete-column">
             <div className="editor-pallete" ref={this.palleteRef} />
           </Col>
-          <Col xs={8} sm={8} className="editor-workspace-column">
-            <div className="editor-workspace" ref={this.workspaceRef} data-toggle="tab" />
-            <Modal show={this.state.showModal} onHide={() => this.setState({ showModal: false })}>
-              <Modal.Header closeButton>
-                <Modal.Title>Saved Protocol</Modal.Title>
-              </Modal.Header>
-              <Modal.Body>Saved!</Modal.Body>
-              <Modal.Footer>
-                <Button variant="primary" onClick={() => this.setState({ showModal: false })}>
-                  Close
-                </Button>
-              </Modal.Footer>
-            </Modal>
-          </Col>
-          <Col xs={2} sm={2} className="editor-inspector-column">
-            <Row>
+
+          <Col xs={10} sm={10} className="editor-main-column">
+
               <ProtocolInspectorGroup
                                       editor={this}
                                       currentProtocol={this.state.currentProtocol}
                                       protocols={this.state.protocols}
+                                      workspaceComponent={workspaceComponent}
                                       />
-            </Row>
+
           </Col>
         </Row>
       </Container>
