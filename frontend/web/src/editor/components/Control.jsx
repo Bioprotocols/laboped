@@ -14,7 +14,7 @@ class MyReactControl extends React.Component {
     //console.log(this.props);
     //this.props.putData(this.props.id, this.props.name);
   }
-  onChange(event) {
+  handleChange(event) {
     // this.props.putData(this.props.id, event.target.value);
     this.props.onChange(event);
     // this.props.emitter.trigger("process");
@@ -25,7 +25,7 @@ class MyReactControl extends React.Component {
 
   render() {
     return (
-      <input value={this.state.name} onChange={this.onChange.bind(this)} />
+      <input value={this.state.name} onChange={this.handleChange.bind(this)} />
     );
   }
 }
@@ -118,7 +118,7 @@ export class OutputComponent extends Rete.Component {
 
     return node.addControl(ctrl).addInput(inp);
   }
-  
+
   async worker(node, inputs, outputs) {
     if (!outputs['num'])
         outputs['num'] = node.data.number; // here you can modify received outputs of Input node

@@ -69,20 +69,31 @@ export class PAMLProtocolComponent extends ModuleComponent {
 
     var inputs = Object.values(this.protocol.graph.nodes).filter(
       n => n.name == "Input"
-    ).map(i =>
-      new Rete.Input(i.data.name, i.data.name, this.socketFn(i.type))
+    ).map((i, idx) => {
+      if (Object.keys(i.data).find(i => i == "name")> 0){
+        return new Rete.Input(i.data.name, i.data.name, this.socketFn(i.type));
+      } else {
+        return new Rete.Input("i"+idx, "i"+idx, this.socketFn(i.type));
+      }
+    }
+
     );
     inputs.forEach(i => node.addInput(i))
 
-    // var outputs = Object.values(this.protocol.graph.nodes).filter(
-    //   n => n.name == "Output"
-    // ).map(i =>
-    //   new Rete.Output(i.data.name, i.data.name, this.socketFn(i.type))
-    // );
-    // outputs.forEach(i => {
-    //   node.addOutput(i)
+    var outputs = Object.values(this.protocol.graph.nodes).filter(
+      n => n.name == "Output"
+    ).map((i, idx) => {
+        if (Object.keys(i.data).find(i => i == "name")> 0){
+          return new Rete.Output(i.data.name, i.data.name, this.socketFn(i.type));
+        } else {
+          return new Rete.Output("o"+idx, "o"+idx, this.socketFn(i.type));
+        }
+      }
+    );
+    outputs.forEach(i => {
+      node.addOutput(i)
 
-    // })
+    })
 
 
     // var outputs = this.primitive.outputs.map(i => new Rete.Output(i.name, i.name, this.socketFn(i.type)))

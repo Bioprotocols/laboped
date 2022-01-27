@@ -45,8 +45,7 @@ export default class Editor extends Component {
       currentProtocol: null,
       protocols: {},
       primitiveComponents: {},
-      portTypes: {},
-      modules: {}
+      portTypes: {}
     }
 
     this.processHandler = this.processHandler.bind(this);
@@ -83,7 +82,7 @@ export default class Editor extends Component {
     this.editor.trigger("process");
     this.initializeComponents();
     this.retreiveProtocols();
-    //this.setProtocol(null);  // Initialize the empty protocol
+
   }
 
   componentWillUnmount() {
@@ -147,7 +146,7 @@ export default class Editor extends Component {
             };
   }
 
-  setProtocol(protocol) {
+  setProtocol(protocol, saveOld=true) {
     var protocolObj = null;
 
     // Create a new protocol if none specified
@@ -163,7 +162,10 @@ export default class Editor extends Component {
 
     // Update the current protocol, load graph, and update state.
 
-    this.saveProtocolGraphInState();
+    if (saveOld){
+      this.saveProtocolGraphInState();
+    }
+    this.setState({currentProtocol: protocol});
     let graph = protocolObj.graph;
     // if (graph.nodes > 0){
       this.editor.fromJSON(graph);
@@ -179,7 +181,7 @@ export default class Editor extends Component {
       let protocols = this.state.protocols;
       protocols[this.state.currentProtocol].graph = this.editor.toJSON();
       this.setState({protocols: protocols});
-      this.updateProtocolComponent(this.state.currentProtocol);
+      // this.updateProtocolComponent(this.state.currentProtocol);
     }
   }
 
@@ -231,16 +233,17 @@ export default class Editor extends Component {
       return p;
     });
 
+    this.setState({ protocols: currentProtocols });
+    Object.keys(currentProtocols).map((name, p) => {this.updateProtocolComponent(name); return p;})
+
+
     if (!this.state.currentProtocol){
       this.setState({currentProtocol: Object.keys(currentProtocols)[0]})
+      this.setProtocol(this.state.currentProtocol, false)
+    } else {
+      this.setProtocol(this.state.currentProtocol)
     }
 
-    this.setState({ protocols: currentProtocols });
-    //this.setProtocol(this.state.currentProtocol)
-
-     this.editor.fromJSON(currentProtocols[this.state.currentProtocol].graph)
-
-    Object.keys(currentProtocols).map((name, p) => {this.updateProtocolComponent(name); return p;})
   }
 
   updateProtocolComponent(protocol) {
@@ -261,6 +264,7 @@ export default class Editor extends Component {
     }
     this.setState({ primitiveComponents: primitiveComponents });
     this.editor.trigger("process");
+
   }
 
   async rebuildPrimitives() {
