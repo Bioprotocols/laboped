@@ -42,6 +42,7 @@ class Primitive(models.Model):
 
 
 class Pin(models.Model):
+    id = models.BigAutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=100)
     units = models.CharField(max_length=100)
@@ -186,19 +187,21 @@ class PAMLMapping():
         """
         Convert primtitive p to a model.
         """
-        p_instance = Primitive(name=p.display_id, library=library)
-        p_instance.save()
 
-        inputs = [ PrimitiveInput(name=i.property_value.name,
-                                  type=i.property_value.type,
-                                  primitive=p_instance)
-                   for i in p.get_inputs() ]
+        if not Primitive.objects.filter(name=p.display_id, library=library).exists():
+            p_instance = Primitive(name=p.display_id, library=library)
+            p_instance.save()
 
-        outputs = [ PrimitiveOutput(name=i.property_value.name,
+            inputs = [ PrimitiveInput(name=i.property_value.name,
                                     type=i.property_value.type,
                                     primitive=p_instance)
-                   for i in p.get_outputs() ]
+                    for i in p.get_inputs() ]
 
-        for param in inputs + outputs:
-            param.save()
+            outputs = [ PrimitiveOutput(name=i.property_value.name,
+                                        type=i.property_value.type,
+                                        primitive=p_instance)
+                    for i in p.get_outputs() ]
+
+            for param in inputs + outputs:
+                param.save()
 

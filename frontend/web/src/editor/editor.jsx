@@ -213,18 +213,20 @@ export default class Editor extends Component {
     return true
   }
 
-  saveProtocolGraphInState(callback=null){
+  saveProtocolGraphInState(){
     // If there is a current protocol, then save its graph as JSON.
-    if(!this.state.currentProtocol) {
-      if (callback) {
-        callback()
+    if(this.state.currentProtocol) {
+      let protocols = this.state.protocols;
+      let graph = null;
+      try {
+        graph = this.editor.toJSON();
+      } catch (error) {
+        graph = this.initialGraph();
       }
-      return
+      protocols[this.state.currentProtocol].graph = graph;
+      this.setState({protocols: protocols});
+      // this.updateProtocolComponent(this.state.currentProtocol);
     }
-    let protocols = this.state.protocols;
-    protocols[this.state.currentProtocol].graph = this.editor.toJSON();
-    this.setState({protocols: protocols}, callback);
-    // this.updateProtocolComponent(this.state.currentProtocol);
   }
 
   saveProtocol(protocol) {
