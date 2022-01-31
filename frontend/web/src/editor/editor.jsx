@@ -136,7 +136,7 @@ export default class Editor extends Component {
         }
         return c;
     });
-    this.setState({ primitiveComponents: components });
+    this.setState({ primitiveComponents: primitiveComponents });
   }
 
   initialGraph() {

@@ -35,10 +35,10 @@ class Primitive(models.Model):
     library = models.CharField(max_length=100)
 
     def get_inputs(self):
-        return PrimitiveInput.objects.filter(primitive=self).distinct()
+        return PrimitiveInput.objects.filter(primitive=self.name).distinct()
 
     def get_outputs(self):
-        return PrimitiveOutput.objects.filter(primitive=self).distinct()
+        return PrimitiveOutput.objects.filter(primitive=self.name).distinct()
 
 
 class Pin(models.Model):
