@@ -36,11 +36,12 @@ export default class Editor extends Component {
     this.palleteRef = React.createRef();
     this.workspaceRef = React.createRef();
     this.menuRef = React.createRef();
+    this.saveSpaceRef = React.createRef();
 
 
     this.loginStatus = props.loginStatus;
 
-    this.editor = {};
+    this.editor = null;
     this.state = {
       showModal: false,
       currentProtocol: null,
@@ -50,7 +51,9 @@ export default class Editor extends Component {
     }
 
     this.processHandler = this.processHandler.bind(this);
-    this.setProtocol = this.setProtocol.bind(this);
+    this.displayProtocol = this.displayProtocol.bind(this);
+    this.displayNewProtocol = this.displayNewProtocol.bind(this);
+    this.createProtocol = this.createProtocol.bind(this);
     this.openProtocol = this.openProtocol.bind(this);
     this.renameProtocol = this.renameProtocol.bind(this);
     this.deleteProtocol = this.deleteProtocol.bind(this);
@@ -140,78 +143,115 @@ export default class Editor extends Component {
     return { id: "demo@0.1.0", nodes: {} };
   }
 
-
-  newProtocol(){
-    let protocol = "New Protocol " + Object.keys(this.state.protocols).length;
-    return {  id: null,
-              name: protocol,
-              graph: this.initialGraph(),
-              rdf_file: null
-            };
+  createProtocol(name) {
+    if (!name) {
+      name = "New Protocol " + Object.keys(this.state.protocols).length;
+    }
+    let p = {
+      id: null,
+      name: name,
+      graph: this.initialGraph(),
+      rdf_file: null
+    };
+    return new Promise((resolve) => {
+      this.saveProtocol(p).then((protocol) => {
+        resolve(protocol)
+      }).catch((error) => {
+        console.error(error)
+      })
+    })
   }
 
-  setProtocol(protocol, saveOld=true) {
-    var protocolObj = null;
-
-    // Create a new protocol if none specified
-    if (!protocol) {
-      protocolObj = this.newProtocol();
-      protocol = protocolObj.name;
+  displayNewProtocol() {
+    // ask the server to create a new protocol
+    this.createProtocol().then((protocol) => {
+      let name = protocol.name;
       let protocols = this.state.protocols;
-      protocols[protocol] = protocolObj;
-      this.setState({protocols: protocols});
-    } else {
-      protocolObj = this.state.protocols[protocol]
+      protocols[name] = protocol;
+      // add that protocol to the local state
+      this.setState({ protocols: protocols }, () => {
+        // display the new protocol
+        this.displayProtocol(protocol, false)
+      });
+    }).catch((error) => {
+      console.log(error);
+    });
+  }
+
+  displayProtocol(protocol, saveOld=true) {
+    if (!protocol) {
+      return false
+    }
+
+    if (typeof(protocol) === 'string') {
+      console.warn(`displayProtocol called with string '${protocol}' instead of a protocol object`)
+      var currentProtocols = this.state.protocols;
+      if (!(protocol in currentProtocols)) {
+        return false
+      }
+      protocol = currentProtocols[protocol];
     }
 
     // Update the current protocol, load graph, and update state.
-
     if (saveOld){
       this.saveProtocolGraphInState();
     }
-    this.setState({currentProtocol: protocol});
-    let graph = protocolObj.graph;
-    // if (graph.nodes > 0){
-      this.editor.fromJSON(graph);
-    // }
-    this.editor.trigger("process");
-    this.editor.view.resize();
-
+    this.setState({currentProtocol: protocol.name}, () => {
+      this.editor.fromJSON(protocol.graph)
+        .then(() => {
+          this.editor.trigger("process");
+          this.editor.view.resize();
+          // TODO this should really store the id instead of the name
+          // but I would need to unravel the use of name in currentProtocol
+          // so instead just use name for now
+          localStorage.setItem('opened-protocol', protocol.name)
+        })
+        .catch((error) => {
+          console.error(error)
+        });
+    });
+    return true
   }
 
-  saveProtocolGraphInState(){
+  saveProtocolGraphInState(callback=null){
     // If there is a current protocol, then save its graph as JSON.
-    if(this.state.currentProtocol) {
-      let protocols = this.state.protocols;
-      protocols[this.state.currentProtocol].graph = this.editor.toJSON();
-      this.setState({protocols: protocols});
-      // this.updateProtocolComponent(this.state.currentProtocol);
+    if(!this.state.currentProtocol) {
+      if (callback) {
+        callback()
+      }
+      return
     }
+    let protocols = this.state.protocols;
+    protocols[this.state.currentProtocol].graph = this.editor.toJSON();
+    this.setState({protocols: protocols}, callback);
+    // this.updateProtocolComponent(this.state.currentProtocol);
   }
 
-  async saveProtocol(protocol) {
-    let result = await axios.post(endpoint.editor.protocol, [protocol], {
-      withCredentials: true,
-      xsrfCookieName: 'csrftoken',
-      xsrfHeaderName: 'x-csrftoken',
-      headers: {
-        "Content-Type": "application/json",
-        'x-csrftoken': this.loginStatus.state.csrf,
-      }
-    }).then(function (response) {
-      return response.data.saved[0];
-    })
-      .catch(function (error) {
-        // handle error
-        console.log(error);
-        return null;
-      });
-
-    if (result) {
-      var currentProtocols = this.state.protocols;
-      currentProtocols[result.name] = result;
-      this.setState({ protocols: currentProtocols });
+  saveProtocol(protocol) {
+    if (this.state.currentProtocol === protocol.name) {
+      this.saveProtocolGraphInState();
     }
+    return new Promise((resolve, reject) => {
+      axios.post(endpoint.editor.protocol, [protocol], {
+        withCredentials: true,
+        xsrfCookieName: 'csrftoken',
+        xsrfHeaderName: 'x-csrftoken',
+        headers: {
+          "Content-Type": "application/json",
+          'x-csrftoken': this.loginStatus.state.csrf,
+        }
+      }).then((response) => {
+        let result = response.data[0];
+        if (!result) {
+          throw 'Save returned null protocol'
+        }
+        var currentProtocols = this.state.protocols;
+        currentProtocols[result.name] = result;
+        this.setState({ protocols: currentProtocols }, () => {
+          resolve(result)
+        });
+      }).catch(reject)
+    })
   }
 
   // TODO this should probably just save the current protocol
@@ -265,14 +305,21 @@ export default class Editor extends Component {
     this.setState({ protocols: currentProtocols });
     Object.keys(currentProtocols).map((name, p) => {this.updateProtocolComponent(name); return p;})
 
-
-    if (!this.state.currentProtocol){
-      this.setState({currentProtocol: Object.keys(currentProtocols)[0]})
-      this.setProtocol(this.state.currentProtocol, false)
-    } else {
-      this.setProtocol(this.state.currentProtocol)
+    // if we have a previous opened protocol in localstorage
+    // and it can display then return
+    let prev = localStorage.getItem('opened-protocol')
+    if (prev in currentProtocols && this.displayProtocol(currentProtocols[prev])) {
+      return
     }
 
+    // if we have no current protocols the create one
+    if (currentProtocols.length < 1) {
+      this.displayNewProtocol()
+      return
+    }
+
+    // otherwise just display the first protocol from currentProtocols
+    this.displayProtocol(Object.values(currentProtocols)[0])
   }
 
   updateProtocolComponent(protocol) {
@@ -373,7 +420,7 @@ export default class Editor extends Component {
   }
 
   openProtocol(protocol) {
-    this.setProtocol(protocol.name)
+    this.displayProtocol(protocol)
   }
 
   renameProtocol(protocol) {
@@ -399,9 +446,14 @@ export default class Editor extends Component {
       });
 
     if (success) {
-      var currentProtocols = this.state.protocols;
+      let currentProtocols = this.state.protocols;
+      let currentProtocol = this.state.currentProtocol;
       delete currentProtocols[protocol.name];
-      this.setState({ protocols: currentProtocols });
+      this.setState({ protocols: currentProtocols }, () => {
+        if (protocol.name === currentProtocol) {
+          this.displayProtocol(Object.values(currentProtocols)[0], false)
+        }
+      });
     } else {
       console.error(`Failed to delete ${protocol.name}`)
     }

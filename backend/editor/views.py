@@ -1,3 +1,4 @@
+from asyncio import protocols
 from django.http.response import JsonResponse, ResponseHeaders
 from django.shortcuts import render
 from django.core.files.base import ContentFile
@@ -14,7 +15,7 @@ from editor.protocol.protocol import Protocol as PAMLProtocol
 from editor.serializers import PrimitiveSerializer, ProtocolSerializer
 # Create your views here.
 
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseServerError
 
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -60,30 +61,51 @@ class ProtocolViewSet(viewsets.ModelViewSet):
         if not request.user.is_authenticated:
             raise NotAuthenticated
         user = request.user
-        saved = []
+        created = []
+        to_update = []
+        update_fields = ['name', 'graph', 'rdf_file']
         for p in request.data:
             try:
                 if p['id'] is not None:
+                    print(f"Updating protocol with id: {p['id']}")
                     protocol = Protocol.objects.get(id=p['id'])
-                    protocol.id = p['id']
+                    print(protocol)
                     protocol.name = p['name']
                     protocol.graph = p['graph']
                     protocol.rdf_file = p['rdf_file']
+                    print(p['graph'])
+                    to_update.append(protocol)
                 else:
-                    protocol = Protocol.create(
-                                        id=p['id'],
-                                        owner=user,
-                                        name=p['name'],
-                                        graph=p['graph'],
-                                        rdf_file=p['rdf_file'])
-                protocol.save()
-                saved.append(protocol)
+                    protocol = Protocol.objects.create(owner=user,
+                                                       name=p['name'],
+                                                       graph=p['graph'],
+                                                       rdf_file=p['rdf_file'])
+                    print(f"Creating new protocol with id: {protocol.id}")
+                    created.append(protocol)
             except Exception as e:
-                pass
-        return JsonResponse({
-            'message': f"Saved {len(request.data)} protocols.",
-            'saved': saved
-            })
+                print(e)
+
+        updated = None
+        print(f"Updating {len(to_update)} protocols... ", end="")
+        try:
+            Protocol.objects.bulk_update(to_update, update_fields)
+            updated = to_update
+            print(f"Done")
+        except Exception as e:
+            print(f"ERROR")
+            print(e)
+            return HttpResponseServerError("Failed to update protocols")
+
+        try:
+            if updated is None:
+                updated = []
+            protocols = created + updated
+            serializer = ProtocolSerializer(protocols, many=True)
+            print(serializer.data)
+            return Response(serializer.data)
+        except Exception as e:
+            print(e)
+            return HttpResponseServerError("Failed to serialize protocols")
 
     def list(self, request):
         if not request.user.is_authenticated:

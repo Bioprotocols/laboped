@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { Tab, Nav, Row, Col, Dropdown, SplitButton } from 'react-bootstrap';
+import { Tab, Nav, Row, Col, Dropdown, SplitButton, Button } from 'react-bootstrap';
 
 function DebugID(protocol) {
   if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-    return (<Dropdown.Header href="#">Debug ID: {protocol.id}</Dropdown.Header>)
+    return (<Dropdown.Header href="#">Protocol ID: {protocol.id}</Dropdown.Header>)
   }
   return null
 }
@@ -11,23 +11,27 @@ function DebugID(protocol) {
 export function ProtocolInspectorGroup(props) {
   let emptyProtocol = "+";
   let tabs = Object.entries(props.protocols).map(
-                ([pname, protocol], i)  =>  (
-                  <SplitButton size="sm" variant="outline-primary" title={pname} key={i} id="nav-dropdown" onClick={() => props.editor.openProtocol(protocol)}>
-                    {DebugID(protocol)}
-                    <Dropdown.Item key={pname+"save"} onClick={() => props.editor.saveProtocol(protocol)}>Save</Dropdown.Item>
-                    <Dropdown.Item key={pname+"rename"} onClick={() => props.editor.renameProtocol(protocol)}>Rename</Dropdown.Item>
-                    <Dropdown.Divider />
-                    <Dropdown.Item key={pname+"del"} onClick={() => props.editor.deleteProtocol(protocol)}>Delete</Dropdown.Item>
-                  </SplitButton>
-                  // <Nav.Item>
-                  //   <Nav.Link eventKey={pname}>{pname}</Nav.Link>
-                  // </Nav.Item>
-                ))
+                ([pname, protocol], i)  =>  {
+                  let className = null
+                  if (props.editor.state.currentProtocol === protocol.name) {
+                    className = "current-protocol"
+                  }
+                  return (
+                    <SplitButton className={className} size="sm" variant="outline-primary" title={pname} key={i} onClick={() => props.editor.openProtocol(protocol)}>
+                      {DebugID(protocol)}
+                      <Dropdown.Item key={pname+"save"} onClick={() => props.editor.saveProtocol(protocol)}>Save</Dropdown.Item>
+                      <Dropdown.Item key={pname+"rename"} onClick={() => props.editor.renameProtocol(protocol)}>Rename</Dropdown.Item>
+                      <Dropdown.Divider />
+                      <Dropdown.Item key={pname+"del"} onClick={() => props.editor.deleteProtocol(protocol)}>Delete</Dropdown.Item>
+                    </SplitButton>
+                    // <Nav.Item>
+                    //   <Nav.Link eventKey={pname}>{pname}</Nav.Link>
+                    // </Nav.Item>
+                  )
+              })
   let emptyTab = (
-
     <Nav.Item>
-
-      <Nav.Link eventKey={emptyProtocol}>{emptyProtocol}</Nav.Link>
+      <Button size="sm" variant="outline-primary" onClick={() => props.editor.displayNewProtocol()}>{emptyProtocol}</Button>
     </Nav.Item>
   )
 
@@ -46,12 +50,12 @@ export function ProtocolInspectorGroup(props) {
                    activeKey={props.currentProtocol}>
       {/* <Col> */}
         <Row  xs={1} sm={1}>
-          <Nav variant="pills" className="flex-row"
+          <Nav id="editor-protocol-tabs" variant="pills" className="flex-row"
                onSelect={(k) => {
                 if (k == emptyProtocol) {
-                  props.editor.setProtocol(null);
+                  props.editor.displayNewProtocol();
                 } else {
-                 props.editor.setProtocol(k)
+                 props.editor.displayProtocol(k)
                 }}}>
             {tabs}
             {emptyTab}

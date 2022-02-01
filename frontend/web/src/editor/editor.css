@@ -54,3 +54,22 @@
     background-size: 40px 40px;
     background-image: radial-gradient(circle, #000000 2px, rgba(0, 0, 0, 0) 1px);
 }
+
+/* Hide bootstrap outline around focused buttons */
+.btn:focus:not(:focus-visible) {
+  outline: 0;
+  box-shadow: none;
+}
+
+#editor-protocol-tabs .dropdown{
+  font-family: "DejaVu Sans Mono", "Courier New", monospace;
+}
+#editor-protocol-tabs .dropdown.current-protocol {
+    background-color: lightcyan;
+}
+#editor-protocol-tabs .dropdown.current-protocol button {
+    font-weight: 900;
+}
+#editor-protocol-tabs .dropdown:not(.current-protocol) {
+    background-color: whitesmoke;
+}

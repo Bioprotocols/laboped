@@ -28,7 +28,7 @@ urlpatterns = router.urls + [
     }), name='api-editor-protocol-download'),
     path('protocol/<int:pk>/delete/', views.ProtocolViewSet.as_view({
         'post': 'delete'
-    }), name='api-editor-protocol-download'),
+    }), name='api-editor-protocol-delete'),
 ]
 
 # urlpatterns = [
