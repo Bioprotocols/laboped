@@ -17,14 +17,14 @@ export function ProtocolInspectorGroup(props) {
                     className = "current-protocol"
                   }
                   return (
-                    <SplitButton className={className} size="sm" variant="outline-primary" title={pname} key={i} onClick={() => props.editor.openProtocol(protocol)}>
+                    <SplitButton className={className} size="sm" variant="outline-primary" title={pname} key={i} onClick={() => props.editor.openProtocol(pname)}>
                       {DebugID(protocol)}
                       <Dropdown.Item key={pname+"save"} onClick={() => props.editor.saveProtocol(pname)}>Save</Dropdown.Item>
-                      <Dropdown.Item key={pname+"rename"} onClick={() => props.editor.renameProtocol(protocol)}>Rename</Dropdown.Item>
-                      <Dropdown.Item key={pname+"graph_download"} onClick={() => props.editor.downloadCurrentGraph(pname)}>Download Current Rete Graph</Dropdown.Item>
-                      <Dropdown.Item href="#" key={pname+"protocol_download"} onClick={() => props.editor.downloadCurrentProtocol(pname)}>Download Current Protocol</Dropdown.Item>
+                      <Dropdown.Item key={pname+"rename"} onClick={() => props.editor.renameProtocol(pname)}>Rename</Dropdown.Item>
+                      <Dropdown.Item key={pname+"graph_download"} onClick={() => props.editor.downloadGraph(pname)}>Download Rete Graph</Dropdown.Item>
+                      <Dropdown.Item key={pname+"protocol_download"} onClick={() => props.editor.handleProtocolDownload(pname)}>Download Protocol</Dropdown.Item>
                       <Dropdown.Divider />
-                      <Dropdown.Item key={pname+"del"} onClick={() => props.editor.deleteProtocol(protocol)}>Delete</Dropdown.Item>
+                      <Dropdown.Item key={pname+"del"} onClick={() => props.editor.deleteProtocol(pname)}>Delete</Dropdown.Item>
                     </SplitButton>
                     // <Nav.Item>
                     //   <Nav.Link eventKey={pname}>{pname}</Nav.Link>

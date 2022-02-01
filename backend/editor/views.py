@@ -69,11 +69,9 @@ class ProtocolViewSet(viewsets.ModelViewSet):
                 if p['id'] is not None:
                     print(f"Updating protocol with id: {p['id']}")
                     protocol = Protocol.objects.get(id=p['id'])
-                    print(protocol)
                     protocol.name = p['name']
                     protocol.graph = p['graph']
                     protocol.rdf_file = p['rdf_file']
-                    print(p['graph'])
                     to_update.append(protocol)
                 else:
                     protocol = Protocol.objects.create(owner=user,
@@ -101,7 +99,6 @@ class ProtocolViewSet(viewsets.ModelViewSet):
                 updated = []
             protocols = created + updated
             serializer = ProtocolSerializer(protocols, many=True)
-            print(serializer.data)
             return Response(serializer.data)
         except Exception as e:
             print(e)
@@ -129,12 +126,17 @@ class ProtocolViewSet(viewsets.ModelViewSet):
             raise NotAuthenticated
         protocol: Protocol = self.get_object()
         authorize(request, protocol)
-        fname = slugify(protocol.name)
-        with protocol.rdf_file.open() as f:
-            file_data = f.read()
-        response = HttpResponse(file_data, content_type="application/octet-stream")
-        response['Content-Disposition'] = f'attachment;filename="{fname}.txt"'
-        return response
+        try:
+            format = "nt"
+            fname = slugify(protocol.name)
+            print(f"Converting protocol {protocol.id} to rdf...")
+            file_data = protocol.to_rdf_string(format)
+            print("Done")
+            response = HttpResponse(file_data, content_type="application/octet-stream")
+            response['Content-Disposition'] = f'attachment;filename="{fname}.{format}"'
+            return response
+        except Exception as e:
+            return HttpResponseServerError(e)
 
     @action(detail=True)
     def delete(self, request, *args, **kwargs):

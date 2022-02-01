@@ -16,17 +16,11 @@ class Protocol(AuthorizedModel):
     graph = models.JSONField()
     rdf_file = models.FileField(upload_to='editor/protocols/', null=True)
 
-    @classmethod
-    def create(cls, **kwargs):
-        protocol = cls(**kwargs)
-        p_rdf = Protocol.to_rdf(protocol.graph)
-        cf = ContentFile(p_rdf.document.write_string("nt"))
-        protocol.rdf_file = cf
-        protocol.rdf_file.save(f"{protocol.name}.nt", cf)
-        return protocol
+    def to_rdf_string(self, format="nt"):
+        return Protocol.to_paml(self.graph).document.write_string(format)
 
     @classmethod
-    def to_rdf(cls, graph):
+    def to_paml(cls, graph):
         return PAMLMapping.graph_to_protocol(graph)
 
 

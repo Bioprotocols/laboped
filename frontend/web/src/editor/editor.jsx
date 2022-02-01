@@ -18,6 +18,7 @@ import { axios, axios_csrf_options, endpoint } from "../API";
 import "./editor.css"
 import { ProtocolInspectorGroup } from "./components/ProtocolInspector";
 import RenameProtocolModal from "./RenameProtocolModal";
+import DownloadProtocolModal from "./DownloadProtocolModal";
 
 
 function downloadStringAsFile(data, filename) {
@@ -57,6 +58,9 @@ export default class Editor extends Component {
     this.openProtocol = this.openProtocol.bind(this);
     this.renameProtocol = this.renameProtocol.bind(this);
     this.deleteProtocol = this.deleteProtocol.bind(this);
+    this.downloadProtocol = this.downloadProtocol.bind(this);
+    this.handleProtocolDownload = this.handleProtocolDownload.bind(this);
+    this.displayAnyProtocol = this.displayAnyProtocol.bind(this);
   }
 
   componentDidMount() {
@@ -88,11 +92,11 @@ export default class Editor extends Component {
     AreaPlugin.zoomAt(this.editor);
     this.editor.trigger("process");
 
-    this.rebuildPrimitives();
-
-    this.initializeComponents();
-    this.retreiveProtocols();
-
+    this.rebuildPrimitives(() => {
+      this.initializeComponents(() => {
+        this.retreiveProtocols();
+      });
+    });
   }
 
   componentWillUnmount() {
@@ -115,7 +119,7 @@ export default class Editor extends Component {
     return portTypes[portType];
   }
 
-  async initializeComponents() {
+  async initializeComponents(callback) {
     let components = await loadComponentsFromAPI(); //[new AddComponent()];
     components = components.map((primitive) => {
       let c = new PAMLComponent(this.getPortTypeSocket.bind(this), primitive);
@@ -139,7 +143,7 @@ export default class Editor extends Component {
         }
         return c;
     });
-    this.setState({ primitiveComponents: primitiveComponents });
+    this.setState({ primitiveComponents: primitiveComponents }, callback);
   }
 
   initialGraph() {
@@ -148,7 +152,12 @@ export default class Editor extends Component {
 
   createProtocol(name) {
     if (!name) {
-      name = "New Protocol " + Object.keys(this.state.protocols).length;
+      let existing = Object.keys(this.state.protocols)
+      let i = 0
+      do {
+        name = "New Protocol " + i
+        i += 1
+      } while (existing.includes(name))
     }
     return new Promise((resolve) => {
       this.saveProtocol(name).then((protocol) => {
@@ -168,32 +177,26 @@ export default class Editor extends Component {
       // add that protocol to the local state
       this.setState({ protocols: protocols }, () => {
         // display the new protocol
-        this.displayProtocol(protocol, false)
+        this.displayProtocol(protocol.name, false)
       });
     }).catch((error) => {
       console.log(error);
     });
   }
 
-  displayProtocol(protocol, saveOld=true) {
-    if (!protocol) {
+  displayProtocol(protocolName, saveOld=true) {
+    if (!protocolName) {
       return false
     }
-
-    if (typeof(protocol) === 'string') {
-      console.warn(`displayProtocol called with string '${protocol}' instead of a protocol object`)
-      var currentProtocols = this.state.protocols;
-      if (!(protocol in currentProtocols)) {
-        return false
-      }
-      protocol = currentProtocols[protocol];
-    }
-
+    console.log(`Displaying protocol ${protocolName}`)
+    let currentProtocols = this.state.protocols;
+    let protocol = currentProtocols[protocolName];
     // Update the current protocol, load graph, and update state.
     if (saveOld){
       this.saveProtocolGraphInState(this.state.currentProtocol);
     }
-    this.setState({currentProtocol: protocol.name}, () => {
+
+    this.setState({currentProtocol: protocolName}, () => {
       this.editor.fromJSON(protocol.graph)
         .then(() => {
           this.editor.trigger("process");
@@ -210,39 +213,43 @@ export default class Editor extends Component {
     return true
   }
 
-  saveProtocolGraphInState(protocol){
-    // If there is a current protocol, then save its graph as JSON.
-    if(protocol) {
-      let protocols = this.state.protocols;
-      let graph = null;
-
-      if (!(protocol in protocols)){
-        let p = {
-          id: null,
-          name: protocol,
-          graph: this.initialGraph(),
-          rdf_file: null
-        };
-        protocols[protocol] = p;
-        this.setState({currentProtocol: protocol})
-      }
-
-      try {
-        if (protocol != this.state.currentProtocol){
-          graph = this.state.protocols[protocol].graph;
-        } else {
-          graph = this.editor.toJSON();
-        }
-      } catch (error) {
-        graph = this.initialGraph();
-      }
-      protocols[protocol].graph = graph;
-      this.setState({protocols: protocols});
-      // this.updateProtocolComponent(this.state.currentProtocol);
+  saveProtocolGraphInState(protocolName){
+    if(!protocolName) {
+      return;
     }
+    // If there is a current protocol, then save its graph as JSON.
+    let protocols = this.state.protocols;
+    let graph = null;
+
+    if (!(protocolName in protocols)){
+      console.log(`Making new protocol for ${protocolName}`)
+      let p = {
+        id: null,
+        name: protocolName,
+        graph: this.initialGraph(),
+        rdf_file: null
+      };
+      protocols[protocolName] = p;
+    }
+    console.log(`Updating graph for protocol ${protocolName}`)
+
+    try {
+      if (protocolName != this.state.currentProtocol){
+        graph = protocols[protocolName].graph;
+      } else {
+        graph = this.editor.toJSON();
+      }
+    } catch (error) {
+      console.error(error)
+      graph = this.initialGraph();
+    }
+    protocols[protocolName].graph = graph;
+    this.setState({protocols: protocols});
+    // this.updateProtocolComponent(this.state.currentProtocol);
   }
 
   saveProtocol(protocolName) {
+    console.log(`Saving protocol ${protocolName}`)
     // Retreive the current protocol from the Rete editor
     this.saveProtocolGraphInState(protocolName);
 
@@ -270,7 +277,7 @@ export default class Editor extends Component {
           // protocol and I do not want to rummage through all of the protocols to determine
           // what ID was assigned to any newly saved (previous local-only) protocols.
           // Note: Might become OBE if we just make all protocols stores remotely (no local-only)
-          this.retreiveProtocols()
+          // this.retreiveProtocols()
           resolve(result)
         });
       }).catch(reject)
@@ -304,7 +311,7 @@ export default class Editor extends Component {
     // protocol and I do not want to rummage through all of the protocols to determine
     // what ID was assigned to any newly saved (previous local-only) protocols.
     // Note: Might become OBE if we just make all protocols stores remotely (no local-only)
-    this.retreiveProtocols()
+    // this.retreiveProtocols()
   }
 
   async retreiveProtocols() {
@@ -325,31 +332,35 @@ export default class Editor extends Component {
       return p;
     });
 
-    this.setState({ protocols: currentProtocols });
-    Object.keys(currentProtocols).map((name, p) => {this.updateProtocolComponent(name); return p;})
-
-    // if we have a previous opened protocol in localstorage
-    // and it can display then return
-    let prev = localStorage.getItem('opened-protocol')
-    if (prev in currentProtocols && this.displayProtocol(currentProtocols[prev])) {
-      return
+    let newState = {
+      protocols: currentProtocols,
+      primitiveComponents: Object.keys(currentProtocols).map((name) => {return this.initializeProtocolComponent(name);})
     }
 
-    // if we have no current protocols the create one
-    if (currentProtocols.length < 1) {
-      this.displayNewProtocol()
-      return
-    }
+    this.setState(newState, () => {
+      // if we have a previous opened protocol in localstorage
+      // and it can display then return
+      let prev = localStorage.getItem('opened-protocol')
+      if (prev in currentProtocols && this.displayProtocol(prev)) {
+        return
+      }
 
-    // otherwise just display the first protocol from currentProtocols
-    this.displayProtocol(Object.values(currentProtocols)[0])
+      // if we have no current protocols the create one
+      if (currentProtocols.length < 1) {
+        this.displayNewProtocol()
+        return
+      }
+
+      // otherwise just display the first protocol from currentProtocols
+      this.displayAnyProtocol()
+    });
   }
 
-  updateProtocolComponent(protocol) {
+  initializeProtocolComponent(protocol) {
 
-    var primitiveComponents = this.state.primitiveComponents;
+    // var primitiveComponents = this.state.primitiveComponents;
     let protocolComponent = new PAMLProtocolComponent(this.getPortTypeSocket.bind(this), this.state.protocols[protocol]);
-    primitiveComponents[protocolComponent.name] = protocolComponent;
+    // primitiveComponents[protocolComponent.name] = protocolComponent;
 
     if (this.editor.components.has(protocolComponent.name)){
       this.editor.components.set(protocolComponent.name, protocolComponent);
@@ -361,24 +372,23 @@ export default class Editor extends Component {
     } else {
       this.engine.register(protocolComponent);
     }
-    this.setState({ primitiveComponents: primitiveComponents });
-    this.editor.trigger("process");
+    // this.setState({ primitiveComponents: primitiveComponents });
+    // this.editor.trigger("process");
+    return protocolComponent
+
   }
 
-  async rebuildPrimitives() {
-    await axios.get(endpoint.editor.rebuild)
+  rebuildPrimitives(callback) {
+    axios.get(endpoint.editor.rebuild)
       .then(function (response) {
-        return response.data;
+        callback(response.data);
       })
       .catch(function (error) {
-        // handle error
         console.log(error);
-        return [];
       });
-    this.initializeComponents()
   }
 
-  async downloadCurrentGraph(protocol=null) {
+  async downloadGraph(protocol=null) {
     // TODO I need to convert the protocol storage on the client to
     // match the server side primary key (id) instead of using the
     // protocol name.
@@ -390,51 +400,103 @@ export default class Editor extends Component {
     downloadStringAsFile(JSON.stringify(protocolObj.graph, null, 2), "graph.json")
   }
 
-  async downloadCurrentProtocol(protocol=null) {
-    // TODO I need to convert the protocol storage on the client to
-    // match the server side primary key (id) instead of using the
-    // protocol name.
-    if (protocol == null) {
+  downloadProtocol(protocolName) {
+    if (!protocolName) {
       console.error(`Must select a protocol to download`)
       return
     }
-    var protocolObj = this.state.protocols[protocol]
-    if (protocolObj.id == null) {
-      // TODO new protocols should either be created on the server side or
-      // we should popup a modal to allow saving right now. The server backend
-      // is needed to convert the protocol into RDF for download.
+    console.log(`Downloading protocol ${protocolName}`)
 
-      this.saveProtocol(protocol);
-      protocolObj = this.state.protocols[protocol]
-      // console.error(`${protocolObj.name} was never saved so it cannot be downloaded`)
-      // return
-    }
-    await axios.get(`${endpoint.editor.protocol}${protocolObj.id}/download/`, {
-        responseType: 'blob'
-      })
-      .then(function (response) {
-        let disposition = response.headers['content-disposition'];
-        var filename = 'unknown_file'
-        // from https://stackoverflow.com/a/40940790
-        if (disposition && disposition.indexOf('attachment') !== -1) {
-          var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-          var matches = filenameRegex.exec(disposition);
-          if (matches != null && matches[1]) {
-            filename = matches[1].replace(/['"]/g, '');
+    let canceledDownload = false
+    let promise = new Promise((resolve, reject) => {
+      // Always save the protocol prior to downloading it
+      this.saveProtocol(protocolName)
+        .then((protocol) => {
+          if (canceledDownload) {
+            reject({isCanceled: true, error: null})
+            return
           }
-        }
-        downloadStringAsFile(response.data, filename)
-        return response;
+          // once the protocol is saved we can request the download
+          axios.get(`${endpoint.editor.protocol}${protocol.id}/download/`, {
+            responseType: 'blob'
+          }).then(function (response) {
+              if (canceledDownload) {
+                reject({isCanceled: true, error: null})
+                return
+              }
+              // on the download is down we can read teh headers
+              let disposition = response.headers['content-disposition'];
+              let filename = 'unknown_file'
+              // from https://stackoverflow.com/a/40940790
+              if (disposition && disposition.indexOf('attachment') !== -1) {
+                let filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                let matches = filenameRegex.exec(disposition);
+                if (matches != null && matches[1]) {
+                  filename = matches[1].replace(/['"]/g, '');
+                }
+              }
+              downloadStringAsFile(response.data, filename)
+              resolve()
+            })
+            .catch(function (error) {
+              // failed to download
+              reject({isCanceled: true, error: error})
+            })
+        })
+        .catch((error) => {
+          // failed to save
+          reject(error)
+        })
+    })
+    return {
+      promise,
+      cancel() {
+        canceledDownload = true;
+      },
+    }
+  }
+
+  handleProtocolDownload(protocolName) {
+    let cancelablePromise = this.downloadProtocol(protocolName)
+
+    cancelablePromise.promise
+      .then(() => {
+        this.setState({
+          download: {
+            name: protocolName,
+            done: true,
+            error: null,
+            promise: null,
+            cancel: () => {}
+          }
+        })
       })
-      .catch(function (error) {
-        // handle error
-        console.log(error);
-        return [];
-      });
+      .catch((result) => {
+        console.error(result.error)
+        this.setState({
+          download: {
+            name: protocolName,
+            done: true,
+            error: result.error.toString(),
+            promise: null,
+            cancel: () => {}
+          }
+        })
+      })
+
+    this.setState({
+      download: {
+        name: protocolName,
+        done: false,
+        error: null,
+        promise: cancelablePromise.promise,
+        cancel: cancelablePromise.cancel
+      }
+    })
   }
 
   updateProtocol(protocol) {
-    var currentProtocols = this.state.protocols;
+    let currentProtocols = this.state.protocols;
     currentProtocols[protocol.name] = protocol;
     this.setState({ protocols: currentProtocols });
   }
@@ -444,15 +506,29 @@ export default class Editor extends Component {
     return Object.keys(this.state.protocols);
   }
 
-  openProtocol(protocol) {
-    this.displayProtocol(protocol)
+  openProtocol(protocolName) {
+    this.displayProtocol(protocolName)
   }
 
-  renameProtocol(protocol) {
+  renameProtocol(protocolName) {
+    let currentProtocols = this.state.protocols;
+    let protocol = currentProtocols[protocolName];
     this.setState({ renameProtocol: protocol });
   }
 
-  async deleteProtocol(protocol) {
+  displayAnyProtocol() {
+    let options = Object.values(this.state.protocols)
+    if (options.length < 1) {
+      this.displayNewProtocol()
+    } else {
+      this.displayProtocol(options[0].name, false)
+    }
+  }
+
+  async deleteProtocol(protocolName) {
+    let currentProtocols = this.state.protocols;
+    let protocol = currentProtocols[protocolName];
+
     let success = await axios.post(`${endpoint.editor.protocol}${protocol.id}/delete/`, [], {
       withCredentials: true,
       xsrfCookieName: 'csrftoken',
@@ -474,9 +550,15 @@ export default class Editor extends Component {
       let currentProtocols = this.state.protocols;
       let currentProtocol = this.state.currentProtocol;
       delete currentProtocols[protocol.name];
-      this.setState({ protocols: currentProtocols }, () => {
-        if (protocol.name === currentProtocol) {
-          this.displayProtocol(Object.values(currentProtocols)[0], false)
+
+      let newState = { protocols: currentProtocols }
+      if (protocol.name === currentProtocol) {
+        newState.currentProtocol = null
+      }
+
+      this.setState(newState, () => {
+        if (!this.state.currentProtocol) {
+          this.displayAnyProtocol()
         }
       });
     } else {
@@ -520,6 +602,15 @@ export default class Editor extends Component {
     return null
   }
 
+  onCancelDownload() {
+    this.state.download.cancel()
+    this.setState({ download: null })
+  }
+
+  onDoneDownload() {
+    this.setState({ download: null })
+  }
+
   render() {
 
     let workspaceComponent = () => (
@@ -558,6 +649,12 @@ export default class Editor extends Component {
             protocol={this.state.renameProtocol}
             handleCancel={() => this.onCancelRename()}
             handleRename={(p, n) => this.onConfirmRename(p, n)}
+        />
+        <DownloadProtocolModal
+            show={this.state.download != null}
+            download={this.state.download}
+            handleCancel={() => this.onCancelDownload()}
+            handleDone={() => this.onDoneDownload()}
         />
       </Container>
     );
