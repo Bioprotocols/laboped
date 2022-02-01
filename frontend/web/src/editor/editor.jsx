@@ -87,6 +87,9 @@ export default class Editor extends Component {
 
     AreaPlugin.zoomAt(this.editor);
     this.editor.trigger("process");
+
+    this.rebuildPrimitives();
+
     this.initializeComponents();
     this.retreiveProtocols();
 
@@ -147,14 +150,8 @@ export default class Editor extends Component {
     if (!name) {
       name = "New Protocol " + Object.keys(this.state.protocols).length;
     }
-    let p = {
-      id: null,
-      name: name,
-      graph: this.initialGraph(),
-      rdf_file: null
-    };
     return new Promise((resolve) => {
-      this.saveProtocol(p).then((protocol) => {
+      this.saveProtocol(name).then((protocol) => {
         resolve(protocol)
       }).catch((error) => {
         console.error(error)
@@ -194,7 +191,7 @@ export default class Editor extends Component {
 
     // Update the current protocol, load graph, and update state.
     if (saveOld){
-      this.saveProtocolGraphInState();
+      this.saveProtocolGraphInState(this.state.currentProtocol);
     }
     this.setState({currentProtocol: protocol.name}, () => {
       this.editor.fromJSON(protocol.graph)
@@ -213,26 +210,44 @@ export default class Editor extends Component {
     return true
   }
 
-  saveProtocolGraphInState(){
+  saveProtocolGraphInState(protocol){
     // If there is a current protocol, then save its graph as JSON.
-    if(this.state.currentProtocol) {
+    if(protocol) {
       let protocols = this.state.protocols;
       let graph = null;
+
+      if (!(protocol in protocols)){
+        let p = {
+          id: null,
+          name: protocol,
+          graph: this.initialGraph(),
+          rdf_file: null
+        };
+        protocols[protocol] = p;
+        this.setState({currentProtocol: protocol})
+      }
+
       try {
-        graph = this.editor.toJSON();
+        if (protocol != this.state.currentProtocol){
+          graph = this.state.protocols[protocol].graph;
+        } else {
+          graph = this.editor.toJSON();
+        }
       } catch (error) {
         graph = this.initialGraph();
       }
-      protocols[this.state.currentProtocol].graph = graph;
+      protocols[protocol].graph = graph;
       this.setState({protocols: protocols});
       // this.updateProtocolComponent(this.state.currentProtocol);
     }
   }
 
-  saveProtocol(protocol) {
-    if (this.state.currentProtocol === protocol.name) {
-      this.saveProtocolGraphInState();
-    }
+  saveProtocol(protocolName) {
+    // Retreive the current protocol from the Rete editor
+    this.saveProtocolGraphInState(protocolName);
+
+    let protocol = this.state.protocols[protocolName]
+
     return new Promise((resolve, reject) => {
       axios.post(endpoint.editor.protocol, [protocol], {
         withCredentials: true,
@@ -249,7 +264,13 @@ export default class Editor extends Component {
         }
         var currentProtocols = this.state.protocols;
         currentProtocols[result.name] = result;
+
         this.setState({ protocols: currentProtocols }, () => {
+          // FIXME retreive all the protocols again since we are not saving just a specific
+          // protocol and I do not want to rummage through all of the protocols to determine
+          // what ID was assigned to any newly saved (previous local-only) protocols.
+          // Note: Might become OBE if we just make all protocols stores remotely (no local-only)
+          this.retreiveProtocols()
           resolve(result)
         });
       }).catch(reject)
@@ -259,7 +280,7 @@ export default class Editor extends Component {
   // TODO this should probably just save the current protocol
   async saveAllProtocols() {
     // Retreive the current protocol from the Rete editor
-    this.saveProtocolGraphInState();
+    this.saveProtocolGraphInState(this.state.currentProtocol);
 
     this.setState({ showModal: true })
     await axios.post(endpoint.editor.protocol, Object.values(this.state.protocols), {
@@ -357,35 +378,38 @@ export default class Editor extends Component {
     this.initializeComponents()
   }
 
-  async downloadCurrentGraph() {
+  async downloadCurrentGraph(protocol=null) {
     // TODO I need to convert the protocol storage on the client to
     // match the server side primary key (id) instead of using the
     // protocol name.
-    if (this.state.currentProtocol == null) {
+    if (protocol == null) {
       console.error(`Must select a protocol to download`)
       return
     }
-    var currentProtocol = this.state.protocols[this.state.currentProtocol]
-    downloadStringAsFile(JSON.stringify(currentProtocol.graph, null, 2), "graph.json")
+    var protocolObj = this.state.protocols[protocol]
+    downloadStringAsFile(JSON.stringify(protocolObj.graph, null, 2), "graph.json")
   }
 
-  async downloadCurrentProtocol() {
+  async downloadCurrentProtocol(protocol=null) {
     // TODO I need to convert the protocol storage on the client to
     // match the server side primary key (id) instead of using the
     // protocol name.
-    if (this.state.currentProtocol == null) {
+    if (protocol == null) {
       console.error(`Must select a protocol to download`)
       return
     }
-    var currentProtocol = this.state.protocols[this.state.currentProtocol]
-    if (currentProtocol.id == null) {
+    var protocolObj = this.state.protocols[protocol]
+    if (protocolObj.id == null) {
       // TODO new protocols should either be created on the server side or
       // we should popup a modal to allow saving right now. The server backend
       // is needed to convert the protocol into RDF for download.
-      console.error(`${currentProtocol.name} was never saved so it cannot be downloaded`)
-      return
+
+      this.saveProtocol(protocol);
+      protocolObj = this.state.protocols[protocol]
+      // console.error(`${protocolObj.name} was never saved so it cannot be downloaded`)
+      // return
     }
-    await axios.get(`${endpoint.editor.protocol}${currentProtocol.id}/download/`, {
+    await axios.get(`${endpoint.editor.protocol}${protocolObj.id}/download/`, {
         responseType: 'blob'
       })
       .then(function (response) {
@@ -479,6 +503,10 @@ export default class Editor extends Component {
       return "Name already exists"
     }
 
+    if (this.state.currentProtocol == protocol.name){
+      this.setState({currentProtocol: name});
+    }
+
     delete currentProtocols[protocol.name]
     protocol.name = name
     currentProtocols[protocol.name] = protocol
@@ -488,7 +516,7 @@ export default class Editor extends Component {
       renameProtocolError: null,
       protocols: currentProtocols
     });
-    this.saveProtocol(protocol)
+    this.saveProtocol(protocol.name)
     return null
   }
 

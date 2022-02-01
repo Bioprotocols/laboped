@@ -21,6 +21,8 @@ export function ProtocolInspectorGroup(props) {
                       {DebugID(protocol)}
                       <Dropdown.Item key={pname+"save"} onClick={() => props.editor.saveProtocol(protocol)}>Save</Dropdown.Item>
                       <Dropdown.Item key={pname+"rename"} onClick={() => props.editor.renameProtocol(protocol)}>Rename</Dropdown.Item>
+                      <Dropdown.Item key={pname+"graph_download"} onClick={() => props.editor.downloadCurrentGraph(pname)}>Download Current Rete Graph</Dropdown.Item>
+                      <Dropdown.Item href="#" key={pname+"protocol_download"} onClick={() => props.editor.downloadCurrentProtocol(pname)}>Download Current Protocol</Dropdown.Item>
                       <Dropdown.Divider />
                       <Dropdown.Item key={pname+"del"} onClick={() => props.editor.deleteProtocol(protocol)}>Delete</Dropdown.Item>
                     </SplitButton>
