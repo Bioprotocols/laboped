@@ -19,6 +19,7 @@ import "./editor.css"
 import { ProtocolInspectorGroup } from "./components/ProtocolInspector";
 import RenameProtocolModal from "./RenameProtocolModal";
 import DownloadProtocolModal from "./DownloadProtocolModal";
+import RebuildPrimitivesModal from "./RebuildPrimitivesModal";
 
 
 function downloadStringAsFile(data, filename) {
@@ -48,7 +49,8 @@ export default class Editor extends Component {
       currentProtocol: null,
       protocols: {},
       primitiveComponents: {},
-      portTypes: {}
+      portTypes: {},
+      isRebuildingPrimitives: true,
     }
 
     this.processHandler = this.processHandler.bind(this);
@@ -61,6 +63,7 @@ export default class Editor extends Component {
     this.downloadProtocol = this.downloadProtocol.bind(this);
     this.handleProtocolDownload = this.handleProtocolDownload.bind(this);
     this.displayAnyProtocol = this.displayAnyProtocol.bind(this);
+    this.rebuildPrimitives = this.rebuildPrimitives.bind(this);
   }
 
   componentDidMount() {
@@ -380,8 +383,10 @@ export default class Editor extends Component {
 
   rebuildPrimitives(callback) {
     axios.get(endpoint.editor.rebuild)
-      .then(function (response) {
-        callback(response.data);
+      .then((response) => {
+        this.setState({ isRebuildingPrimitives: false }, () => {
+          callback(response.data)
+        })
       })
       .catch(function (error) {
         console.log(error);
@@ -655,6 +660,9 @@ export default class Editor extends Component {
             download={this.state.download}
             handleCancel={() => this.onCancelDownload()}
             handleDone={() => this.onDoneDownload()}
+        />
+        <RebuildPrimitivesModal
+            show={this.state.isRebuildingPrimitives}
         />
       </Container>
     );
