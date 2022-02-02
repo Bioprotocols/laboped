@@ -173,18 +173,34 @@ export default class Editor extends Component {
 
   displayNewProtocol() {
     // ask the server to create a new protocol
-    this.createProtocol().then((protocol) => {
-      let name = protocol.name;
-      let protocols = this.state.protocols;
-      protocols[name] = protocol;
-      // add that protocol to the local state
-      this.setState({ protocols: protocols }, () => {
-        // display the new protocol
-        this.displayProtocol(protocol.name, false)
+    let makeNew = () => {
+        this.createProtocol().then((protocol) => {
+        let name = protocol.name;
+        let protocols = this.state.protocols;
+        protocols[name] = protocol;
+        // add that protocol to the local state
+        this.setState({ protocols: protocols }, () => {
+          // display the new protocol
+          this.displayProtocol(protocol.name, false)
+        });
+      }).catch((error) => {
+        console.log(error);
       });
-    }).catch((error) => {
-      console.log(error);
-    });
+    }
+
+    if (this.state.currentProtocol) {
+      // TODO decide if this should save the protocol to remote
+      // or simply save the protocol graph locally
+      this.saveProtocol(this.state.currentProtocol)
+          .then(() => {
+            makeNew();
+          })
+          .catch((error) => {
+            console.error(error)
+          })
+      return;
+    }
+    makeNew();
   }
 
   displayProtocol(protocolName, saveOld=true) {
