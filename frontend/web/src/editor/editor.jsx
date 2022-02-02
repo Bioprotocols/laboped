@@ -153,7 +153,7 @@ export default class Editor extends Component {
     return { id: "demo@0.1.0", nodes: {} };
   }
 
-  createProtocol(name) {
+  createProtocol(name=null, graph=null) {
     if (!name) {
       let existing = Object.keys(this.state.protocols)
       let i = 0
@@ -162,8 +162,17 @@ export default class Editor extends Component {
         i += 1
       } while (existing.includes(name))
     }
+
+    let protocols = this.state.protocols;
+    let pname = name
+    let i = 1
+    while (pname in protocols) {
+      pname = `${name}(${i})`
+      i += 1
+    }
+
     return new Promise((resolve) => {
-      this.saveProtocol(name).then((protocol) => {
+      this.saveProtocol(pname, graph).then((protocol) => {
         resolve(protocol)
       }).catch((error) => {
         console.error(error)
@@ -171,10 +180,10 @@ export default class Editor extends Component {
     })
   }
 
-  displayNewProtocol() {
+  displayNewProtocol(name=null, graph=null) {
     // ask the server to create a new protocol
     let makeNew = () => {
-        this.createProtocol().then((protocol) => {
+        this.createProtocol(name, graph).then((protocol) => {
         let name = protocol.name;
         let protocols = this.state.protocols;
         protocols[name] = protocol;
@@ -232,13 +241,12 @@ export default class Editor extends Component {
     return true
   }
 
-  saveProtocolGraphInState(protocolName){
+  saveProtocolGraphInState(protocolName, overrideGraph=null){
     if(!protocolName) {
       return;
     }
     // If there is a current protocol, then save its graph as JSON.
     let protocols = this.state.protocols;
-    let graph = null;
 
     if (!(protocolName in protocols)){
       console.log(`Making new protocol for ${protocolName}`)
@@ -252,25 +260,30 @@ export default class Editor extends Component {
     }
     console.log(`Updating graph for protocol ${protocolName}`)
 
-    try {
-      if (protocolName != this.state.currentProtocol){
-        graph = protocols[protocolName].graph;
-      } else {
-        graph = this.editor.toJSON();
+    let graph = null;
+    if (overrideGraph) {
+      graph = overrideGraph
+    } else {
+      try {
+        if (protocolName != this.state.currentProtocol){
+          graph = protocols[protocolName].graph;
+        } else {
+          graph = this.editor.toJSON();
+        }
+      } catch (error) {
+        console.error(error)
+        graph = this.initialGraph();
       }
-    } catch (error) {
-      console.error(error)
-      graph = this.initialGraph();
     }
     protocols[protocolName].graph = graph;
     this.setState({protocols: protocols});
     // this.updateProtocolComponent(this.state.currentProtocol);
   }
 
-  saveProtocol(protocolName) {
+  saveProtocol(protocolName, overrideGraph=null) {
     console.log(`Saving protocol ${protocolName}`)
     // Retreive the current protocol from the Rete editor
-    this.saveProtocolGraphInState(protocolName);
+    this.saveProtocolGraphInState(protocolName, overrideGraph);
 
     let protocol = this.state.protocols[protocolName]
 
