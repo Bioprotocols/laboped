@@ -8,9 +8,11 @@ class MyReactControl extends React.Component {
 
   state = {};
   componentDidMount() {
+    this.props.onMount();
     this.setState({
-      name: this.props.name
+      value: this.props.value
     });
+
     //console.log(this.props);
     //this.props.putData(this.props.id, this.props.name);
   }
@@ -19,13 +21,13 @@ class MyReactControl extends React.Component {
     this.props.onChange(event);
     // this.props.emitter.trigger("process");
     this.setState({
-      name: event.target.value
+       value: event.target.value
     });
   }
 
   render() {
     return (
-      <input value={this.state.name} onChange={this.handleChange.bind(this)} />
+      <input value={this.state.value} onChange={this.handleChange.bind(this)} />
     );
   }
 }
@@ -53,7 +55,7 @@ export class ModuleComponent extends Rete.Component {
   }
 
   builder(node) {
-    var ctrl = new TextControl(this.editor, "module");
+    var ctrl = new TextControl(this.editor, "module", this.name);
     ctrl.onChange = () => {
       console.log(this);
       this.updateModuleSockets(node);
@@ -82,10 +84,12 @@ export class InputComponent extends Rete.Component {
     var out1 = new Rete.Output("output", "", numSocket);
 
     var ctrlName = Object.keys(node.data).find(k => k == "name")
-    ctrlName = ctrlName ? node.data[ctrlName] : "name";
-    var ctrl = new TextControl(this.editor, ctrlName);
+    var value = ctrlName ? node.data[ctrlName] : "New Input";
+    var ctrl = new TextControl(this.editor, "name", value);
 
-    var typectrl = new ListControl(this.editor, "type",
+    var typeName = Object.keys(node.data).find(k => k == "type")
+    var value = typeName ? node.data[typeName] : "one";
+    var typectrl = new ListControl(this.editor, "type", value,
     [
       "one", "two"
     ]
@@ -95,6 +99,48 @@ export class InputComponent extends Rete.Component {
                .addOutput(out1)
                .addControl(ctrl)
                .addControl(typectrl);
+               ;
+  }
+
+  async worker(node, inputs, outputs) {
+    if (!outputs['num'])
+        outputs['num'] = node.data.number; // here you can modify received outputs of Input node
+  }
+}
+
+export class ParameterComponent extends Rete.Component {
+  constructor() {
+    super("Parameter");
+
+    this.data.component = MyNode;
+  }
+
+  builder(node) {
+    var out1 = new Rete.Output("output", "", numSocket);
+
+    var ctrlName = Object.keys(node.data).find(k => k == "name")
+    var value = ctrlName ? node.data[ctrlName] : "New Parameter";
+    var ctrl = new TextControl(this.editor, "name", value);
+
+    var typeName = Object.keys(node.data).find(k => k == "type")
+    var value = typeName ? node.data[typeName] : "one";
+    var typectrl = new ListControl(this.editor, "type", value,
+    [
+      "one", "two"
+    ]
+    )
+
+    var parameterValue = new ListControl(this.editor, "value", "one",
+    [
+      "one", "two"
+    ]
+    )
+
+    return node
+               .addOutput(out1)
+               .addControl(ctrl)
+               .addControl(typectrl)
+               .addControl(parameterValue)
                ;
   }
 
@@ -120,8 +166,8 @@ export class OutputComponent extends Rete.Component {
     var inp = new Rete.Input("input", "Value", numSocket);
 
     var ctrlName = Object.keys(node.data).find(k => k == "name")
-    ctrlName = ctrlName ? node.data[ctrlName] : "name";
-    var ctrl = new TextControl(this.editor, ctrlName);
+    var value = ctrlName ? node.data[ctrlName] : "New Output";
+    var ctrl = new TextControl(this.editor, "name", value);
 
     return node.addControl(ctrl).addInput(inp);
   }
@@ -153,8 +199,9 @@ class ReactListControl extends React.Component {
 
   state = {};
   componentDidMount() {
+    this.props.onMount()
     this.setState({
-      name: this.props.value
+      value: this.props.value
     });
     //console.log(this.props);
     //this.props.putData(this.props.id, this.props.name);
@@ -164,17 +211,17 @@ class ReactListControl extends React.Component {
     this.props.onChange(event);
     // this.props.emitter.trigger("process");
     this.setState({
-      name: event
+      value: event
     });
   }
 
   render() {
-    var items = this.props.values.map(o => <Dropdown.Item key={o} href={o}>{o}</Dropdown.Item>)
+    var items = this.props.values.map(o => <Dropdown.Item eventKey={o}>{o}</Dropdown.Item>)
 
     return (
-      <Dropdown onSelect={(k) => { this.onChange.bind(this) }}>
-        <Dropdown.Toggle variant="success" id="dropdown-basic">
-          {this.props.id}={this.state.name}
+      <Dropdown onSelect={(k) => { this.onChange(k) }}>
+        <Dropdown.Toggle  id="dropdown-basic">
+          {this.props.keyName}: {this.state.value}
         </Dropdown.Toggle>
 
         <Dropdown.Menu>
@@ -186,16 +233,17 @@ class ReactListControl extends React.Component {
 }
 
 class ListControl extends Rete.Control{
-  constructor(emitter, key, values) {
+  constructor(emitter, key, value, values) {
     super(key);
     this.render = "react";
     this.component = ReactListControl;
     this.props = {
-      emitter,
-      id: key,
-      value: values[0],
+      // emitter,
+      keyName: key,
+      value: value,
       values: values,
-      onChange: (e) => this.change(e)
+      onChange: (e) => this.change(e),
+      onMount: () => this.mounted()
       // putData: () => this.putData.apply(this, arguments),
       // getData: () => this.getData.apply(this, arguments)
     };
@@ -205,7 +253,7 @@ class ListControl extends Rete.Control{
     // // this.template = `<input type="${type}" :readonly="readonly" :value="value" @input="change($event)"/>`;
 
     this.scope = {
-      value: null,
+      value: value,
       // readonly,
       change: this.change.bind(this),
       update: this.doUpdate.bind(this)
@@ -214,7 +262,7 @@ class ListControl extends Rete.Control{
   onChange() {}
 
   change(e) {
-    this.scope.value = e;
+    this.setValue(e);
     this.doUpdate();
     this.onChange();
   }
@@ -225,27 +273,30 @@ class ListControl extends Rete.Control{
   }
 
   mounted() {
-    this.scope.value =
-      this.getData(this.key) || (this.type === "number" ? 0 : "...");
+    this.putData(this.key, this.scope.value);
+    this.setValue(this.getData(this.key));
     this.doUpdate();
   }
 
   setValue(val) {
     this.scope.value = val;
+    this.props.value = val;
   }
 }
 
 export class TextControl extends Rete.Control {
-  constructor(emitter, key, type="text") {
+  constructor(emitter, key, value=null, type="text") {
     super(key);
     this.render = "react";
     this.component = MyReactControl;
+
     this.props = {
       // emitter,
-      id: key,
-      name: key,
+      key: key,
+      value: value,
       // putData: () => this.putData.apply(this, arguments),
-      onChange: (e) => this.change(e)
+      onChange: (e) => this.change(e),
+      onMount: () => this.mounted()
     };
 
     this.emitter = emitter;
@@ -254,7 +305,7 @@ export class TextControl extends Rete.Control {
     // // this.template = `<input type="${type}" :readonly="readonly" :value="value" @input="change($event)"/>`;
 
     this.scope = {
-      value: null,
+      value: value,
       // readonly,
       change: this.change.bind(this),
       update: this.doUpdate.bind(this)
@@ -264,8 +315,7 @@ export class TextControl extends Rete.Control {
   onChange() {}
 
   change(e) {
-    this.scope.value =
-      this.type === "number" ? +e.target.value : e.target.value;
+    this.setValue(this.type === "number" ? +e.target.value : e.target.value);
     this.doUpdate();
     this.onChange();
   }
@@ -276,12 +326,13 @@ export class TextControl extends Rete.Control {
   }
 
   mounted() {
-    this.scope.value =
-      this.getData(this.key) || (this.type === "number" ? 0 : "...");
+    this.putData(this.key, this.scope.value);
+    this.setValue(this.getData(this.key) || (this.type === "number" ? 0 : "..."));
     this.doUpdate();
   }
 
   setValue(val) {
     this.scope.value = val;
+    this.props.value = val;
   }
 }

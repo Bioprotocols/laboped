@@ -7,7 +7,7 @@ import AreaPlugin from "rete-area-plugin";
 
 import { MyNode } from "./components/Node";
 import { numSocket, loadComponentsFromAPI, PAMLComponent, PAMLProtocolComponent } from "./components/Primitive";
-import { ModuleComponent, InputComponent, OutputComponent, OutputFloatComponent } from "./components/Control";
+import { ModuleComponent, InputComponent, OutputComponent, ParameterComponent } from "./components/Control";
 import Menu from "./menu";
 
 import React from "react";
@@ -134,7 +134,7 @@ export default class Editor extends Component {
     components = components.concat([
       new InputComponent(),
       new OutputComponent(),
-      //new OutputFloatComponent(),
+      new ParameterComponent()
     ]);
 
     var primitiveComponents = this.state.primitiveComponents;

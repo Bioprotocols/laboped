@@ -69,12 +69,14 @@ export class MyNode extends Node {
          )}})}
         {/* Controls */}
         {controls.map(control => (
+          // <div className="control-title">{control.key}
           <Control
             className="control"
             key={control.key}
             control={control}
             innerRef={bindControl}
           />
+          // </div>
         ))}
         {/* Inputs */}
         {inputs.map(input => {
