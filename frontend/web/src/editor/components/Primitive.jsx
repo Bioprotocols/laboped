@@ -40,6 +40,10 @@ export class PAMLComponent extends Rete.Component {
     this.primitive = primitive;
     this.socketFn = socketFn;
     this.data.component = MyNode;
+
+    this.dataTypes = new Set();
+    primitive.inputs.map((i) => this.dataTypes.add(i.type));
+    primitive.outputs.map((i) => this.dataTypes.add(i.type));
   }
 
   async builder(node) {

@@ -53,6 +53,8 @@ export default class Editor extends Component {
       isRebuildingPrimitives: true,
     }
 
+    this.dataTypes = new Set();
+
     this.processHandler = this.processHandler.bind(this);
     this.displayProtocol = this.displayProtocol.bind(this);
     this.displayNewProtocol = this.displayNewProtocol.bind(this);
@@ -129,12 +131,16 @@ export default class Editor extends Component {
       // c.builder = function(node) {
       //   return node;
       // }
+      for (let item of c.dataTypes) this.dataTypes.add(item);
       return c;
     });
+
+    var dataTypeArray = Array.from(this.dataTypes);
+
     components = components.concat([
-      new InputComponent(),
-      new OutputComponent(),
-      new ParameterComponent()
+      new InputComponent(dataTypeArray),
+      new OutputComponent(dataTypeArray),
+      new ParameterComponent(dataTypeArray)
     ]);
 
     var primitiveComponents = this.state.primitiveComponents;

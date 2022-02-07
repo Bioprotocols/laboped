@@ -71,13 +71,14 @@ export class ModuleComponent extends Rete.Component {
 }
 
 export class InputComponent extends Rete.Component {
-  constructor() {
+  constructor(dataTypes) {
     super("Input");
     this.module = {
       nodeType: 'input',
       socket: numSocket
     }
     this.data.component = MyNode;
+    this.dataTypes = dataTypes;
   }
 
   builder(node) {
@@ -88,12 +89,8 @@ export class InputComponent extends Rete.Component {
     var ctrl = new TextControl(this.editor, "name", value);
 
     var typeName = Object.keys(node.data).find(k => k == "type")
-    var value = typeName ? node.data[typeName] : "one";
-    var typectrl = new ListControl(this.editor, "type", value,
-    [
-      "one", "two"
-    ]
-    )
+    var value = typeName ? node.data[typeName] : this.dataTypes[0];
+    var typectrl = new ListControl(this.editor, "type", value, this.dataTypes);
 
     return node
                .addOutput(out1)
@@ -109,10 +106,11 @@ export class InputComponent extends Rete.Component {
 }
 
 export class ParameterComponent extends Rete.Component {
-  constructor() {
+  constructor(dataTypes) {
     super("Parameter");
 
     this.data.component = MyNode;
+    this.dataTypes = dataTypes;
   }
 
   builder(node) {
@@ -124,11 +122,7 @@ export class ParameterComponent extends Rete.Component {
 
     var typeName = Object.keys(node.data).find(k => k == "type")
     var value = typeName ? node.data[typeName] : "one";
-    var typectrl = new ListControl(this.editor, "type", value,
-    [
-      "one", "two"
-    ]
-    )
+    var typectrl = new ListControl(this.editor, "type", this.dataTypes[0], this.dataTypes);
 
     var parameterValue = new ListControl(this.editor, "value", "one",
     [
@@ -153,12 +147,13 @@ export class ParameterComponent extends Rete.Component {
 
 
 export class OutputComponent extends Rete.Component {
-  constructor() {
+  constructor(dataTypes) {
     super("Output");
     this.module = {
       nodeType: "output",
       socket: numSocket
     };
+    this.dataTypes = dataTypes;
     this.data.component = MyNode;
   }
 
@@ -169,7 +164,11 @@ export class OutputComponent extends Rete.Component {
     var value = ctrlName ? node.data[ctrlName] : "New Output";
     var ctrl = new TextControl(this.editor, "name", value);
 
-    return node.addControl(ctrl).addInput(inp);
+    var typeName = Object.keys(node.data).find(k => k == "type")
+    var value = typeName ? node.data[typeName] : "one";
+    var typectrl = new ListControl(this.editor, "type", this.dataTypes[0], this.dataTypes);
+
+    return node.addControl(ctrl).addInput(inp).addControl(typectrl);
   }
 
   async worker(node, inputs, outputs) {
