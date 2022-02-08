@@ -63,13 +63,20 @@
 
 #editor-protocol-tabs .dropdown{
   font-family: "DejaVu Sans Mono", "Courier New", monospace;
+
 }
+
+#editor-protocol-tabs .btn-sm {
+    color: black;
+}
+
+
 #editor-protocol-tabs .dropdown.current-protocol {
-    background-color: lightcyan;
+    background-color: #FF3B3F;
 }
 #editor-protocol-tabs .dropdown.current-protocol button {
     font-weight: 900;
 }
 #editor-protocol-tabs .dropdown:not(.current-protocol) {
-    background-color: whitesmoke;
+    background-color: #CAEBF2;
 }

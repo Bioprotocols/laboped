@@ -131,7 +131,7 @@ export default class Editor extends Component {
       // c.builder = function(node) {
       //   return node;
       // }
-      for (let item of c.dataTypes) this.dataTypes.add(item);
+      for (let item of c.dataTypes) this.dataTypes.add(item.split("#")[1]);
       return c;
     });
 

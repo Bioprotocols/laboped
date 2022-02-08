@@ -107,6 +107,7 @@ export class PAMLProtocolComponent extends ModuleComponent {
     // node.addInput(start);
     // node.addOutput(end);
 
+    node.data['isModule'] = true;
 
     return node;
   }

@@ -49,9 +49,11 @@ class MyReactControl extends React.Component {
 export class ModuleComponent extends Rete.Component {
   constructor(name) {
     super(name);
+    this.data.component = MyNode;
     this.module = {
       nodeType: "module"
     };
+
   }
 
   builder(node) {
@@ -120,15 +122,12 @@ export class ParameterComponent extends Rete.Component {
     var value = ctrlName ? node.data[ctrlName] : "New Parameter";
     var ctrl = new TextControl(this.editor, "name", value);
 
-    var typeName = Object.keys(node.data).find(k => k == "type")
-    var value = typeName ? node.data[typeName] : "one";
-    var typectrl = new ListControl(this.editor, "type", this.dataTypes[0], this.dataTypes);
+    var value = "type" in node.data ? node.data["type"] : "";
+    var typectrl = new ListControl(this.editor, "type", value, this.dataTypes);
 
-    var parameterValue = new ListControl(this.editor, "value", "one",
-    [
-      "one", "two"
-    ]
-    )
+
+    var pvalue = "value" in node.data ? node.data["value"] : "";
+    var parameterValue = new TextControl(this.editor, "value", pvalue)
 
     return node
                .addOutput(out1)
@@ -164,9 +163,8 @@ export class OutputComponent extends Rete.Component {
     var value = ctrlName ? node.data[ctrlName] : "New Output";
     var ctrl = new TextControl(this.editor, "name", value);
 
-    var typeName = Object.keys(node.data).find(k => k == "type")
-    var value = typeName ? node.data[typeName] : "one";
-    var typectrl = new ListControl(this.editor, "type", this.dataTypes[0], this.dataTypes);
+    var value = "type" in node.data ? node.data["type"] : "";
+    var typectrl = new ListControl(this.editor, "type", value, this.dataTypes);
 
     return node.addControl(ctrl).addInput(inp).addControl(typectrl);
   }
@@ -218,8 +216,10 @@ class ReactListControl extends React.Component {
     var items = this.props.values.map(o => <Dropdown.Item eventKey={o}>{o}</Dropdown.Item>)
 
     return (
-      <Dropdown onSelect={(k) => { this.onChange(k) }}>
-        <Dropdown.Toggle  id="dropdown-basic">
+      <Dropdown
+
+        onSelect={(k) => { this.onChange(k) }}>
+        <Dropdown.Toggle variant="dark"  id="dropdown-basic">
           {this.props.keyName}: {this.state.value}
         </Dropdown.Toggle>
 
