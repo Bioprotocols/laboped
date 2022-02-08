@@ -12,7 +12,7 @@ django-cors-headers = "*"
 djangorestframework = "*"
 jsonfield = "*"
 python-decouple = "*"
-pypaml = "*"
+pypaml = {git = "https://github.com/Bioprotocols/paml.git"}
 
 [requires]
 python_version = "3.9"
