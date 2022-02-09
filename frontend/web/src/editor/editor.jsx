@@ -7,12 +7,12 @@ import AreaPlugin from "rete-area-plugin";
 
 import { MyNode } from "./components/Node";
 import { numSocket, loadComponentsFromAPI, PAMLComponent, PAMLProtocolComponent } from "./components/Primitive";
-import { ModuleComponent, InputComponent, OutputComponent, ParameterComponent } from "./components/Control";
+import { InputComponent, OutputComponent, ParameterComponent } from "./components/Control";
 import Menu from "./menu";
 
 import React from "react";
 import { Component } from "react";
-import { Row, Col, Modal, Button, Container, Tab } from "react-bootstrap";
+import { Row, Col, Container } from "react-bootstrap";
 
 import { axios, axios_csrf_options, endpoint } from "../API";
 import "./editor.css"
@@ -51,6 +51,8 @@ export default class Editor extends Component {
       primitiveComponents: {},
       portTypes: {},
       isRebuildingPrimitives: true,
+      download: null,
+      renameProtocol: null
     }
 
     this.dataTypes = new Set();
@@ -99,7 +101,7 @@ export default class Editor extends Component {
 
     this.rebuildPrimitives(() => {
       this.initializeComponents(() => {
-        this.retreiveProtocols();
+        this.retrieveProtocols();
       });
     });
   }
@@ -131,7 +133,7 @@ export default class Editor extends Component {
       // c.builder = function(node) {
       //   return node;
       // }
-      for (let item of c.dataTypes) this.dataTypes.add(item.split("#")[1]);
+      for (let item of c.dataTypes) this.dataTypes.add(item.indexOf("#") >= 0 ? item.split("#")[1] : item);
       return c;
     });
 
@@ -271,7 +273,7 @@ export default class Editor extends Component {
       graph = overrideGraph
     } else {
       try {
-        if (protocolName != this.state.currentProtocol){
+        if (protocolName !== this.state.currentProtocol){
           graph = protocols[protocolName].graph;
         } else {
           graph = this.editor.toJSON();
@@ -288,7 +290,7 @@ export default class Editor extends Component {
 
   saveProtocol(protocolName, overrideGraph=null) {
     console.log(`Saving protocol ${protocolName}`)
-    // Retreive the current protocol from the Rete editor
+    // retrieve the current protocol from the Rete editor
     this.saveProtocolGraphInState(protocolName, overrideGraph);
 
     let protocol = this.state.protocols[protocolName]
@@ -305,17 +307,17 @@ export default class Editor extends Component {
       }).then((response) => {
         let result = response.data[0];
         if (!result) {
-          throw 'Save returned null protocol'
+          throw new Error('Save returned null protocol');
         }
         var currentProtocols = this.state.protocols;
         currentProtocols[result.name] = result;
 
         this.setState({ protocols: currentProtocols }, () => {
-          // FIXME retreive all the protocols again since we are not saving just a specific
+          // FIXME retrieve all the protocols again since we are not saving just a specific
           // protocol and I do not want to rummage through all of the protocols to determine
           // what ID was assigned to any newly saved (previous local-only) protocols.
           // Note: Might become OBE if we just make all protocols stores remotely (no local-only)
-          // this.retreiveProtocols()
+          // this.retrieveProtocols()
           resolve(result)
         });
       }).catch(reject)
@@ -324,7 +326,7 @@ export default class Editor extends Component {
 
   // TODO this should probably just save the current protocol
   async saveAllProtocols() {
-    // Retreive the current protocol from the Rete editor
+    // retrieve the current protocol from the Rete editor
     this.saveProtocolGraphInState(this.state.currentProtocol);
 
     this.setState({ showModal: true })
@@ -345,14 +347,14 @@ export default class Editor extends Component {
         console.log(error);
         return [];
       });
-    // FIXME retreive all the protocols again since we are not saving just a specific
+    // FIXME retrieve all the protocols again since we are not saving just a specific
     // protocol and I do not want to rummage through all of the protocols to determine
     // what ID was assigned to any newly saved (previous local-only) protocols.
     // Note: Might become OBE if we just make all protocols stores remotely (no local-only)
-    // this.retreiveProtocols()
+    // this.retrieveProtocols()
   }
 
-  async retreiveProtocols() {
+  async retrieveProtocols() {
     var protocols = await axios.get(endpoint.editor.protocol, axios_csrf_options)
       .then(function (response) {
         return response.data;
@@ -432,7 +434,7 @@ export default class Editor extends Component {
     // TODO I need to convert the protocol storage on the client to
     // match the server side primary key (id) instead of using the
     // protocol name.
-    if (protocol == null) {
+    if (protocol === null) {
       console.error(`Must select a protocol to download`)
       return
     }
@@ -464,14 +466,14 @@ export default class Editor extends Component {
                 reject({isCanceled: true, error: null})
                 return
               }
-              // on the download is down we can read teh headers
+              // on the download is down we can read the headers
               let disposition = response.headers['content-disposition'];
               let filename = 'unknown_file'
               // from https://stackoverflow.com/a/40940790
               if (disposition && disposition.indexOf('attachment') !== -1) {
                 let filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
                 let matches = filenameRegex.exec(disposition);
-                if (matches != null && matches[1]) {
+                if (matches !== null && matches[1]) {
                   filename = matches[1].replace(/['"]/g, '');
                 }
               }
@@ -578,7 +580,7 @@ export default class Editor extends Component {
         'x-csrftoken': this.loginStatus.state.csrf,
       }
     }).then(function (response) {
-        return response.status == 200;
+        return response.status === 200;
       })
       .catch(function (error) {
         // handle error
@@ -617,7 +619,7 @@ export default class Editor extends Component {
     if (!name) {
       return "Name must not be empty"
     }
-    if (protocol.name == name) {
+    if (protocol.name === name) {
       return "Name must be new assignment"
     }
     var currentProtocols = this.state.protocols;
@@ -625,7 +627,7 @@ export default class Editor extends Component {
       return "Name already exists"
     }
 
-    if (this.state.currentProtocol == protocol.name){
+    if (this.state.currentProtocol === protocol.name){
       this.setState({currentProtocol: name});
     }
 
@@ -685,13 +687,13 @@ export default class Editor extends Component {
         </Row>
 
         <RenameProtocolModal
-            show={this.state.renameProtocol != null}
+            show={this.state.renameProtocol !== null}
             protocol={this.state.renameProtocol}
             handleCancel={() => this.onCancelRename()}
             handleRename={(p, n) => this.onConfirmRename(p, n)}
         />
         <DownloadProtocolModal
-            show={this.state.download != null}
+            show={this.state.download !== null}
             download={this.state.download}
             handleCancel={() => this.onCancelDownload()}
             handleDone={() => this.onDoneDownload()}

@@ -6,7 +6,7 @@ import { numSocket, floatSocket } from "./Primitive"
 
 class MyReactControl extends React.Component {
 
-  state = {};
+  state = { value: ""};
   componentDidMount() {
     this.props.onMount();
     this.setState({
@@ -68,7 +68,7 @@ export class ModuleComponent extends Rete.Component {
 
   change(node, item) {
     node.data.module = item;
-    this.editor.trigger("process");
+    // this.editor.trigger("process");
   }
 }
 
@@ -86,13 +86,13 @@ export class InputComponent extends Rete.Component {
   builder(node) {
     var out1 = new Rete.Output("output", "", numSocket);
 
-    var ctrlName = Object.keys(node.data).find(k => k == "name")
+    var ctrlName = Object.keys(node.data).find(k => k === "name")
     var value = ctrlName ? node.data[ctrlName] : "New Input";
     var ctrl = new TextControl(this.editor, "name", value);
 
-    var typeName = Object.keys(node.data).find(k => k == "type")
-    var value = typeName ? node.data[typeName] : this.dataTypes[0];
-    var typectrl = new ListControl(this.editor, "type", value, this.dataTypes);
+    var typeName = Object.keys(node.data).find(k => k === "type")
+    var typeValue = typeName ? node.data[typeName] : this.dataTypes[0];
+    var typectrl = new ListControl(this.editor, "type", typeValue, this.dataTypes);
 
     return node
                .addOutput(out1)
@@ -118,12 +118,12 @@ export class ParameterComponent extends Rete.Component {
   builder(node) {
     var out1 = new Rete.Output("output", "", numSocket);
 
-    var ctrlName = Object.keys(node.data).find(k => k == "name")
+    var ctrlName = Object.keys(node.data).find(k => k === "name")
     var value = ctrlName ? node.data[ctrlName] : "New Parameter";
     var ctrl = new TextControl(this.editor, "name", value);
 
-    var value = "type" in node.data ? node.data["type"] : "";
-    var typectrl = new ListControl(this.editor, "type", value, this.dataTypes);
+    var typeValue = "type" in node.data ? node.data["type"] : "";
+    var typectrl = new ListControl(this.editor, "type", typeValue, this.dataTypes);
 
 
     var pvalue = "value" in node.data ? node.data["value"] : "";
@@ -159,12 +159,12 @@ export class OutputComponent extends Rete.Component {
   builder(node) {
     var inp = new Rete.Input("input", "Value", numSocket);
 
-    var ctrlName = Object.keys(node.data).find(k => k == "name")
+    var ctrlName = Object.keys(node.data).find(k => k === "name")
     var value = ctrlName ? node.data[ctrlName] : "New Output";
     var ctrl = new TextControl(this.editor, "name", value);
 
-    var value = "type" in node.data ? node.data["type"] : "";
-    var typectrl = new ListControl(this.editor, "type", value, this.dataTypes);
+    var typeValue = "type" in node.data ? node.data["type"] : "";
+    var typectrl = new ListControl(this.editor, "type", typeValue, this.dataTypes);
 
     return node.addControl(ctrl).addInput(inp).addControl(typectrl);
   }
@@ -213,7 +213,7 @@ class ReactListControl extends React.Component {
   }
 
   render() {
-    var items = this.props.values.map(o => <Dropdown.Item eventKey={o}>{o}</Dropdown.Item>)
+    var items = this.props.values.map(o => <Dropdown.Item key={o} eventKey={o}>{o}</Dropdown.Item>)
 
     return (
       <Dropdown
@@ -268,7 +268,7 @@ class ListControl extends Rete.Control{
 
   doUpdate() {
     if (this.key) this.putData(this.key, this.scope.value);
-    this.emitter.trigger("process");
+    // this.emitter.trigger("process");
   }
 
   mounted() {
@@ -321,7 +321,7 @@ export class TextControl extends Rete.Control {
 
   doUpdate() {
     if (this.key) this.putData(this.key, this.scope.value);
-    this.emitter.trigger("process");
+    // this.emitter.trigger("process");
   }
 
   mounted() {

@@ -39,7 +39,7 @@
   background: #FF3B3F;
 }
 
-.node[isModule="true"] {
+.node[ismodule="true"] {
   background: #EFEFEF;
 }
 

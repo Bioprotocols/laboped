@@ -1,10 +1,7 @@
 import React, { Component } from 'react';
-import { Modal, Form, Button, Alert, Spinner, Row, Col } from 'react-bootstrap';
+import { Modal, Spinner, Row, Col } from 'react-bootstrap';
 
 export default class RebuildPrimitivesModal extends Component {
-  constructor(props) {
-    super(props);
-  }
 
   makeTitle() {
     return (

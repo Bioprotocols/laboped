@@ -1,22 +1,44 @@
+# **Introduction**
+
+The PAML Editor (PAMLED) is a web application that supports the authoring and sharing of PAML protocols.  PAMLED consists of two components: `frontend` and `backend`.  The frontend is a React-based server for handling the graphical interface.   The backend is a Django REST server that handles persistent storage (protocols, user accounts, and primitives), and access to the pyPAML library.
+
+
 # **Running the PAML Editor in Development**
+
+## **Pre-requisites**
+- Backend <a name="backend-deps"></a>
+    - [Python 3.9](https://www.python.org/downloads/release/python-390/)
+    - [Pipenv](https://pipenv.pypa.io/en/latest/install/)
+- Frontend <a name="frontend-deps"></a>
+    - [Node & Npm](https://nodejs.org/en/download/)
+
 
 ## **Backend Instructions**
 ---
 
-On your development system install:
-- [pipenv](https://pipenv.pypa.io/en/latest/install/)
+1. On your development system install [backend dependencies](#backend-deps)
 
-Initialize the pamled pipenv environment:
+2. Get PAMLED:
 ```bash
-cd /path/to/pamled
+git clone https://github.com/Bioprotocols/pamled.git
+```
+
+3. Initialize the pamled pipenv environment:
+```bash
+cd pamled
 pipenv install
 pipenv shell
 ```
 
-Initialize the backend
+4. Set the secret key in `backend/.env`:
+ ```bash
+ python -c "import secrets; print(f'SECRET_KEY=\"{secrets.token_urlsafe()}\"')"  > backend/.env
+ ```
+
+5. Initialize the backend
 ```bash
 # from within the pipenv shell
-cd /path/to/pamled/backend
+cd backend
 python manage.py makemigrations accounts editor
 python manage.py migrate
 
@@ -24,10 +46,9 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-Start the backend
+6. Start the backend
 ```bash
-# from within the pipenv shell
-cd /path/to/pamled/backend
+# from within the pipenv shell, in backend/
 python manage.py runserver
 ```
 
@@ -45,32 +66,28 @@ Quit the server with CONTROL-C.
 ## **Frontend Instructions**
 ---
 
-On your development system install:
+1. On your development system install:
 - [node & npm](https://nodejs.org/en/download/)
 
-Initialize the frontend
+2. Initialize the frontend
 ```bash
-cd /path/to/pamled/frontend/web
+# while in backend/ from above
+cd ../frontend/web
 npm install
 ```
 
-Start the frontend
+3. Start the frontend
 ```bash
-cd /path/to/pamled/frontend/web
+# while in frontend/web/
 npm run start
 ```
 
 If npm does not open a browser automatically then you can connect to the frontend at `http://localhost:3000` from your preferred browser.
 
-Once connected you should be greeted by a login page. If you made a superuser account then you can login with that. Otherwise you can navigate to the sign up page and register a new account with your development database.
+4. Once connected you should be greeted by a login page. If you made a superuser account then you can login with that. Otherwise you can navigate to the sign up page and register a new account with your development database.
 
-Once logged in you will see the editor and some initial set of primitives.
+5. Once logged in you will see the editor.
 
-> NOTE:
->
-> From the editor you may need to run the `Tools > Rebuild Primitives` command.
->
-> At the time of writing this README that command is required to load in the non-default primitives. It will take a few moments to run and then the page should load the new primitives.
 
 ## **Development using Visual Studio Code**
 ---

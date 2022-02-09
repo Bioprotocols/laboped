@@ -1,7 +1,7 @@
 import Rete from "rete";
 import { axios, axios_csrf_options, endpoint } from "../../API";
 import { MyNode } from "./Node";
-import { TextControl, ModuleComponent } from "./Control";
+import { ModuleComponent } from "./Control";
 
 export var numSocket = new Rete.Socket("Number");
 export var floatSocket = new Rete.Socket("Float");
@@ -72,9 +72,9 @@ export class PAMLProtocolComponent extends ModuleComponent {
   async builder(node) {
 
     var inputs = Object.values(this.protocol.graph.nodes).filter(
-      n => n.name == "Input"
+      n => n.name === "Input"
     ).map((i, idx) => {
-      if (Object.keys(i.data).find(i => i == "name")){
+      if (Object.keys(i.data).find(i => i === "name")){
         return new Rete.Input(i.data.name, i.data.name, this.socketFn(i.type));
       } else {
         return new Rete.Input("i"+idx, "i"+idx, this.socketFn(i.type));
@@ -85,9 +85,9 @@ export class PAMLProtocolComponent extends ModuleComponent {
     inputs.forEach(i => node.addInput(i))
 
     var outputs = Object.values(this.protocol.graph.nodes).filter(
-      n => n.name == "Output"
+      n => n.name === "Output"
     ).map((i, idx) => {
-        if (Object.keys(i.data).find(i => i == "name")){
+        if (Object.keys(i.data).find(i => i === "name")){
           return new Rete.Output(i.data.name, i.data.name, this.socketFn(i.type));
         } else {
           return new Rete.Output("o"+idx, "o"+idx, this.socketFn(i.type));

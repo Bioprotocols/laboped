@@ -1,0 +1,608 @@
+{
+  "id": "demo@0.1.0",
+  "nodes": {
+    "42": {
+      "id": 42,
+      "data": {},
+      "inputs": {
+        "specification": {
+          "connections": [
+            {
+              "node": 43,
+              "output": "output",
+              "data": {}
+            }
+          ]
+        },
+        "Start": {
+          "connections": []
+        }
+      },
+      "outputs": {
+        "samples": {
+          "connections": [
+            {
+              "node": 44,
+              "input": "source",
+              "data": {}
+            },
+            {
+              "node": 55,
+              "input": "coordinates",
+              "data": {}
+            },
+            {
+              "node": 57,
+              "input": "source",
+              "data": {}
+            }
+          ]
+        },
+        "End": {
+          "connections": []
+        }
+      },
+      "position": [
+        -65.58414995956477,
+        -158.92869997814927
+      ],
+      "name": "EmptyContainer"
+    },
+    "43": {
+      "id": 43,
+      "data": {
+        "name": "96well-spec",
+        "type": "ValueSpecification",
+        "value": "cont:ClearPlate and   cont:SLAS-4-2004 and  (cont:wellVolume some      ((om:hasUnit value om:microlitre) and      (om:hasNumericalValue only xsd:decimal[>= \"200\"^^xsd:decimal])))"
+      },
+      "inputs": {},
+      "outputs": {
+        "output": {
+          "connections": [
+            {
+              "node": 42,
+              "input": "specification",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        -593.7299617960682,
+        -361.3519439060665
+      ],
+      "name": "Parameter"
+    },
+    "44": {
+      "id": 44,
+      "data": {},
+      "inputs": {
+        "coordinates": {
+          "connections": [
+            {
+              "node": 45,
+              "output": "output",
+              "data": {}
+            }
+          ]
+        },
+        "source": {
+          "connections": [
+            {
+              "node": 42,
+              "output": "samples",
+              "data": {}
+            }
+          ]
+        },
+        "Start": {
+          "connections": []
+        }
+      },
+      "outputs": {
+        "samples": {
+          "connections": [
+            {
+              "node": 46,
+              "input": "destination",
+              "data": {}
+            }
+          ]
+        },
+        "End": {
+          "connections": []
+        }
+      },
+      "position": [
+        730.1148121921274,
+        -641.4733035802248
+      ],
+      "name": "PlateCoordinates"
+    },
+    "45": {
+      "id": 45,
+      "data": {
+        "name": "ddH20 wells",
+        "type": "ValueSpecification",
+        "value": "A1:D1"
+      },
+      "inputs": {},
+      "outputs": {
+        "output": {
+          "connections": [
+            {
+              "node": 44,
+              "input": "coordinates",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        230.29058916928622,
+        -881.6328072739088
+      ],
+      "name": "Parameter"
+    },
+    "46": {
+      "id": 46,
+      "data": {},
+      "inputs": {
+        "destination": {
+          "connections": [
+            {
+              "node": 44,
+              "output": "samples",
+              "data": {}
+            }
+          ]
+        },
+        "dispenseVelocity": {
+          "connections": []
+        },
+        "resource": {
+          "connections": [
+            {
+              "node": 48,
+              "output": "output",
+              "data": {}
+            }
+          ]
+        },
+        "amount": {
+          "connections": [
+            {
+              "node": 49,
+              "output": "output",
+              "data": {}
+            }
+          ]
+        },
+        "Start": {
+          "connections": []
+        }
+      },
+      "outputs": {
+        "End": {
+          "connections": [
+            {
+              "node": 54,
+              "input": "Start",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        1437.3402677121387,
+        -658.5036458338967
+      ],
+      "name": "Provision"
+    },
+    "48": {
+      "id": 48,
+      "data": {
+        "name": "ddH20",
+        "type": "anyURI",
+        "value": "https://identifiers.org/pubchem.substance:24901740"
+      },
+      "inputs": {},
+      "outputs": {
+        "output": {
+          "connections": [
+            {
+              "node": 46,
+              "input": "resource",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        926.8603908044814,
+        -858.1304010906086
+      ],
+      "name": "Parameter"
+    },
+    "49": {
+      "id": 49,
+      "data": {
+        "name": "100uL",
+        "type": "ValueSpecification",
+        "value": "..."
+      },
+      "inputs": {},
+      "outputs": {
+        "output": {
+          "connections": [
+            {
+              "node": 46,
+              "input": "amount",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        776.7415738151483,
+        -1121.9261547669525
+      ],
+      "name": "Parameter"
+    },
+    "50": {
+      "id": 50,
+      "data": {},
+      "inputs": {
+        "destination": {
+          "connections": [
+            {
+              "node": 55,
+              "output": "samples",
+              "data": {}
+            }
+          ]
+        },
+        "dispenseVelocity": {
+          "connections": []
+        },
+        "resource": {
+          "connections": [
+            {
+              "node": 52,
+              "output": "output",
+              "data": {}
+            }
+          ]
+        },
+        "amount": {
+          "connections": [
+            {
+              "node": 53,
+              "output": "output",
+              "data": {}
+            }
+          ]
+        },
+        "Start": {
+          "connections": []
+        }
+      },
+      "outputs": {
+        "End": {
+          "connections": [
+            {
+              "node": 54,
+              "input": "Start",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        1459.0167318196554,
+        359.11366157082665
+      ],
+      "name": "Provision"
+    },
+    "52": {
+      "id": 52,
+      "data": {
+        "name": "Ludox",
+        "type": "anyURI",
+        "value": "https://identifiers.org/pubchem.substance:24866361"
+      },
+      "inputs": {},
+      "outputs": {
+        "output": {
+          "connections": [
+            {
+              "node": 50,
+              "input": "resource",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        846.546634869975,
+        618.9337677973173
+      ],
+      "name": "Parameter"
+    },
+    "53": {
+      "id": 53,
+      "data": {
+        "name": "amount",
+        "type": "ValueSpecification",
+        "value": "100uL"
+      },
+      "inputs": {},
+      "outputs": {
+        "output": {
+          "connections": [
+            {
+              "node": 50,
+              "input": "amount",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        650.6929286709244,
+        863.6212458838467
+      ],
+      "name": "Parameter"
+    },
+    "54": {
+      "id": 54,
+      "data": {},
+      "inputs": {
+        "numFlashes": {
+          "connections": []
+        },
+        "samples": {
+          "connections": [
+            {
+              "node": 57,
+              "output": "samples",
+              "data": {}
+            }
+          ]
+        },
+        "wavelength": {
+          "connections": [
+            {
+              "node": 59,
+              "output": "output",
+              "data": {}
+            }
+          ]
+        },
+        "Start": {
+          "connections": [
+            {
+              "node": 46,
+              "output": "End",
+              "data": {}
+            },
+            {
+              "node": 50,
+              "output": "End",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "outputs": {
+        "measurements": {
+          "connections": [
+            {
+              "node": 61,
+              "input": "input",
+              "data": {}
+            }
+          ]
+        },
+        "End": {
+          "connections": []
+        }
+      },
+      "position": [
+        2268.589960115675,
+        -204.7649021030643
+      ],
+      "name": "MeasureAbsorbance"
+    },
+    "55": {
+      "id": 55,
+      "data": {},
+      "inputs": {
+        "coordinates": {
+          "connections": [
+            {
+              "node": 42,
+              "output": "samples",
+              "data": {}
+            }
+          ]
+        },
+        "source": {
+          "connections": [
+            {
+              "node": 56,
+              "output": "output",
+              "data": {}
+            }
+          ]
+        },
+        "Start": {
+          "connections": []
+        }
+      },
+      "outputs": {
+        "samples": {
+          "connections": [
+            {
+              "node": 50,
+              "input": "destination",
+              "data": {}
+            }
+          ]
+        },
+        "End": {
+          "connections": []
+        }
+      },
+      "position": [
+        801.1028801200011,
+        286.8646328368476
+      ],
+      "name": "PlateCoordinates"
+    },
+    "56": {
+      "id": 56,
+      "data": {
+        "name": "wells",
+        "type": "ValueSpecification",
+        "value": "A2:D2"
+      },
+      "inputs": {},
+      "outputs": {
+        "output": {
+          "connections": [
+            {
+              "node": 55,
+              "input": "source",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        208.64230045166434,
+        443.4664165212796
+      ],
+      "name": "Parameter"
+    },
+    "57": {
+      "id": 57,
+      "data": {},
+      "inputs": {
+        "coordinates": {
+          "connections": [
+            {
+              "node": 58,
+              "output": "output",
+              "data": {}
+            }
+          ]
+        },
+        "source": {
+          "connections": [
+            {
+              "node": 42,
+              "output": "samples",
+              "data": {}
+            }
+          ]
+        },
+        "Start": {
+          "connections": []
+        }
+      },
+      "outputs": {
+        "samples": {
+          "connections": [
+            {
+              "node": 54,
+              "input": "samples",
+              "data": {}
+            }
+          ]
+        },
+        "End": {
+          "connections": []
+        }
+      },
+      "position": [
+        1708.351805821619,
+        -103.38602516112823
+      ],
+      "name": "PlateCoordinates"
+    },
+    "58": {
+      "id": 58,
+      "data": {
+        "name": "wells",
+        "type": "ValueSpecification",
+        "value": "A1:D2"
+      },
+      "inputs": {},
+      "outputs": {
+        "output": {
+          "connections": [
+            {
+              "node": 57,
+              "input": "coordinates",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        1394.7714732097934,
+        -142.98404962445875
+      ],
+      "name": "Parameter"
+    },
+    "59": {
+      "id": 59,
+      "data": {
+        "name": "wavelength",
+        "type": "ValueSpecification"
+      },
+      "inputs": {},
+      "outputs": {
+        "output": {
+          "connections": [
+            {
+              "node": 54,
+              "input": "wavelength",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        1446.1873265392417,
+        -341.41302259507324
+      ],
+      "name": "Input"
+    },
+    "61": {
+      "id": 61,
+      "data": {
+        "name": "absorbance",
+        "type": "SampleData"
+      },
+      "inputs": {
+        "input": {
+          "connections": [
+            {
+              "node": 54,
+              "output": "measurements",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "outputs": {},
+      "position": [
+        2636.9371783782526,
+        -276.39493406206446
+      ],
+      "name": "Output"
+    }
+  }
+}
