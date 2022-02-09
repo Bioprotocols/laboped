@@ -1,14 +1,55 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST__pycache__/
+*.py[cod]
+*$py.class
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
 **/__pycache__/**
-pamled/media/**/
-pamled/pamled_editor/static/**
-pamled/pamled_editor/templates/**
+pamled/editor/static/**
+pamled/editor/templates/**
 **/.vscode
-pamled/db.sqlite3
-pamled/pamled_editor/client/.editorconfig
 pamled/.env
 **/node_modules
-**/package-lock.json
 **/.editorconfig
 pamled/general.log
 general.log
-pamled/pamled_editor/migrations
+backend/pamled_editor/migrations
+backend/api/migrations
+backend/editor/migrations
+backend/accounts/migrations
+backend/media/
+oso

@@ -1,37 +1,124 @@
-# Instructions for running the PAML Editor in Development
-- Install [node.js](https://nodejs.org/en/download/)
-- Clone this repository (`/` is the root of the cloned repository, below)
-- Set the secret key in `/pamled/.env`:
+# **Introduction**
+
+The PAML Editor (PAMLED) is a web application that supports the authoring and sharing of PAML protocols.  PAMLED consists of two components: `frontend` and `backend`.  The frontend is a React-based server for handling the graphical interface.   The backend is a Django REST server that handles persistent storage (protocols, user accounts, and primitives), and access to the pyPAML library.
+
+# **User Guide**
+
+See the user guide at: [User Guide](frontend/web/src/USERGUIDE.md)
+
+# **Running the PAML Editor in Development**
+
+## **Pre-requisites**
+- Backend <a name="backend-deps"></a>
+    - [Python 3.9](https://www.python.org/downloads/release/python-390/)
+    - [Pipenv](https://pipenv.pypa.io/en/latest/install/)
+- Frontend <a name="frontend-deps"></a>
+    - [Node & Npm](https://nodejs.org/en/download/)
+
+
+## **Backend Instructions**
+---
+
+1. On your development system install [backend dependencies](#backend-deps)
+
+2. Get PAMLED:
+```bash
+git clone https://github.com/Bioprotocols/pamled.git
 ```
-# in /
-python -c "import secrets; print(f'SECRET_KEY=\"{secrets.token_urlsafe()}\"')"  > pamled/.env
+
+3. Initialize the pamled pipenv environment:
+```bash
+cd pamled
+pipenv install
+pipenv shell
 ```
-- Create a python environment:
+
+4. Set the secret key in `backend/.env`:
+ ```bash
+ python -c "import secrets; print(f'SECRET_KEY=\"{secrets.token_urlsafe()}\"')"  > backend/.env
+ ```
+
+5. Initialize the backend
+```bash
+# from within the pipenv shell
+cd backend
+python manage.py makemigrations accounts editor
+python manage.py migrate
+
+# optionally create a admin user
+python manage.py createsuperuser
 ```
-virutalenv env
-source /env/bin/activate
-pip install -r requirements.txt
-```
-- Install the client dependencies
-```
-# in /pamled/pamled_editor/client
-npm install
-```
-- Generate the client Vue templates and copy into the Django server static files
-```
-cd /pamled/pamled_editor/client
-npm run build -- --mode staging
-```
-- Optionally run the front end Vue server with the Vue CLI
-```
-# in /pamled/pamled_editor/client
-npm run serve
-```
-- Run the Django server
-```
-# in /pamled
-pip install django
-python manage.py makemigrations # If you modify any of the django models
-python manage.py migrate # setup the database
+
+6. Start the backend
+```bash
+# from within the pipenv shell, in backend/
 python manage.py runserver
 ```
+
+The backend server should now be running. You will see some output in the terminal like this:
+```
+Performing system checks...
+
+System check identified no issues (0 silenced).
+January 24, 2022 - 18:52:36
+Django version 3.2.9, using settings 'pamled.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+```
+
+## **Frontend Instructions**
+---
+
+1. On your development system install:
+- [node & npm](https://nodejs.org/en/download/)
+
+2. Initialize the frontend
+```bash
+# while in backend/ from above
+cd ../frontend/web
+npm install
+```
+
+3. Start the frontend
+```bash
+# while in frontend/web/
+npm run start
+```
+
+If npm does not open a browser automatically then you can connect to the frontend at `http://localhost:3000` from your preferred browser.
+
+4. Once connected you should be greeted by a login page. If you made a superuser account then you can login with that. Otherwise you can navigate to the sign up page and register a new account with your development database.
+
+5. Once logged in you will see the editor.
+
+
+## **Development using Visual Studio Code**
+---
+For those familiar with VSCode the backand and frontend instructions have mostly been encapsulated within a VSCode workspace. See the `pamled.code-workspace` in the root of the repo.
+
+**Note** that this workspace does still require `pipenv` and `npm` to be installed.
+
+## **Tasks**
+
+The workspace provides a set of tasks available via command palette (`Ctrl+Shift+P`) under `Tasks: Run Task`.
+
+These make initialization of the backend and frontend a bit easier to manage.
+> ### Tasks:
+> - Make Migrations
+> - Migrate
+> - Create Superuser
+> - Nuke DB & Migrations
+
+## **Launchers**
+
+It also provides a set of launch commands available from the `Run and Debug` panel (`Ctrl+Shift+D`).
+
+These make it easier to launch all of the editor parts at once.
+>### Launchers
+>- Django
+>- React
+>- Firefox
+>- Chrome
+>### Compound Launchers
+>- Django & React & Firefox
+>- Django & React & Chrome

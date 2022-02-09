@@ -1,0 +1,170 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "python.pipenvPath": "pipenv",
+        "python.terminal.activateEnvironment": false,
+        "python.linting.pylintEnabled": true,
+        "files.trimTrailingWhitespace": true
+    },
+    "launch": {
+        "version": "0.2.0",
+        "configurations": [
+            {
+                "name": "Django",
+                "type": "python",
+                "request": "launch",
+                "program": "${workspaceFolder}/backend/manage.py",
+                "args": [
+                    "runserver"
+                ],
+                "django": true
+            },
+            {
+                "name": "React",
+                "type": "node",
+                "request": "launch",
+                "cwd": "${workspaceRoot}/frontend/web",
+                "runtimeExecutable": "npm",
+                "runtimeArgs": ["run", "start"],
+                "env": {
+                    "BROWSER": "none",
+                }
+            },
+            {
+                "name": "Firefox",
+                "type": "firefox",
+                "request": "launch",
+                "url": "http://localhost:3000",
+                "webRoot": "${workspaceRoot}/frontend/web/src"
+            },
+            {
+                "name": "Chrome",
+                "type": "chrome",
+                "request": "launch",
+                "url": "http://localhost:3000",
+                "webRoot": "${workspaceRoot}/frontend/web/src"
+            }
+        ],
+        "compounds": [
+            {
+                "name": "Django/React/Firefox",
+                "configurations": [
+                    "Django",
+                    "React",
+                    "Firefox"
+                ]
+            },
+            {
+                "name": "Django/React/Chrome",
+                "configurations": [
+                    "Django",
+                    "React",
+                    "Chrome"
+                ]
+            }
+        ]
+    },
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "label": "Make Migrations",
+                "type": "process",
+                "command": "${config:python.pipenvPath}",
+                "args": [
+                    "run",
+                    "python",
+                    "${workspaceFolder}/backend/manage.py",
+                    "makemigrations",
+                    "accounts",
+                    "editor",
+                ],
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "focus": true,
+                    "panel": "shared",
+                    "showReuseMessage": true,
+                    "clear": true
+                },
+                "problemMatcher": []
+            },
+            {
+                "label": "Migrate",
+                "type": "process",
+                "command": "${config:python.pipenvPath}",
+                "args": [
+                    "run",
+                    "python",
+                    "${workspaceFolder}/backend/manage.py",
+                    "migrate",
+                ],
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "focus": true,
+                    "panel": "shared",
+                    "showReuseMessage": true,
+                    "clear": true
+                },
+                "problemMatcher": []
+            },
+            {
+                "label": "Create SuperUser",
+                "type": "process",
+                "command": "${config:python.pipenvPath}",
+                "args": [
+                    "run",
+                    "python",
+                    "${workspaceFolder}/backend/manage.py",
+                    "createsuperuser",
+                ],
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "focus": true,
+                    "panel": "shared",
+                    "showReuseMessage": true,
+                    "clear": true
+                },
+                "problemMatcher": []
+            },
+            {
+                "label": "Nuke DB & Migrations",
+                "type": "process",
+                "command": "${workspaceFolder}/scripts/clean-all.sh",
+                "args": [
+                    "${workspaceFolder}/backend/db.sqlite3",
+                    "${workspaceFolder}/backend/accounts/migrations",
+                    "${workspaceFolder}/backend/editor/migrations",
+                ],
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "focus": true,
+                    "panel": "shared",
+                    "showReuseMessage": true,
+                    "clear": true
+                },
+                "problemMatcher": []
+            },
+            {
+                "label": "Clean All",
+                "dependsOn": [
+                    "Nuke DB & Migrations",
+                    "Make Migrations",
+                    "Migrate",
+                    "Create SuperUser"
+                ],
+                "dependsOrder": "sequence",
+                "problemMatcher": [
+                    "$go"
+                ]
+            }
+        ]
+    }
+}
