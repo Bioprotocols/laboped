@@ -20,7 +20,7 @@ import { ProtocolInspectorGroup } from "./components/ProtocolInspector";
 import RenameProtocolModal from "./RenameProtocolModal";
 import DownloadProtocolModal from "./DownloadProtocolModal";
 import RebuildPrimitivesModal from "./RebuildPrimitivesModal";
-
+import UserGuideModal from "./UserGuideModal";
 
 function downloadStringAsFile(data, filename) {
   let url = window.URL.createObjectURL(new Blob([data]))
@@ -52,7 +52,8 @@ export default class Editor extends Component {
       portTypes: {},
       isRebuildingPrimitives: true,
       download: null,
-      renameProtocol: null
+      renameProtocol: null,
+      userGuideVisible: null
     }
 
     this.dataTypes = new Set();
@@ -68,6 +69,8 @@ export default class Editor extends Component {
     this.handleProtocolDownload = this.handleProtocolDownload.bind(this);
     this.displayAnyProtocol = this.displayAnyProtocol.bind(this);
     this.rebuildPrimitives = this.rebuildPrimitives.bind(this);
+    this.onUserGuide = this.onUserGuide.bind(this);
+    this.onUserGuideDone = this.onUserGuideDone.bind(this);
   }
 
   componentDidMount() {
@@ -653,6 +656,13 @@ export default class Editor extends Component {
     this.setState({ download: null })
   }
 
+  onUserGuideDone(){
+    this.setState({ userGuideVisible: null })
+  }
+  onUserGuide(){
+    this.setState({ userGuideVisible: true })
+  }
+
   render() {
 
     let workspaceComponent = () => (
@@ -664,10 +674,6 @@ export default class Editor extends Component {
         <Menu
           ref={this.menuRef}
           editor={this}
-        // handleSave={this.saveProtocol.bind(this)}
-        // protocolName={this.state.currentProtocol}
-        // getProtocols={this.getProtocols.bind(this)}
-        // setProtocol={this.setProtocol.bind(this)}
         />
         <Row className="editor" >
           <Col xs={2} sm={2} className="editor-pallete-column">
@@ -697,6 +703,10 @@ export default class Editor extends Component {
             download={this.state.download}
             handleCancel={() => this.onCancelDownload()}
             handleDone={() => this.onDoneDownload()}
+        />
+        <UserGuideModal
+            show={this.state.userGuideVisible !== null}
+            handleDone={() => this.onUserGuideDone()}
         />
         <RebuildPrimitivesModal
             show={this.state.isRebuildingPrimitives}
