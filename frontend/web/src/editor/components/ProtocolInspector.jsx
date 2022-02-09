@@ -1,12 +1,6 @@
-import React, { Component } from 'react';
-import { Tab, Nav, Row, Col, Dropdown, SplitButton, Button } from 'react-bootstrap';
+import React from 'react';
+import { Tab, Nav, Row, Col, Dropdown, SplitButton } from 'react-bootstrap';
 
-function DebugID(protocol) {
-  if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-    return (<Dropdown.Header href="#">Protocol ID: {protocol.id}</Dropdown.Header>)
-  }
-  return null
-}
 
 export class ProtocolInspectorGroup extends React.Component {
 
@@ -73,12 +67,6 @@ export class ProtocolInspectorGroup extends React.Component {
       </Nav.Item>
     )
 
-    let panes = Object.entries(this.props.protocols).map(
-      ([pname, protocol])  =>  (
-        <Tab.Pane eventKey={pname}>
-            <ProtocolInspector key={pname} protocol={protocol} />
-        </Tab.Pane>
-      ))
 
     let tabcontainer = (
       <Tab.Container id="protocol-inspector-group"
@@ -87,7 +75,7 @@ export class ProtocolInspectorGroup extends React.Component {
           <Row  xs={1} sm={1}>
             <Nav id="editor-protocol-tabs" variant="pills" className="flex-row"
                 onSelect={(k) => {
-                  if (k == emptyProtocol) {
+                  if (k === emptyProtocol) {
                     this.props.editor.displayNewProtocol();
                   } else {
                   this.props.editor.displayProtocol(k)

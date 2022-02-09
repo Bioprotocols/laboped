@@ -4,7 +4,6 @@ import Navbar from "react-bootstrap/Navbar";
 import Nav from "react-bootstrap/Nav";
 import Container from "react-bootstrap/Container";
 import NavDropdown from 'react-bootstrap/NavDropdown';
-import { FaFileDownload } from 'react-icons/fa'
 import "./menu.css"
 
 export default class Menu extends Component {
