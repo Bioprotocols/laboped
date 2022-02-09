@@ -2,6 +2,9 @@
 
 The PAML Editor (PAMLED) is a web application that supports the authoring and sharing of PAML protocols.  PAMLED consists of two components: `frontend` and `backend`.  The frontend is a React-based server for handling the graphical interface.   The backend is a Django REST server that handles persistent storage (protocols, user accounts, and primitives), and access to the pyPAML library.
 
+# **User Guide**
+
+See the user guide at: [User Guide](frontend/web/src/USERGUIDE.md)
 
 # **Running the PAML Editor in Development**
 
