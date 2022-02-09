@@ -10,9 +10,6 @@ export default class Menu extends Component {
   constructor(props){
     super(props);
     this.editor = props.editor;
-    // this.handleSave = props.handleSave;
-    // this.getProtocols = props.getProtocols;
-    // this.setProtocol = props.setProtocol;
   }
 
   render() {
@@ -41,6 +38,11 @@ export default class Menu extends Component {
                 <NavDropdown menuVariant="dark" align={{ sm: 'end' }} title="Account" id="basic-nav-dropdown">
                   <NavDropdown.Header href="#">Signed in as {this.editor.props.loginStatus.state.user.email}</NavDropdown.Header>
                   <NavDropdown.Item href="#" onClick={this.editor.props.onLogout}>Logout</NavDropdown.Item>
+                </NavDropdown>
+              </Nav>
+              <Nav>
+                <NavDropdown menuVariant="dark" align={{ sm: 'end' }} title="Help" id="basic-nav-dropdown">
+                  <NavDropdown.Item href="#" onClick={this.editor.onUserGuide}>User Guide</NavDropdown.Item>
                 </NavDropdown>
               </Nav>
             </Navbar.Collapse>
