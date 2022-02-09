@@ -78,7 +78,7 @@ npm install
 
 3. Start the frontend
 ```bash
-# while in backend/
+# while in frontend/web/
 npm run start
 ```
 
