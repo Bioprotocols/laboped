@@ -85,11 +85,11 @@ export class ProtocolInspectorGroup extends React.Component {
             </Nav>
           </Row>
           <Row className='editor-workspace-inspector-row'>
-            <Col  xs={8} sm={8} className="editor-workspace-column">
+            <Col  xs={12} sm={12} className="editor-workspace-column">
             {/* <h1>HI</h1> */}
               {this.props.workspaceComponent()}
             </Col>
-            <Col xs={3} sm={3} className='editor-inspector-column'>
+            {/* <Col xs={3} sm={3} className='editor-inspector-column'>
               <Row>
             <Tab.Content>
               {Object.entries(this.props.protocols).map(
@@ -105,7 +105,7 @@ export class ProtocolInspectorGroup extends React.Component {
               </Tab.Pane>
             </Tab.Content>
             </Row>
-            </Col>
+            </Col> */}
           </Row>
 
         {/* </Col> */}
