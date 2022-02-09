@@ -1,14 +1,51 @@
 .App {
-  height: 100%
+  height: 100%;
 }
 
 .node {
-  background: rgb(103, 140, 170);
+  background: #CAEBF2;
+  border-color: #A9A9A9;
 }
+
+.node .title {
+  color: black;
+}
+
+
+.node .input {
+  color: black;
+}
+
+.node .input-title {
+  color: black;
+}
+
+.node .output-title {
+  color: black;
+}
+
+.node[name=Input] {
+  background: #EFEFEF;
+}
+
+.node[name=Output] {
+  /* background: #A9A9A9; */
+  background: #EFEFEF;
+}
+
+
+.node[name=Parameter] {
+  /* background: #A9A9A9; */
+  background: #FF3B3F;
+}
+
+.node[isModule="true"] {
+  background: #EFEFEF;
+}
+
 
 .node .socket.timepoint {
   background: #49d30f;
-  
 }
 
 .node .socket.number {

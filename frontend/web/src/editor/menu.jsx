@@ -25,17 +25,17 @@ export default class Menu extends Component {
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse>
               <Nav className="me-auto">
-                <NavDropdown menuVariant="dark" title="File">
+                {/* <NavDropdown menuVariant="dark" title="File">
                   <NavDropdown.Item href="#" onClick={() => this.editor.setProtocol(null)}>New Protocol</NavDropdown.Item>
-                  <NavDropdown.Item href="#" onClick={() => this.editor.saveProtocol()}>Save</NavDropdown.Item>
-                </NavDropdown>
-                <NavDropdown menuVariant="dark" title="Tools">
+                  <NavDropdown.Item href="#" onClick={() => this.editor.saveAllProtocols()}>Save</NavDropdown.Item>
+                </NavDropdown> */}
+                {/* <NavDropdown menuVariant="dark" title="Tools">
                   <NavDropdown.Item href="#" onClick={() => this.editor.rebuildPrimitives()}>Rebuild Primitives</NavDropdown.Item>
-                </NavDropdown>
-                <NavDropdown menuVariant="dark" title={<FaFileDownload />}>
+                </NavDropdown> */}
+                {/* <NavDropdown menuVariant="dark" title={<FaFileDownload />}>
                   <NavDropdown.Item href="#" onClick={() => this.editor.downloadCurrentGraph()}>Current Rete Graph</NavDropdown.Item>
                   <NavDropdown.Item href="#" onClick={() => this.editor.downloadCurrentProtocol()}>Current Protocol</NavDropdown.Item>
-                </NavDropdown>
+                </NavDropdown> */}
               </Nav>
 
               <Nav>

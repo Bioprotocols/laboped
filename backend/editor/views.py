@@ -1,7 +1,11 @@
+from asyncio import protocols
 from django.http.response import JsonResponse, ResponseHeaders
 from django.shortcuts import render
 from django.core.files.base import ContentFile
 from django.utils.text import slugify
+from django.db.models import Min
+from django.db.models.query import QuerySet
+
 from rest_framework import viewsets
 from editor.models import Primitive
 from editor.models import PAMLMapping
@@ -11,7 +15,7 @@ from editor.protocol.protocol import Protocol as PAMLProtocol
 from editor.serializers import PrimitiveSerializer, ProtocolSerializer
 # Create your views here.
 
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseServerError
 
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -57,29 +61,53 @@ class ProtocolViewSet(viewsets.ModelViewSet):
         if not request.user.is_authenticated:
             raise NotAuthenticated
         user = request.user
+        created = []
+        to_update = []
+        update_fields = ['name', 'graph', 'rdf_file']
         for p in request.data:
             try:
-                protocol = Protocol.objects.get(name=p['name'])
-                if protocol:
+                if p['id'] is not None:
+                    print(f"Updating protocol with id: {p['id']}")
+                    protocol = Protocol.objects.get(id=p['id'])
                     protocol.name = p['name']
                     protocol.graph = p['graph']
                     protocol.rdf_file = p['rdf_file']
+                    to_update.append(protocol)
                 else:
-                    protocol = Protocol.create(owner=user,
-                                        name=p['name'],
-                                        graph=p['graph'],
-                                        rdf_file=p['rdf_file'])
-                protocol.save()
+                    protocol = Protocol.objects.create(owner=user,
+                                                       name=p['name'],
+                                                       graph=p['graph'],
+                                                       rdf_file=p['rdf_file'])
+                    print(f"Creating new protocol with id: {protocol.id}")
+                    created.append(protocol)
             except Exception as e:
-                pass
+                print(e)
 
+        updated = None
+        print(f"Updating {len(to_update)} protocols... ", end="")
+        try:
+            Protocol.objects.bulk_update(to_update, update_fields)
+            updated = to_update
+            print(f"Done")
+        except Exception as e:
+            print(f"ERROR")
+            print(e)
+            return HttpResponseServerError("Failed to update protocols")
 
-
-        return HttpResponse(f"Saved {len(request.data)} protocols.")
+        try:
+            if updated is None:
+                updated = []
+            protocols = created + updated
+            serializer = ProtocolSerializer(protocols, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            print(e)
+            return HttpResponseServerError("Failed to serialize protocols")
 
     def list(self, request):
         if not request.user.is_authenticated:
             raise NotAuthenticated
+
         qset = Protocol.objects.authorize(request, action="GET")
         queryset = self.filter_queryset(qset)
 
@@ -98,9 +126,23 @@ class ProtocolViewSet(viewsets.ModelViewSet):
             raise NotAuthenticated
         protocol: Protocol = self.get_object()
         authorize(request, protocol)
-        fname = slugify(protocol.name)
-        with protocol.rdf_file.open() as f:
-            file_data = f.read()
-        response = HttpResponse(file_data, content_type="application/octet-stream")
-        response['Content-Disposition'] = f'attachment;filename="{fname}.txt"'
-        return response
+        try:
+            format = "nt"
+            fname = slugify(protocol.name)
+            print(f"Converting protocol {protocol.id} to rdf...")
+            file_data = protocol.to_rdf_string(format)
+            print("Done")
+            response = HttpResponse(file_data, content_type="application/octet-stream")
+            response['Content-Disposition'] = f'attachment;filename="{fname}.{format}"'
+            return response
+        except Exception as e:
+            return HttpResponseServerError(e)
+
+    @action(detail=True)
+    def delete(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            raise NotAuthenticated
+        protocol: Protocol = self.get_object()
+        authorize(request, protocol, action="DELETE")
+        protocol.delete()
+        return HttpResponse(f"Deleted protocol {protocol.id}.")

@@ -2,8 +2,13 @@ import React from "react";
 import { Node, Socket, Control } from "rete-react-render-plugin";
 import { Timepoint } from "./Primitive";
 
-export class MyNode extends Node {
 
+
+export class MyNode extends Node {
+  constructor(){
+    super()
+
+  }
 
   render() {
     const { node, bindSocket, bindControl } = this.props;
@@ -47,7 +52,11 @@ export class MyNode extends Node {
     }
 
     return (
-      <div className={`node ${selected}`}>
+      <div
+          className={`node ${selected}`}
+          name={this.props.node.name}
+          isModule={`${"isModule" in node.data && node.data["isModule"]}`}
+          >
         <div className="title">{node.name}</div>
         {/* Start */}
         {startElt}
@@ -69,12 +78,14 @@ export class MyNode extends Node {
          )}})}
         {/* Controls */}
         {controls.map(control => (
+          // <div className="control-title">{control.key}
           <Control
             className="control"
             key={control.key}
             control={control}
             innerRef={bindControl}
           />
+          // </div>
         ))}
         {/* Inputs */}
         {inputs.map(input => {

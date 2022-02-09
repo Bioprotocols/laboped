@@ -16,17 +16,11 @@ class Protocol(AuthorizedModel):
     graph = models.JSONField()
     rdf_file = models.FileField(upload_to='editor/protocols/', null=True)
 
-    @classmethod
-    def create(cls, **kwargs):
-        protocol = cls(**kwargs)
-        p_rdf = Protocol.to_rdf(protocol.graph)
-        cf = ContentFile(p_rdf.document.write_string("nt"))
-        protocol.rdf_file = cf
-        protocol.rdf_file.save(f"{protocol.name}.nt", cf)
-        return protocol
+    def to_rdf_string(self, format="nt"):
+        return Protocol.to_paml(self.graph).document.write_string(format)
 
     @classmethod
-    def to_rdf(cls, graph):
+    def to_paml(cls, graph):
         return PAMLMapping.graph_to_protocol(graph)
 
 
@@ -35,13 +29,14 @@ class Primitive(models.Model):
     library = models.CharField(max_length=100)
 
     def get_inputs(self):
-        return PrimitiveInput.objects.filter(primitive=self).distinct()
+        return PrimitiveInput.objects.filter(primitive=self.name).distinct()
 
     def get_outputs(self):
-        return PrimitiveOutput.objects.filter(primitive=self).distinct()
+        return PrimitiveOutput.objects.filter(primitive=self.name).distinct()
 
 
 class Pin(models.Model):
+    id = models.BigAutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=100)
     units = models.CharField(max_length=100)
@@ -186,19 +181,21 @@ class PAMLMapping():
         """
         Convert primtitive p to a model.
         """
-        p_instance = Primitive(name=p.display_id, library=library)
-        p_instance.save()
 
-        inputs = [ PrimitiveInput(name=i.property_value.name,
-                                  type=i.property_value.type,
-                                  primitive=p_instance)
-                   for i in p.get_inputs() ]
+        if not Primitive.objects.filter(name=p.display_id, library=library).exists():
+            p_instance = Primitive(name=p.display_id, library=library)
+            p_instance.save()
 
-        outputs = [ PrimitiveOutput(name=i.property_value.name,
+            inputs = [ PrimitiveInput(name=i.property_value.name,
                                     type=i.property_value.type,
                                     primitive=p_instance)
-                   for i in p.get_outputs() ]
+                    for i in p.get_inputs() ]
 
-        for param in inputs + outputs:
-            param.save()
+            outputs = [ PrimitiveOutput(name=i.property_value.name,
+                                        type=i.property_value.type,
+                                        primitive=p_instance)
+                    for i in p.get_outputs() ]
+
+            for param in inputs + outputs:
+                param.save()
 

@@ -17,8 +17,21 @@
     height: 100%;
 }
 
+.editor-main-column
+{
+    /* overflow-y: hidden;
+    overflow-x: hidden; */
+    height: 100%;
+}
+
+
 .editor-pallete {
     padding-left: 10px;
+    height: 100%;
+}
+
+.editor-workspace-inspector-row {
+    height: 85%;
 }
 
 .editor-workspace-column {
@@ -26,6 +39,7 @@
     height: 100%;
     padding: 0;
 }
+
 
 .editor-inspector-column {
     overflow-y: scroll;
@@ -39,4 +53,30 @@
     background-color: gainsboro;
     background-size: 40px 40px;
     background-image: radial-gradient(circle, #000000 2px, rgba(0, 0, 0, 0) 1px);
+}
+
+/* Hide bootstrap outline around focused buttons */
+.btn:focus:not(:focus-visible) {
+  outline: 0;
+  box-shadow: none;
+}
+
+#editor-protocol-tabs .dropdown{
+  font-family: "DejaVu Sans Mono", "Courier New", monospace;
+
+}
+
+#editor-protocol-tabs .btn-sm {
+    color: black;
+}
+
+
+#editor-protocol-tabs .dropdown.current-protocol {
+    background-color: #FF3B3F;
+}
+#editor-protocol-tabs .dropdown.current-protocol button {
+    font-weight: 900;
+}
+#editor-protocol-tabs .dropdown:not(.current-protocol) {
+    background-color: #CAEBF2;
 }
