@@ -67,13 +67,14 @@ class PAMLMapping():
             paml.import_library(lib)
         return paml, uml
 
-    def graph_to_protocol(name, graph):
+    def graph_to_protocol(name, graph, doc=None):
         """
         Convert an editor graph to a PAML protocol.
         """
         paml, uml = PAMLMapping._load_paml()
 
-        doc = sbol3.Document()
+        if not doc:
+            doc = sbol3.Document()
         sbol3.set_namespace('https://bbn.com/scratch/')
 
         protocol_name = "".join([c for c in name if c.isalpha() or c.isdecimal()])
@@ -97,7 +98,7 @@ class PAMLMapping():
         for _, node in graph["nodes"].items():
             PAMLMapping.make_incoming_edges(protocol, graph, node, node_to_call_behavior)
 
-        protocol.to_dot().render(view=True)
+        # protocol.to_dot().render(view=True)
 
         return protocol
 
@@ -122,31 +123,36 @@ class PAMLMapping():
                     else:
                         # Data Flow
                         cba_input_pin = protocol_node.input_pin(input_pin_id)
-                        if source_node_id in node_to_call_behavior and \
-                        node_to_call_behavior[source_node_id]:
-                            # pin to pin connection
-                            source_call_behavior = node_to_call_behavior[source_node_id]
+                        source_call_behavior = node_to_call_behavior[source_node_id]
 
-                            if isinstance(source_call_behavior, uml.ActivityParameterNode):
+                        if isinstance(source_call_behavior, uml.ActivityParameterNode):
                                 protocol.use_value(source_call_behavior, cba_input_pin)
-                            else: # ActivityNode
-                                source_pin = source_call_behavior.output_pin(source_output_id)
-                                protocol.use_value(source_pin, cba_input_pin)
-                        else:
-                            # connection was from a Parameter node
-                            pass
+                        elif isinstance(source_call_behavior, uml.CallBehaviorAction):
+                            # ActivityNode pin to pin connection
+                            source_pin = source_call_behavior.output_pin(source_output_id)
+                            protocol.use_value(source_pin, cba_input_pin)
+                        else: # Passthrough and Failure cases
+                            if source_node_id not in node_to_call_behavior or \
+                                not node_to_call_behavior[source_node_id]:
+                                pass # This is a parameter that was already made into a value pin
+                            else:
+                                raise PAMLMappingException(f"Unable to process ObjectFlow for pin: {input_pin_id}")
 
         elif node["name"] == "Output":
             #source = graph["nodes"][str(node['id'])]['inputs']['input']['connections'][0] #FIXME assumes that the source is present
             for input_pin_id, input_pin in node['inputs'].items():
-                for source in input_pin["connections"]:
-                    source_node_id = source['node']
-                    source_output_id = source["output"]
-                    # TODO ignoring source["data"] for now
-                    source_call_behavior = node_to_call_behavior[source_node_id]
-                    source_pin = source_call_behavior.output_pin(source_output_id)
-                    output = protocol.designate_output(node["data"]["name"], PAMLMapping.map_type(node["data"]["type"]), source_pin)
-                    protocol.order(source_call_behavior, output)
+                if len(input_pin["connections"]) == 0:
+                    ## Protocol doesn't connect to output, but can still make the output
+                    output = protocol.add_output(node["data"]["name"], PAMLMapping.map_type(node["data"]["type"]))
+                else:
+                    for source in input_pin["connections"]:
+                        source_node_id = source['node']
+                        source_output_id = source["output"]
+                        # TODO ignoring source["data"] for now
+                        source_call_behavior = node_to_call_behavior[source_node_id]
+                        source_pin = source_call_behavior.output_pin(source_output_id)
+                        output = protocol.designate_output(node["data"]["name"], PAMLMapping.map_type(node["data"]["type"]), source_pin)
+                        protocol.order(source_call_behavior, output)
         elif node["name"] in skipped_nodes:
             pass
         else:
@@ -165,12 +171,28 @@ class PAMLMapping():
         except Exception as e:
             pass
 
+        subprotocol = None
+        if not primitive:
+            try:
+                subprotocol = Protocol.objects.get(name=node["name"])
+            except Exception as e:
+                pass
+
         if primitive:
             input_pin_map = {}
             if node["id"] in parameters:
                 input_pin_map = parameters[node["id"]]
 
             return protocol.execute_primitive(primitive, **input_pin_map)
+        elif "isModule" in node["data"] and node["data"]["isModule"]:
+            # Subprotocol
+            input_pin_map = {}
+            if node["id"] in parameters:
+                input_pin_map = parameters[node["id"]]
+            paml_subprotocol = protocol.document.find(f"{sbol3.get_namespace()}{node['name']}")
+            if not paml_subprotocol:
+                paml_subprotocol = PAMLMapping.graph_to_protocol(node["name"],  subprotocol.graph, doc=protocol.document)
+            return protocol.execute_primitive(paml_subprotocol, **input_pin_map)
         elif node["name"] == "Input":
             name = node["data"]['name']
             node_type = sbol3.Identified # eval(node["data"]['type'])
@@ -188,15 +210,16 @@ class PAMLMapping():
 
             if len(sources) > 1:
                 raise PAMLMappingException(f"There is more than one Activity linked to the Output node: {node}")
-            elif len(sources) == 1:
-                param = protocol.add_output(
-                    node["data"]['name'],
-                    node["data"]['type']
-                    )
-                # param_node = uml.ActivityParameterNode(parameter=param)
-                # protocol.nodes.append(param_node)
+            # elif len(sources) == 1:
+            #     param = protocol.add_output(
+            #         node["data"]['name'],
+            #         node["data"]['type']
+            #         )
+            #     # param_node = uml.ActivityParameterNode(parameter=param)
+            #     # protocol.nodes.append(param_node)
 
-                return param
+            #     return param
+            # Do not create the protocol output here, handle when looking edges.  The designate_output function will create an output.
             else:
                 return None
         elif node["name"] == "Parameter":
