@@ -11,6 +11,13 @@
   color: black;
 }
 
+.editor .node:focus {
+  color: yellow;
+}
+
+.connection .main-path {
+  stroke: #A9A9A9;
+}
 
 .editor .node .input {
   color: black;
@@ -26,6 +33,7 @@
 
 .editor .node[name=Input] {
   background: #EFEFEF;
+
 }
 
 .editor .node[name=Output] {
