@@ -72,12 +72,18 @@
 
 #editor-protocol-tabs .btn-sm {
     color: black;
-}
+    border-color: black;
 
+}
 
 #editor-protocol-tabs .dropdown.current-protocol {
     background-color: #FF3B3F;
 }
+#editor-protocol-tabs .dropdown.current-protocol::selection {
+    background-color: #FF3B3F;
+}
+
+
 #editor-protocol-tabs .dropdown.current-protocol button {
     font-weight: 900;
 }

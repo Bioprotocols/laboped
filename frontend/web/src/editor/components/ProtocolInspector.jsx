@@ -62,7 +62,7 @@ export class ProtocolInspectorGroup extends React.Component {
     let emptyTab = (
       <Nav.Item>
         <SplitButton size="sm" variant="outline-primary" title={emptyProtocol} onClick={() => this.props.editor.displayNewProtocol()}>
-          <Dropdown.Item key={"load-rete-graph-file"} onClick={() => this.fileInput.current.click()}>Load Rete Graph</Dropdown.Item>
+          <Dropdown.Item key={"load-rete-graph-file"} onClick={() => this.fileInput.current.click()}>Import from Rete Graph</Dropdown.Item>
         </SplitButton>
       </Nav.Item>
     )
