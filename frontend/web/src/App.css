@@ -2,53 +2,61 @@
   height: 100%;
 }
 
-.node {
+.editor .node {
   background: #CAEBF2;
   border-color: #A9A9A9;
 }
 
-.node .title {
+.editor .node .title {
   color: black;
 }
 
+.editor .node:focus {
+  color: yellow;
+}
 
-.node .input {
+.connection .main-path {
+  stroke: #A9A9A9;
+}
+
+.editor .node .input {
   color: black;
 }
 
-.node .input-title {
+.editor .node .input-title {
   color: black;
 }
 
-.node .output-title {
+.editor .node .output-title {
   color: black;
 }
 
-.node[name=Input] {
+.editor .node[name=Input] {
   background: #EFEFEF;
+
 }
 
-.node[name=Output] {
+.editor .node[name=Output] {
   /* background: #A9A9A9; */
   background: #EFEFEF;
 }
 
 
-.node[name=Parameter] {
+.editor .node[name=Parameter] {
   /* background: #A9A9A9; */
   background: #FF3B3F;
 }
 
-.node[ismodule="true"] {
+.editor .node[ismodule="true"] {
   background: #EFEFEF;
 }
 
 
-.node .socket.timepoint {
+.editor .node .socket.timepoint {
   background: #49d30f;
 }
 
-.node .socket.number {
+.editor .node .socket.number {
   background: gray;
 }
 

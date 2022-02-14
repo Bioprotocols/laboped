@@ -87,7 +87,7 @@ export class InputComponent extends Rete.Component {
     var out1 = new Rete.Output("output", "", numSocket);
 
     var ctrlName = Object.keys(node.data).find(k => k === "name")
-    var value = ctrlName ? node.data[ctrlName] : "New Input";
+    var value = ctrlName ? node.data[ctrlName] : "<New Input>";
     var ctrl = new TextControl(this.editor, "name", value);
 
     var typeName = Object.keys(node.data).find(k => k === "type")
@@ -119,14 +119,14 @@ export class ParameterComponent extends Rete.Component {
     var out1 = new Rete.Output("output", "", numSocket);
 
     var ctrlName = Object.keys(node.data).find(k => k === "name")
-    var value = ctrlName ? node.data[ctrlName] : "New Parameter";
+    var value = ctrlName ? node.data[ctrlName] : "<New Parameter>";
     var ctrl = new TextControl(this.editor, "name", value);
 
     var typeValue = "type" in node.data ? node.data["type"] : "";
     var typectrl = new ListControl(this.editor, "type", typeValue, this.dataTypes);
 
 
-    var pvalue = "value" in node.data ? node.data["value"] : "";
+    var pvalue = "value" in node.data ? node.data["value"] : "<My Value>";
     var parameterValue = new TextControl(this.editor, "value", pvalue)
 
     return node
@@ -160,7 +160,7 @@ export class OutputComponent extends Rete.Component {
     var inp = new Rete.Input("input", "Value", numSocket);
 
     var ctrlName = Object.keys(node.data).find(k => k === "name")
-    var value = ctrlName ? node.data[ctrlName] : "New Output";
+    var value = ctrlName ? node.data[ctrlName] : "<New Output>";
     var ctrl = new TextControl(this.editor, "name", value);
 
     var typeValue = "type" in node.data ? node.data["type"] : "";
