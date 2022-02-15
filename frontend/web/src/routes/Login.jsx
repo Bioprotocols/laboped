@@ -1,6 +1,8 @@
 import React from "react";
+import { Row, Col } from "react-bootstrap"
 import { withRouter, queryLoginStatus } from "../utils";
 import LoginStatus from '../login/LoginStatus';
+import DisclaimerModal from "../editor/DisclaimerModal"
 
 class Login extends React.Component {
   constructor(props) {
@@ -10,6 +12,7 @@ class Login extends React.Component {
       password: "",
       error: "",
       isAuthenticated: null,
+      disclaimerVisible: true
     };
     this.whoami = this.whoami.bind(this);
 
@@ -18,10 +21,12 @@ class Login extends React.Component {
     this.handlePasswordChange = this.handlePasswordChange.bind(this);
     this.handleEmailChange = this.handleEmailChange.bind(this);
     this.onAuthenticationChanged = this.onAuthenticationChanged.bind(this);
+    this.onDisclaimer = this.onDisclaimer.bind(this);
+    this.onDisclaimerDone = this.onDisclaimerDone.bind(this);
 
     this.loginStatus = React.createRef();
   }
-  
+
   handlePasswordChange(event) {
     this.setState({password: event.target.value});
   }
@@ -33,8 +38,15 @@ class Login extends React.Component {
   onAuthenticationChanged(isAuthenticated) {
     this.setState({ isAuthenticated: isAuthenticated });
     if (isAuthenticated) {
-        this.props.navigate("/editor");   
+        this.props.navigate("/editor");
     }
+  }
+
+  onDisclaimerDone(){
+    this.setState({ disclaimerVisible: null })
+  }
+  onDisclaimer(){
+    this.setState({ disclaimerVisible: true })
   }
 
   whoami() {
@@ -76,7 +88,7 @@ class Login extends React.Component {
         </div>
       );
     }
-    
+
     return (
       <div className="container">
         <h1>PAML Editor</h1>
@@ -108,10 +120,21 @@ class Login extends React.Component {
 
   render() {
     return (
-      <div className="container mt-3">
-        <LoginStatus ref={this.loginStatus} onAuthenticationChanged={this.onAuthenticationChanged} />
-        {this.renderLogin()}
-      </div>
+      <Col>
+      <Row md={8}>
+        <div className="container mt-3">
+          <LoginStatus ref={this.loginStatus} onAuthenticationChanged={this.onAuthenticationChanged} />
+          {this.renderLogin()}
+        </div>
+        </Row>
+        <Row></Row>
+        <Row md={8}>
+        <DisclaimerModal
+            show={this.state.disclaimerVisible !== null}
+            handleDone={() => this.onDisclaimerDone()}
+        />
+        </Row>
+      </Col>
     );
   }
 }
