@@ -1,0 +1,306 @@
+{
+  "id": "demo@0.1.0",
+  "nodes": {
+    "163": {
+      "id": 163,
+      "data": {},
+      "inputs": {
+        "destination": {
+          "connections": [
+            {
+              "node": 164,
+              "output": "samples",
+              "data": {}
+            }
+          ]
+        },
+        "dispenseVelocity": {
+          "connections": []
+        },
+        "source": {
+          "connections": [
+            {
+              "node": 165,
+              "output": "samples",
+              "data": {}
+            }
+          ]
+        },
+        "amount": {
+          "connections": [
+            {
+              "node": 196,
+              "output": "output",
+              "data": {}
+            }
+          ]
+        },
+        "Start": {
+          "connections": [
+            {
+              "node": 168,
+              "output": "End",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "outputs": {
+        "End": {
+          "connections": []
+        }
+      },
+      "position": [
+        831.4952331120787,
+        -639.0645527883023
+      ],
+      "name": "Transfer"
+    },
+    "164": {
+      "id": 164,
+      "data": {},
+      "inputs": {
+        "specification": {
+          "connections": [
+            {
+              "node": 166,
+              "output": "output",
+              "data": {}
+            }
+          ]
+        },
+        "Start": {
+          "connections": []
+        }
+      },
+      "outputs": {
+        "samples": {
+          "connections": [
+            {
+              "node": 163,
+              "input": "destination",
+              "data": {}
+            },
+            {
+              "node": 194,
+              "input": "input",
+              "data": {}
+            }
+          ]
+        },
+        "End": {
+          "connections": []
+        }
+      },
+      "position": [
+        589.1779538697429,
+        -369.23403404017165
+      ],
+      "name": "EmptyContainer"
+    },
+    "165": {
+      "id": 165,
+      "data": {},
+      "inputs": {
+        "specification": {
+          "connections": [
+            {
+              "node": 166,
+              "output": "output",
+              "data": {}
+            }
+          ]
+        },
+        "Start": {
+          "connections": []
+        }
+      },
+      "outputs": {
+        "samples": {
+          "connections": [
+            {
+              "node": 163,
+              "input": "source",
+              "data": {}
+            },
+            {
+              "node": 168,
+              "input": "destination",
+              "data": {}
+            }
+          ]
+        },
+        "End": {
+          "connections": []
+        }
+      },
+      "position": [
+        261.78778841502424,
+        -604.8051501992622
+      ],
+      "name": "EmptyContainer"
+    },
+    "166": {
+      "id": 166,
+      "data": {
+        "name": "96 well plate",
+        "type": "ValueSpecification",
+        "value": "96-flat"
+      },
+      "inputs": {},
+      "outputs": {
+        "output": {
+          "connections": [
+            {
+              "node": 165,
+              "input": "specification",
+              "data": {}
+            },
+            {
+              "node": 164,
+              "input": "specification",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        -107.63275107302304,
+        -473.5145204386206
+      ],
+      "name": "Parameter"
+    },
+    "168": {
+      "id": 168,
+      "data": {},
+      "inputs": {
+        "destination": {
+          "connections": [
+            {
+              "node": 165,
+              "output": "samples",
+              "data": {}
+            }
+          ]
+        },
+        "dispenseVelocity": {
+          "connections": []
+        },
+        "resource": {
+          "connections": [
+            {
+              "node": 195,
+              "output": "output",
+              "data": {}
+            }
+          ]
+        },
+        "amount": {
+          "connections": [
+            {
+              "node": 196,
+              "output": "output",
+              "data": {}
+            }
+          ]
+        },
+        "Start": {
+          "connections": []
+        }
+      },
+      "outputs": {
+        "End": {
+          "connections": [
+            {
+              "node": 163,
+              "input": "Start",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        535.5880417451732,
+        -772.8594612990689
+      ],
+      "name": "Provision"
+    },
+    "194": {
+      "id": 194,
+      "data": {
+        "name": "Transferred Reagent",
+        "type": "SampleCollection"
+      },
+      "inputs": {
+        "input": {
+          "connections": [
+            {
+              "node": 164,
+              "output": "samples",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "outputs": {},
+      "position": [
+        1120.2119455363602,
+        -367.6652794051075
+      ],
+      "name": "Output"
+    },
+    "195": {
+      "id": 195,
+      "data": {
+        "name": "Reagent",
+        "type": "ValueSpecification"
+      },
+      "inputs": {},
+      "outputs": {
+        "output": {
+          "connections": [
+            {
+              "node": 168,
+              "input": "resource",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        209.6358574498807,
+        -1028.1026143645083
+      ],
+      "name": "Input"
+    },
+    "196": {
+      "id": 196,
+      "data": {
+        "name": "Amount",
+        "type": "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure"
+      },
+      "inputs": {},
+      "outputs": {
+        "output": {
+          "connections": [
+            {
+              "node": 168,
+              "input": "amount",
+              "data": {}
+            },
+            {
+              "node": 163,
+              "input": "amount",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        -180.98528067918397,
+        -816.5724076337972
+      ],
+      "name": "Input"
+    }
+  }
+}

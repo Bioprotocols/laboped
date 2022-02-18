@@ -1,0 +1,121 @@
+{
+  "id": "demo@0.1.0",
+  "nodes": {
+    "62": {
+      "id": 62,
+      "data": {
+        "isModule": true
+      },
+      "inputs": {
+        "Reagent": {
+          "connections": [
+            {
+              "node": 63,
+              "output": "output",
+              "data": {}
+            }
+          ]
+        },
+        "Amount": {
+          "connections": [
+            {
+              "node": 64,
+              "output": "output",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "outputs": {
+        "Transferred Reagent": {
+          "connections": [
+            {
+              "node": 65,
+              "input": "input",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        -134.61512577228598,
+        -199.45542806707854
+      ],
+      "name": "ProvisionAndTransfer96"
+    },
+    "63": {
+      "id": 63,
+      "data": {
+        "name": "MyReagent",
+        "type": "ValueSpecification",
+        "value": "Water"
+      },
+      "inputs": {},
+      "outputs": {
+        "output": {
+          "connections": [
+            {
+              "node": 62,
+              "input": "Reagent",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        -427,
+        -234
+      ],
+      "name": "Parameter"
+    },
+    "64": {
+      "id": 64,
+      "data": {
+        "name": "MyAmount",
+        "type": "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure",
+        "value": "100uL"
+      },
+      "inputs": {},
+      "outputs": {
+        "output": {
+          "connections": [
+            {
+              "node": 62,
+              "input": "Amount",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "position": [
+        -807.5885231427364,
+        2.2997786260787927
+      ],
+      "name": "Parameter"
+    },
+    "65": {
+      "id": 65,
+      "data": {
+        "name": "<New Output>",
+        "type": ""
+      },
+      "inputs": {
+        "input": {
+          "connections": [
+            {
+              "node": 62,
+              "output": "Transferred Reagent",
+              "data": {}
+            }
+          ]
+        }
+      },
+      "outputs": {},
+      "position": [
+        188.62890625,
+        -257.828125
+      ],
+      "name": "Output"
+    }
+  }
+}
