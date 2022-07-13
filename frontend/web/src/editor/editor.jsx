@@ -48,6 +48,7 @@ export default class Editor extends Component {
       showModal: false,
       currentProtocol: null,
       protocols: {},
+      specializations: [],
       primitiveComponents: {},
       portTypes: {},
       isRebuildingPrimitives: true,
@@ -69,6 +70,8 @@ export default class Editor extends Component {
     this.handleProtocolDownload = this.handleProtocolDownload.bind(this);
     this.displayAnyProtocol = this.displayAnyProtocol.bind(this);
     this.rebuildPrimitives = this.rebuildPrimitives.bind(this);
+    this.getSpecializations = this.getSpecializations.bind(this);
+    this.getProtocolSpecialization = this.getProtocolSpecialization.bind(this);
     this.onUserGuide = this.onUserGuide.bind(this);
     this.onUserGuideDone = this.onUserGuideDone.bind(this);
   }
@@ -103,8 +106,10 @@ export default class Editor extends Component {
     this.editor.trigger("process");
 
     this.rebuildPrimitives(() => {
-      this.initializeComponents(() => {
-        this.retrieveProtocols();
+      this.getSpecializations(() => {
+        this.initializeComponents(() => {
+          this.retrieveProtocols();
+        });
       });
     });
   }
@@ -119,12 +124,12 @@ export default class Editor extends Component {
     await this.engine.process(this.editor.toJSON());
   }
 
-  getPortTypeSocket(portType){
+  getPortTypeSocket(portType) {
     // Return one socket unique to each type
     let portTypes = this.state.portTypes;
     if (Object.keys(portTypes).indexOf(portType) < 0) {
       portTypes[portType] = numSocket; // new Rete.Socket(portType);
-      this.setState({portTypes: portTypes});
+      this.setState({ portTypes: portTypes });
     }
     return portTypes[portType];
   }
@@ -154,8 +159,8 @@ export default class Editor extends Component {
         primitiveComponents[c.name] = c;
         this.editor.register(c);
         this.engine.register(c);
-        }
-        return c;
+      }
+      return c;
     });
     this.setState({ primitiveComponents: primitiveComponents }, callback);
   }
@@ -164,7 +169,7 @@ export default class Editor extends Component {
     return { id: "demo@0.1.0", nodes: {} };
   }
 
-  createProtocol(name=null, graph=null) {
+  createProtocol(name = null, graph = null) {
     if (!name) {
       let existing = Object.keys(this.state.protocols)
       let i = 0
@@ -191,10 +196,10 @@ export default class Editor extends Component {
     })
   }
 
-  displayNewProtocol(name=null, graph=null) {
+  displayNewProtocol(name = null, graph = null) {
     // ask the server to create a new protocol
     let makeNew = () => {
-        this.createProtocol(name, graph).then((protocol) => {
+      this.createProtocol(name, graph).then((protocol) => {
         let name = protocol.name;
         let protocols = this.state.protocols;
         protocols[name] = protocol;
@@ -212,18 +217,18 @@ export default class Editor extends Component {
       // TODO decide if this should save the protocol to remote
       // or simply save the protocol graph locally
       this.saveProtocol(this.state.currentProtocol)
-          .then(() => {
-            makeNew();
-          })
-          .catch((error) => {
-            console.error(error)
-          })
+        .then(() => {
+          makeNew();
+        })
+        .catch((error) => {
+          console.error(error)
+        })
       return;
     }
     makeNew();
   }
 
-  displayProtocol(protocolName, saveOld=true) {
+  displayProtocol(protocolName, saveOld = true) {
     if (!protocolName) {
       return false
     }
@@ -231,11 +236,11 @@ export default class Editor extends Component {
     let currentProtocols = this.state.protocols;
     let protocol = currentProtocols[protocolName];
     // Update the current protocol, load graph, and update state.
-    if (saveOld){
+    if (saveOld) {
       this.saveProtocolGraphInState(this.state.currentProtocol);
     }
 
-    this.setState({currentProtocol: protocolName}, () => {
+    this.setState({ currentProtocol: protocolName }, () => {
       this.editor.fromJSON(protocol.graph)
         .then(() => {
           this.editor.trigger("process");
@@ -252,14 +257,14 @@ export default class Editor extends Component {
     return true
   }
 
-  saveProtocolGraphInState(protocolName, overrideGraph=null){
-    if(!protocolName) {
+  saveProtocolGraphInState(protocolName, overrideGraph = null) {
+    if (!protocolName) {
       return;
     }
     // If there is a current protocol, then save its graph as JSON.
     let protocols = this.state.protocols;
 
-    if (!(protocolName in protocols)){
+    if (!(protocolName in protocols)) {
       console.log(`Making new protocol for ${protocolName}`)
       let p = {
         id: null,
@@ -276,7 +281,7 @@ export default class Editor extends Component {
       graph = overrideGraph
     } else {
       try {
-        if (protocolName !== this.state.currentProtocol){
+        if (protocolName !== this.state.currentProtocol) {
           graph = protocols[protocolName].graph;
         } else {
           graph = this.editor.toJSON();
@@ -287,11 +292,11 @@ export default class Editor extends Component {
       }
     }
     protocols[protocolName].graph = graph;
-    this.setState({protocols: protocols});
+    this.setState({ protocols: protocols });
     // this.updateProtocolComponent(this.state.currentProtocol);
   }
 
-  saveProtocol(protocolName, overrideGraph=null) {
+  saveProtocol(protocolName, overrideGraph = null) {
     console.log(`Saving protocol ${protocolName}`)
     // retrieve the current protocol from the Rete editor
     this.saveProtocolGraphInState(protocolName, overrideGraph);
@@ -334,14 +339,14 @@ export default class Editor extends Component {
 
     this.setState({ showModal: true })
     await axios.post(endpoint.editor.protocol, Object.values(this.state.protocols), {
-                withCredentials: true,
-                xsrfCookieName: 'csrftoken',
-                xsrfHeaderName: 'x-csrftoken',
-                headers: {
-                    "Content-Type": "application/json",
-                    'x-csrftoken': this.loginStatus.state.csrf,
-                }
-            })
+      withCredentials: true,
+      xsrfCookieName: 'csrftoken',
+      xsrfHeaderName: 'x-csrftoken',
+      headers: {
+        "Content-Type": "application/json",
+        'x-csrftoken': this.loginStatus.state.csrf,
+      }
+    })
       .then(function (response) {
         return response.data;
       })
@@ -377,7 +382,7 @@ export default class Editor extends Component {
 
     let newState = {
       protocols: currentProtocols,
-      primitiveComponents: Object.keys(currentProtocols).map((name) => {return this.initializeProtocolComponent(name);})
+      primitiveComponents: Object.keys(currentProtocols).map((name) => { return this.initializeProtocolComponent(name); })
     }
 
     this.setState(newState, () => {
@@ -405,12 +410,12 @@ export default class Editor extends Component {
     let protocolComponent = new PAMLProtocolComponent(this.getPortTypeSocket.bind(this), this.state.protocols[protocol]);
     // primitiveComponents[protocolComponent.name] = protocolComponent;
 
-    if (this.editor.components.has(protocolComponent.name)){
+    if (this.editor.components.has(protocolComponent.name)) {
       this.editor.components.set(protocolComponent.name, protocolComponent);
     } else {
       this.editor.register(protocolComponent);
     }
-    if (this.engine.components.has(protocolComponent.name)){
+    if (this.engine.components.has(protocolComponent.name)) {
       this.engine.components.set(protocolComponent.name, protocolComponent);
     } else {
       this.engine.register(protocolComponent);
@@ -433,7 +438,42 @@ export default class Editor extends Component {
       });
   }
 
-  async downloadGraph(protocol=null) {
+  getSpecializations(callback) {
+    axios.get(endpoint.editor.specializations, axios_csrf_options)
+      .then((response) => {
+        let specs = this.state.specializations;
+        response.data.map(
+          (specialization) => { specs[specialization.id] = specialization }
+        );
+        this.setState({ specializations: specs }, () => {
+          callback(response.data)
+        })
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+      });
+  }
+
+  getProtocolSpecialization(protocolName, specializationId) {
+    if (protocolName) {
+      let protocols = this.state.protocols;
+      let protocol = protocols[protocolName];
+      // let specialization = protocol.specializations.find((s) => (s && s.id == specializationId))
+      // if (specialization) {
+      //   return specialization
+      // } else {
+      let specialization = this.specializeProtocol(protocolName, specializationId);
+      protocol.specializations[specializationId] = specialization;
+      this.setState({ protocols: protocols });
+      return specialization;
+      //   }
+      // } else {
+      //   return null;
+    }
+  }
+
+  async downloadGraph(protocol = null) {
     // TODO I need to convert the protocol storage on the client to
     // match the server side primary key (id) instead of using the
     // protocol name.
@@ -458,34 +498,34 @@ export default class Editor extends Component {
       this.saveProtocol(protocolName)
         .then((protocol) => {
           if (canceledDownload) {
-            reject({isCanceled: true, error: null})
+            reject({ isCanceled: true, error: null })
             return
           }
           // once the protocol is saved we can request the download
           axios.get(`${endpoint.editor.protocol}${protocol.id}/download/`, {
             responseType: 'blob'
           }).then(function (response) {
-              if (canceledDownload) {
-                reject({isCanceled: true, error: null})
-                return
+            if (canceledDownload) {
+              reject({ isCanceled: true, error: null })
+              return
+            }
+            // on the download is down we can read the headers
+            let disposition = response.headers['content-disposition'];
+            let filename = 'unknown_file'
+            // from https://stackoverflow.com/a/40940790
+            if (disposition && disposition.indexOf('attachment') !== -1) {
+              let filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+              let matches = filenameRegex.exec(disposition);
+              if (matches !== null && matches[1]) {
+                filename = matches[1].replace(/['"]/g, '');
               }
-              // on the download is down we can read the headers
-              let disposition = response.headers['content-disposition'];
-              let filename = 'unknown_file'
-              // from https://stackoverflow.com/a/40940790
-              if (disposition && disposition.indexOf('attachment') !== -1) {
-                let filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-                let matches = filenameRegex.exec(disposition);
-                if (matches !== null && matches[1]) {
-                  filename = matches[1].replace(/['"]/g, '');
-                }
-              }
-              downloadStringAsFile(response.data, filename)
-              resolve()
-            })
+            }
+            downloadStringAsFile(response.data, filename)
+            resolve()
+          })
             .catch(function (error) {
               // failed to download
-              reject({isCanceled: true, error: error})
+              reject({ isCanceled: true, error: error })
             })
         })
         .catch((error) => {
@@ -501,6 +541,47 @@ export default class Editor extends Component {
     }
   }
 
+  specializeProtocol(protocolName, specializationId) {
+    if (!protocolName) {
+      console.error(`Must select a protocol to download`)
+      return
+    }
+    if (!specializationId) {
+      console.error(`Must select a specialization to apply`)
+      return
+    }
+    console.log(`Specializing protocol ${protocolName} with ${specializationId}`)
+
+    let canceledSpecialize = false
+    // Always save the protocol prior to specializing it
+    let specialization = this.saveProtocol(protocolName)
+      .then(async (protocol) => {
+        if (canceledSpecialize) {
+          return
+        }
+        // once the protocol is saved we can request the specialization
+        let protocol_specialization = axios.get(
+          `${endpoint.editor.protocol}${protocol.id}/specialization/${specializationId}`
+        ).then(function (response) {
+          if (canceledSpecialize) {
+            return
+          }
+          return response.data;
+        })
+          .catch(function (error) {
+            // failed to download
+            console.log("Could not retrieve specialization:" + error)
+          })
+        return protocol_specialization
+      })
+      .catch((error) => {
+        // failed to save
+        console.log("Could not save protocol:" + error)
+      })
+    return specialization;
+  }
+
+
   handleProtocolDownload(protocolName) {
     let cancelablePromise = this.downloadProtocol(protocolName)
 
@@ -512,7 +593,7 @@ export default class Editor extends Component {
             done: true,
             error: null,
             promise: null,
-            cancel: () => {}
+            cancel: () => { }
           }
         })
       })
@@ -524,7 +605,7 @@ export default class Editor extends Component {
             done: true,
             error: result.error.toString(),
             promise: null,
-            cancel: () => {}
+            cancel: () => { }
           }
         })
       })
@@ -583,8 +664,8 @@ export default class Editor extends Component {
         'x-csrftoken': this.loginStatus.state.csrf,
       }
     }).then(function (response) {
-        return response.status === 200;
-      })
+      return response.status === 200;
+    })
       .catch(function (error) {
         // handle error
         console.log(error);
@@ -630,8 +711,8 @@ export default class Editor extends Component {
       return "Name already exists"
     }
 
-    if (this.state.currentProtocol === protocol.name){
-      this.setState({currentProtocol: name});
+    if (this.state.currentProtocol === protocol.name) {
+      this.setState({ currentProtocol: name });
     }
 
     delete currentProtocols[protocol.name]
@@ -656,17 +737,17 @@ export default class Editor extends Component {
     this.setState({ download: null })
   }
 
-  onUserGuideDone(){
+  onUserGuideDone() {
     this.setState({ userGuideVisible: null })
   }
-  onUserGuide(){
+  onUserGuide() {
     this.setState({ userGuideVisible: true })
   }
 
   render() {
 
     let workspaceComponent = () => (
-        <div className="editor-workspace" ref={this.workspaceRef} />
+      <div className="editor-workspace" ref={this.workspaceRef} />
     )
 
     return (
@@ -682,34 +763,34 @@ export default class Editor extends Component {
 
           <Col xs={10} sm={10} className="editor-main-column">
 
-              <ProtocolInspectorGroup
-                                      editor={this}
-                                      currentProtocol={this.state.currentProtocol}
-                                      protocols={this.state.protocols}
-                                      workspaceComponent={workspaceComponent}
-                                      />
+            <ProtocolInspectorGroup
+              editor={this}
+              currentProtocol={this.state.currentProtocol}
+              protocols={this.state.protocols}
+              workspaceComponent={workspaceComponent}
+            />
 
           </Col>
         </Row>
 
         <RenameProtocolModal
-            show={this.state.renameProtocol !== null}
-            protocol={this.state.renameProtocol}
-            handleCancel={() => this.onCancelRename()}
-            handleRename={(p, n) => this.onConfirmRename(p, n)}
+          show={this.state.renameProtocol !== null}
+          protocol={this.state.renameProtocol}
+          handleCancel={() => this.onCancelRename()}
+          handleRename={(p, n) => this.onConfirmRename(p, n)}
         />
         <DownloadProtocolModal
-            show={this.state.download !== null}
-            download={this.state.download}
-            handleCancel={() => this.onCancelDownload()}
-            handleDone={() => this.onDoneDownload()}
+          show={this.state.download !== null}
+          download={this.state.download}
+          handleCancel={() => this.onCancelDownload()}
+          handleDone={() => this.onDoneDownload()}
         />
         <UserGuideModal
-            show={this.state.userGuideVisible !== null}
-            handleDone={() => this.onUserGuideDone()}
+          show={this.state.userGuideVisible !== null}
+          handleDone={() => this.onUserGuideDone()}
         />
         <RebuildPrimitivesModal
-            show={this.state.isRebuildingPrimitives}
+          show={this.state.isRebuildingPrimitives}
         />
       </Container>
     );

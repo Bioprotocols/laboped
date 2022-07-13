@@ -1,4 +1,5 @@
 from asyncio import protocols
+from gzip import READ
 from django.http.response import JsonResponse, ResponseHeaders
 from django.shortcuts import render
 from django.core.files.base import ContentFile
@@ -7,12 +8,14 @@ from django.db.models import Min
 from django.db.models.query import QuerySet
 
 from rest_framework import viewsets
+from editor.models import ProtocolSpecialization
+from editor.models import Specialization
 from editor.models import Primitive
 from editor.models import PAMLMapping
 
 from editor.models import Protocol
 from editor.protocol.protocol import Protocol as PAMLProtocol
-from editor.serializers import PrimitiveSerializer, ProtocolSerializer
+from editor.serializers import PrimitiveSerializer, ProtocolSerializer, SpecializationSerializer, ProtocolSpecializationSerializer
 # Create your views here.
 
 from django.http import HttpResponse, Http404, HttpResponseServerError
@@ -146,3 +149,55 @@ class ProtocolViewSet(viewsets.ModelViewSet):
         authorize(request, protocol, action="DELETE")
         protocol.delete()
         return HttpResponse(f"Deleted protocol {protocol.id}.")
+
+
+
+
+
+class SpecializationViewSet(viewsets.ModelViewSet):
+    serializer_class = SpecializationSerializer
+    queryset = Specialization.objects.all()
+
+    def list(self, request):
+        if not request.user.is_authenticated:
+            raise NotAuthenticated
+        try:
+            specializations = PAMLMapping.get_specializations()
+            for s in specializations:
+                if not any(self.queryset.filter(name=s)):
+                    Specialization.objects.create(name=s)
+
+            serializer = self.get_serializer(self.queryset, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            print(e)
+            return HttpResponseServerError("Failed to get specializations")
+
+class ProtocolSpecializationViewSet(viewsets.ModelViewSet):
+    serializer_class = ProtocolSpecializationSerializer
+    queryset = ProtocolSpecialization.objects.all()
+
+    @action(detail=True)
+    def specialize(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            raise NotAuthenticated
+        try:
+            specialization = Specialization.objects.get(id=kwargs['pk1'])
+            protocol: Protocol = Protocol.objects.get(id=kwargs['pk'])
+            authorize(request, protocol)
+
+            prior_ps = ProtocolSpecialization.objects.filter(protocol=protocol, specialization=specialization)
+            if not any(prior_ps):
+                ps = ProtocolSpecialization.objects.create(
+                    protocol=protocol,
+                    specialization=specialization)
+            else:
+                ps = prior_ps.first()
+            specialization_data = PAMLMapping.specialize(protocol, [specialization], ps)
+            ps.data = str(specialization_data[specialization.id])
+            ps.save()
+
+            serializer = self.get_serializer(ps, many=False)
+            return Response(serializer.data)
+        except Exception as e:
+            return HttpResponseServerError(e)

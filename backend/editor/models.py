@@ -1,3 +1,4 @@
+from typing import List
 from django.db import models
 from jsonfield import JSONField
 import sbol3
@@ -15,6 +16,10 @@ class Protocol(AuthorizedModel):
     name = models.CharField(max_length=100)
     graph = models.JSONField()
     rdf_file = models.FileField(upload_to='editor/protocols/', null=True)
+
+    def get_specializations(self):
+        specializations = ProtocolSpecialization.objects.filter(protocol=self)
+        return specializations
 
     def to_rdf_string(self, format="nt"):
         return Protocol.to_paml(self.name, self.graph).document.write_string(format)
@@ -47,6 +52,20 @@ class PrimitiveInput(Pin):
 
 class PrimitiveOutput(Pin):
     primitive = models.ForeignKey(Primitive, related_name='outputs', on_delete=models.CASCADE)
+
+class Specialization(models.Model):
+    id = models.BigAutoField(primary_key=True, editable=False)
+    name = models.CharField(max_length=100)
+
+def specialization_path(instance, filename):
+        return 'editor/protocols/{0}/specializations/{1}/{2}'.format(instance.protocol, instance.specialization, filename)
+
+class ProtocolSpecialization(models.Model):
+    id = models.BigAutoField(primary_key=True, editable=False)
+    protocol = models.ForeignKey(Protocol, related_name='protocol', on_delete=models.CASCADE)
+    specialization = models.ForeignKey(Specialization, related_name='specialization', on_delete=models.CASCADE)
+    # data = models.FileField(upload_to=specialization_path, null=True)
+    data = models.TextField()
 
 class PAMLMappingException(Exception):
     pass
@@ -182,8 +201,9 @@ class PAMLMapping():
             input_pin_map = {}
             if node["id"] in parameters:
                 input_pin_map = parameters[node["id"]]
-
-            return protocol.execute_primitive(primitive, **input_pin_map)
+            node = protocol.execute_primitive(primitive, **input_pin_map)
+            protocol.order(protocol.initial(), node)
+            return node
         elif "isModule" in node["data"] and node["data"]["isModule"]:
             # Subprotocol
             input_pin_map = {}
@@ -290,4 +310,41 @@ class PAMLMapping():
 
             for param in inputs + outputs:
                 param.save()
+
+    def get_specializations():
+        import paml_convert
+
+        specializations = [cls.__name__ for cls in paml_convert.BehaviorSpecialization.__subclasses__()]
+        return specializations
+
+    def specialize(
+        protocol: Protocol,
+        specializations: List[Specialization],
+        protocol_specialization: ProtocolSpecialization
+    ):
+        paml, uml = PAMLMapping._load_paml()
+        import sbol3
+        import paml_convert
+        from paml.execution_engine import ExecutionEngine
+
+        specialization_classes = {specialization.id : getattr(paml_convert, specialization.name)
+                                   for specialization in specializations}
+        specialization_objects = {id : specialization_class()
+                                   for id, specialization_class in specialization_classes.items()}
+        paml_protocol = Protocol.to_paml(protocol.name, protocol.graph)
+        ee = ExecutionEngine(specializations=specialization_objects.values())
+        parameter_values = [] # FIXME
+        execution_id = f"protocol_specialization_{protocol_specialization.id}"
+        execution = ee.execute(
+            paml_protocol,
+            sbol3.Agent("pamled_agent"),
+            parameter_values,
+            id=execution_id,
+            start_time=None,
+            permissive=True # Allow execution to proceed even if not all pins have tokens (i.e., control flow only)
+        )
+        specialization_data = {id: s.data for id, s in specialization_objects.items()}
+        return specialization_data
+
+
 
