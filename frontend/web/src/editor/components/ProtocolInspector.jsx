@@ -60,6 +60,8 @@ export class ProtocolInspectorGroup extends React.Component {
             <Dropdown.Item key={pname + "protocol_download"} onClick={() => this.props.editor.handleProtocolDownload(pname)}>Download Protocol</Dropdown.Item>
             <Dropdown.Divider />
             <Dropdown.Item key={pname + "del"} onClick={() => this.props.editor.deleteProtocol(pname)}>Delete</Dropdown.Item>
+            <Dropdown.Divider />
+            <Dropdown.Item key={pname + "exec"} onClick={() => this.props.editor.executeProtocol(pname)}>Execute</Dropdown.Item>
           </SplitButton>
           // <Nav.Item>
           //   <Nav.Link eventKey={pname}>{pname}</Nav.Link>

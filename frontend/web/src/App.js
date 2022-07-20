@@ -5,7 +5,7 @@ import {
   Route,
   Routes
 } from "react-router-dom";
-import { Login, Signup, Editor } from "./routes"
+import { Login, Signup, Editor, Executor } from "./routes"
 import "./App.css";
 
 export default function App() {
@@ -17,6 +17,7 @@ export default function App() {
             path="/"
             element={<Navigate to="/login" />}
           />
+          <Route path="/execute" element={<Executor />} />
           <Route path="/editor" element={<Editor />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />

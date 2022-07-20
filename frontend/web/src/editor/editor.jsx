@@ -22,6 +22,8 @@ import DownloadProtocolModal from "./DownloadProtocolModal";
 import RebuildPrimitivesModal from "./RebuildPrimitivesModal";
 import UserGuideModal from "./UserGuideModal";
 
+import { withRouter } from "../utils";
+
 function downloadStringAsFile(data, filename) {
   let url = window.URL.createObjectURL(new Blob([data]))
   let link = document.createElement('a')
@@ -32,7 +34,7 @@ function downloadStringAsFile(data, filename) {
   link.remove()
 }
 
-export default class Editor extends Component {
+export class Editor extends Component {
   constructor(props) {
     super(props);
     this.palleteRef = React.createRef();
@@ -459,17 +461,11 @@ export default class Editor extends Component {
     if (protocolName) {
       let protocols = this.state.protocols;
       let protocol = protocols[protocolName];
-      // let specialization = protocol.specializations.find((s) => (s && s.id == specializationId))
-      // if (specialization) {
-      //   return specialization
-      // } else {
       let specialization = this.specializeProtocol(protocolName, specializationId);
       protocol.specializations[specializationId] = specialization;
       this.setState({ protocols: protocols });
       return specialization;
-      //   }
-      // } else {
-      //   return null;
+      
     }
   }
 
@@ -692,6 +688,10 @@ export default class Editor extends Component {
     }
   }
 
+  executeProtocol(pname) {
+    this.props.navigate('/execute', { state: { protocol: this.state.protocols[pname]} });
+  }
+
   onCancelRename() {
     this.setState({
       renameProtocol: null,
@@ -796,5 +796,5 @@ export default class Editor extends Component {
     );
   }
 }
-
+export default withRouter(Editor);
 

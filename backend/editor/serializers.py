@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from editor.models import ProtocolExecution
 from editor.models import ProtocolSpecialization
 from editor.models import Specialization
 from editor.models import Protocol
@@ -33,3 +34,7 @@ class SpecializationSerializer(serializers.ModelSerializer):
         model = Specialization
         fields = ('id', 'name')
 
+class ProtocolExecutionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProtocolExecution
+        fields = ('id', 'data')

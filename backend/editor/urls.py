@@ -35,6 +35,9 @@ urlpatterns = router.urls + [
     path('specialization/', views.SpecializationViewSet.as_view({
         'get': 'list'
     }), name='api-editor-specializations'),
+    path("protocol/<int:pk>/execute/", views.ProtocolViewSet.as_view({
+        'get': 'execute'
+    }), name='api-editor-protocol-execute'),
 ]
 
 # urlpatterns = [

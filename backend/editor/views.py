@@ -1,5 +1,6 @@
 from asyncio import protocols
 from gzip import READ
+import json
 from django.http.response import JsonResponse, ResponseHeaders
 from django.shortcuts import render
 from django.core.files.base import ContentFile
@@ -8,10 +9,12 @@ from django.db.models import Min
 from django.db.models.query import QuerySet
 
 from rest_framework import viewsets
+from editor.models import ProtocolExecution
+from editor.serializers import ProtocolExecutionSerializer
 from editor.models import ProtocolSpecialization
 from editor.models import Specialization
 from editor.models import Primitive
-from editor.models import PAMLMapping
+from editor.paml_utils.paml_mapping import PAMLMapping
 
 from editor.models import Protocol
 from editor.protocol.protocol import Protocol as PAMLProtocol
@@ -151,6 +154,28 @@ class ProtocolViewSet(viewsets.ModelViewSet):
         return HttpResponse(f"Deleted protocol {protocol.id}.")
 
 
+    @action(detail=True)
+    def execute(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            raise NotAuthenticated
+        try:
+            protocol: Protocol = Protocol.objects.get(id=kwargs['pk'])
+            authorize(request, protocol)
+
+            prior_pe = ProtocolExecution.objects.filter(protocol=protocol)
+            if not any(prior_pe):
+                pe = ProtocolExecution.objects.create(
+                    protocol=protocol, owner=request.user)
+            else:
+                pe = prior_pe.first()
+
+            execution = PAMLMapping.execute(protocol, pe)
+            pe.data = json.dumps(execution)
+            pe.save()
+            pe_serializer = ProtocolExecutionSerializer(pe, many=False)
+            return Response(pe_serializer.data)
+        except Exception as e:
+            return HttpResponseServerError(e)
 
 
 

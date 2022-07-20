@@ -28,30 +28,30 @@ class Login extends React.Component {
   }
 
   handlePasswordChange(event) {
-    this.setState({password: event.target.value});
+    this.setState({ password: event.target.value });
   }
 
   handleEmailChange(event) {
-    this.setState({email: event.target.value});
+    this.setState({ email: event.target.value });
   }
 
   onAuthenticationChanged(isAuthenticated) {
     this.setState({ isAuthenticated: isAuthenticated });
     if (isAuthenticated) {
-        this.props.navigate("/editor");
+      this.props.navigate("/editor");
     }
   }
 
-  onDisclaimerDone(){
+  onDisclaimerDone() {
     this.setState({ disclaimerVisible: null })
   }
-  onDisclaimer(){
+  onDisclaimer() {
     this.setState({ disclaimerVisible: true })
   }
 
   whoami() {
     queryLoginStatus((data) => {
-        console.log("You are logged in as: " + data.email);
+      console.log("You are logged in as: " + data.email);
     });
   }
 
@@ -76,7 +76,7 @@ class Login extends React.Component {
 
   renderLogin() {
     if (this.state.isAuthenticated === null) {
-      return(null);
+      return (null);
     }
     if (this.state.isAuthenticated) {
       return (
@@ -121,18 +121,18 @@ class Login extends React.Component {
   render() {
     return (
       <Col>
-      <Row md={8}>
-        <div className="container mt-3">
-          <LoginStatus ref={this.loginStatus} onAuthenticationChanged={this.onAuthenticationChanged} />
-          {this.renderLogin()}
-        </div>
+        <Row md={8}>
+          <div className="container mt-3">
+            <LoginStatus ref={this.loginStatus} onAuthenticationChanged={this.onAuthenticationChanged} />
+            {this.renderLogin()}
+          </div>
         </Row>
         <Row></Row>
         <Row md={8}>
-        <DisclaimerModal
+          <DisclaimerModal
             show={this.state.disclaimerVisible !== null}
             handleDone={() => this.onDisclaimerDone()}
-        />
+          />
         </Row>
       </Col>
     );
