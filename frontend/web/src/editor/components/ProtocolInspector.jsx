@@ -76,14 +76,20 @@ export class ProtocolInspectorGroup extends React.Component {
       </Nav.Item>
     )
 
-    let emptyDetailNav = (
-      <Nav.Item>
-        <Nav.Link key={0} eventKey={0}>{"Detail"}</Nav.Link>
-      </Nav.Item>
-    )
-    let emptyDetail = (
-      <Tab title="Detail" eventKey="detail">Protocol Detail</Tab>
-    )
+    // let emptyDetailNav = (
+    //   <Nav.Item>
+    //     <Nav.Link key={0} eventKey={0}>{"Detail"}</Nav.Link>
+    //   </Nav.Item>
+    // )
+
+    let currentProtocol = this.props.editor.getCurrentProtocol();
+    console.log(currentProtocol ? currentProtocol.graph : "");
+    let emptyDetail = currentProtocol ? (
+      <Tab title="Detail" eventKey="detail">
+        <ReactJson key="detail" displayDataTypes="False" name="Steps" indentWidth="2"
+          src={currentProtocol.graph} />
+      </Tab>
+    ) : null;
 
 
     let tabcontainer = (
@@ -111,7 +117,7 @@ export class ProtocolInspectorGroup extends React.Component {
           <Col xs={4} sm={4} className='editor-inspector-column'>
             <Tabs defaultActiveKey="detail" onSelect={(i) => {
               console.log("Select tab: " + i)
-              if (i != "detail") {
+              if (i !== "detail") {
                 this.props.editor.getProtocolSpecialization(this.props.currentProtocol, parseInt(i));
               }
             }}>
@@ -121,9 +127,9 @@ export class ProtocolInspectorGroup extends React.Component {
                   let protocol = this.props.editor.state.protocols[this.props.currentProtocol];
                   let rendered = (protocol, specialization) => {
                     if (protocol) {
-                      let spec = protocol.specializations.find((s) => (s && s.id == specialization.id));
+                      let spec = protocol.specializations.find((s) => (s && s.id === specialization.id));
                       if (spec) {
-                        let rendered = spec.data ? ((specialization.name == "DefaultBehaviorSpecialization") ? (<ReactJson src={JSON.parse(spec.data)} displayDataTypes="False" name="Steps" indentWidth="2" />) : (<ProtocolInspector specialization={spec.data} />)) : null;
+                        let rendered = spec.data ? ((specialization.name === "DefaultBehaviorSpecialization") ? (<ReactJson key={specialization.id} src={JSON.parse(spec.data)} displayDataTypes="False" name="Steps" indentWidth="2" />) : (<ProtocolInspector key={specialization.id} specialization={spec.data} />)) : null;
                         return rendered;
                       } else {
                         return null;
@@ -132,7 +138,7 @@ export class ProtocolInspectorGroup extends React.Component {
                       return null;
                     }
                   }
-                  return (<Tab title={specialization.name} eventKey={specialization.id}>
+                  return (<Tab title={specialization.name} key={specialization.id} eventKey={specialization.id}>
                     {rendered(protocol, specialization)}
                   </Tab>)
                 })}
@@ -161,22 +167,22 @@ function ProtocolInspector(props) {
 
 };
 
-class PrettyPrintJson extends React.Component {
+// class PrettyPrintJson extends React.Component {
 
-  render() {
-    // data could be a prop for example
-    // const { data } = this.props;
+//   render() {
+//     // data could be a prop for example
+//     // const { data } = this.props;
 
-    return (
-      <div className='json-specialization-data'>
-        <pre>
-          {/* {JSON.stringify(this.props.data, null, "\t")} */}
-          {/* <SvelteJSONEditor content={JSON.parse(this.props.data)} readonly="1" /> */}
-          <ReactJson src={JSON.parse(this.props.data)} />
-        </pre>
-      </div>);
-  }
-}
+//     return (
+//       <div className='json-specialization-data'>
+//         <pre>
+//           {/* {JSON.stringify(this.props.data, null, "\t")} */}
+//           {/* <SvelteJSONEditor content={JSON.parse(this.props.data)} readonly="1" /> */}
+//           <ReactJson src={JSON.parse(this.props.data)} />
+//         </pre>
+//       </div>);
+//   }
+// }
 
 
 // function SvelteJSONEditor(props) {

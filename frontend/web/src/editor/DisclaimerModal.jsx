@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
-import { Modal, Button, Alert, Spinner, Row, Col } from 'react-bootstrap';
+import { Modal, Button } from 'react-bootstrap';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import marked from "marked";
 
 
 export default class DisclaimerModal extends Component {
@@ -41,13 +39,13 @@ export default class DisclaimerModal extends Component {
           </Modal.Title> */}
         </Modal.Header>
         <Modal.Body>
-          <ReactMarkdown children={markdown}  />
+          <ReactMarkdown children={markdown} />
 
         </Modal.Body>
         <Modal.Footer>
           <Button className="user-guide" variant="primary" onClick={() => this.props.handleDone()}>
-        Done
-      </Button>
+            Done
+          </Button>
         </Modal.Footer>
       </Modal>
     );

@@ -2,10 +2,8 @@ import React from "react";
 import { withRouter } from "../../utils";
 import LoginStatus from '../../login/LoginStatus';
 import { Container } from "react-bootstrap";
-import { Gitgraph, Orientation, TemplateName } from '@gitgraph/react';
+import { Gitgraph, Orientation } from '@gitgraph/react';
 import { axios, endpoint } from "../../API";
-// import { $rdf } from 'rdflib';
-//const $rdf = require('rdflib');
 import rdf from 'rdf-ext';
 import N3Parser from 'rdf-parser-n3';
 import { Readable } from 'stream';
@@ -53,35 +51,35 @@ class Executor extends React.Component {
 
     getProtocolExecution(protocol) {
         if (false && protocol) {
-            let execution =
-                axios.get(
-                    `${endpoint.editor.protocol}${protocol.id}/execute/`, {
-                    withCredentials: true,
-                    xsrfCookieName: 'csrftoken',
-                    xsrfHeaderName: 'x-csrftoken',
-                    headers: {
-                        "Content-Type": "application/json",
-                        'x-csrftoken': this.loginStatus.current.state.csrf,
-                    }
-                }).then(function (response) {
-                    // let store = $rdf.graph()
-                    let mimeType = null; //'application/rdf+xml';
-                    let uri = null; //"http://bioprotocols.org/paml/";
-                    let parser = new N3Parser({ factory: rdf });
-                    let s = new Readable();
-                    s.push(eval(response.data.data));
-                    s.push(null);
-                    let qstream = parser.import(s);
-                    rdf.dataset().import(qstream)
-                        //$rdf.parse(response.data.data, store, uri, mimeType)
-                        .then(function (execution) {
-                            this.setState({ execution: execution });
-                            return execution;
-                        }).bind(this)
-                }.bind(this)).catch((error) => {
-                    // failed to download
-                    console.log("Could not retrieve execution:" + error)
-                })
+            // let execution =
+            //     axios.get(
+            //         `${endpoint.editor.protocol}${protocol.id}/execute/`, {
+            //         withCredentials: true,
+            //         xsrfCookieName: 'csrftoken',
+            //         xsrfHeaderName: 'x-csrftoken',
+            //         headers: {
+            //             "Content-Type": "application/json",
+            //             'x-csrftoken': this.loginStatus.current.state.csrf,
+            //         }
+            //     }).then(function (response) {
+            //         // let store = $rdf.graph()
+            //         let mimeType = null; //'application/rdf+xml';
+            //         let uri = null; //"http://bioprotocols.org/paml/";
+            //         let parser = new N3Parser({ factory: rdf });
+            //         let s = new Readable();
+            //         s.push(eval(response.data.data));
+            //         s.push(null);
+            //         let qstream = parser.import(s);
+            //         rdf.dataset().import(qstream)
+            //             //$rdf.parse(response.data.data, store, uri, mimeType)
+            //             .then(function (execution) {
+            //                 this.setState({ execution: execution });
+            //                 return execution;
+            //             }).bind(this)
+            //     }.bind(this)).catch((error) => {
+            //         // failed to download
+            //         console.log("Could not retrieve execution:" + error)
+            //     })
         }
     }
 

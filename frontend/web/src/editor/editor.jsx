@@ -6,7 +6,7 @@ import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
 
 import { MyNode } from "./components/Node";
-import { numSocket, loadComponentsFromAPI, PAMLComponent, PAMLProtocolComponent } from "./components/Primitive";
+import { pamlSocket, loadComponentsFromAPI, PAMLComponent, PAMLProtocolComponent, numSocket } from "./components/Primitive";
 import { InputComponent, OutputComponent, ParameterComponent } from "./components/Control";
 import Menu from "./menu";
 
@@ -139,7 +139,7 @@ export class Editor extends Component {
   async initializeComponents(callback) {
     let components = await loadComponentsFromAPI(); //[new AddComponent()];
     components = components.map((primitive) => {
-      let c = new PAMLComponent(this.getPortTypeSocket.bind(this), primitive);
+      let c = new PAMLComponent(this.getPortTypeSocket.bind(this), primitive, this.saveCurrentProtocol.bind(this));
       // c.builder = function(node) {
       //   return node;
       // }
@@ -298,6 +298,12 @@ export class Editor extends Component {
     // this.updateProtocolComponent(this.state.currentProtocol);
   }
 
+  saveCurrentProtocol() {
+    if (this.state.currentProtocol) {
+      this.saveProtocol(this.state.currentProtocol)
+    }
+  }
+
   saveProtocol(protocolName, overrideGraph = null) {
     console.log(`Saving protocol ${protocolName}`)
     // retrieve the current protocol from the Rete editor
@@ -444,7 +450,7 @@ export class Editor extends Component {
     axios.get(endpoint.editor.specializations, axios_csrf_options)
       .then((response) => {
         let specs = this.state.specializations;
-        response.data.map(
+        response.data.forEach(
           (specialization) => { specs[specialization.id] = specialization }
         );
         this.setState({ specializations: specs }, () => {
@@ -465,7 +471,7 @@ export class Editor extends Component {
       protocol.specializations[specializationId] = specialization;
       this.setState({ protocols: protocols });
       return specialization;
-      
+
     }
   }
 
@@ -623,6 +629,17 @@ export class Editor extends Component {
     this.setState({ protocols: currentProtocols });
   }
 
+  getProtocol(protocol) {
+    if (protocol && protocol in this.state.protocols) {
+      return this.state.protocols[protocol];
+    } else {
+      return null;
+    }
+  }
+
+  getCurrentProtocol() {
+    return this.getProtocol(this.state.currentProtocol);
+  }
 
   getProtocols() {
     return Object.keys(this.state.protocols);
@@ -689,7 +706,7 @@ export class Editor extends Component {
   }
 
   executeProtocol(pname) {
-    this.props.navigate('/execute', { state: { protocol: this.state.protocols[pname]} });
+    this.props.navigate('/execute', { state: { protocol: this.state.protocols[pname] } });
   }
 
   onCancelRename() {
