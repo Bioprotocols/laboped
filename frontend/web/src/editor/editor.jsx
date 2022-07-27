@@ -127,13 +127,33 @@ export class Editor extends Component {
   }
 
   getPortTypeSocket(portType) {
+
+    let portMap = {
+      "http://bioprotocols.org/uml#ValueSpecification": "valueSpecification",
+      "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure": "measure",
+      "http://bioprotocols.org/paml#SampleCollection": "sampleCollection",
+      "http://sbols.org/v3#Component": "component",
+      "http://bioprotocols.org/paml#SampleData": "sampleData",
+      "http://bioprotocols.org/paml#SampleArray": "sampleArray",
+      "http://www.w3.org/2001/XMLSchema#anyURI": "anyURI",
+      "http://bioprotocols.org/paml#SampleMask": "sampleMask",
+      "http://www.w3.org/2001/XMLSchema#integer": "integer",
+      "http://www.w3.org/2001/XMLSchema#float": "float",
+      "http://www.w3.org/2001/XMLSchema#double": "double",
+      "http://bioprotocols.org/paml#ContainerSpec": "containerSpec",
+      "http://sbols.org/v3#Identified": "identified"
+
+    }
+
     // Return one socket unique to each type
     let portTypes = this.state.portTypes;
-    if (Object.keys(portTypes).indexOf(portType) < 0) {
-      portTypes[portType] = numSocket; // new Rete.Socket(portType);
+    let pname = (portType in portMap) ? portMap[portType] : portType;
+
+    if (!(pname in portTypes)) {
+      portTypes[pname] = new Rete.Socket(pname);
       this.setState({ portTypes: portTypes });
     }
-    return portTypes[portType];
+    return portTypes[pname];
   }
 
   async initializeComponents(callback) {

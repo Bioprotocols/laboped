@@ -110,10 +110,7 @@ export class PAMLComponent extends Rete.Component {
   async builder(node) {
     //node = new MyNode();
     var inputs = this.primitive.inputs.map(i => new
-      PAMLInputPin(i.name, i.name,
-        // this.socketFn(i.type),
-        pamlSocket, i.type, this.saveProtocol
-      ));
+      PAMLInputPin(i.name, i.name, this.socketFn(i.type), i.type, this.saveProtocol));
     inputs.forEach(i => i.addControl(new PAMLInputControl(node.editor, i, this.saveProtocol)));
     inputs.forEach(i => node.addInput(i))
     var outputs = this.primitive.outputs.map(i => new Rete.Output(i.name, i.name, this.socketFn(i.type)))

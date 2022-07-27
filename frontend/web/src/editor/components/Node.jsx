@@ -235,9 +235,16 @@ export class PAMLInputControlComponent extends React.Component {
   render() {
     // const { socket, type } = this.props;
     let name = this.props.input ? this.props.input.name : "";
+    let button = () => {
+      if ((this.props.input.connections.length > 0)) {
+        return (<Button disabled onClick={this.handleClick}>{name}</Button>)
+      } else {
+        return (<Button onClick={this.handleClick}>{name}</Button>)
+      }
+    }
     return (
       <div>
-        <Button onClick={this.handleClick}>{name}</Button>
+        {button()}
         {this.getModal()}
       </div>
       // <div
