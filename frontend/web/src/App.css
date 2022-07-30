@@ -61,3 +61,54 @@
 }
 
 
+.editor .socket.valuespecification {
+  background: orange;
+}
+
+.editor .socket.measure {
+  background: yellowgreen;
+}
+
+.editor .socket.sampleCollection {
+  background: blueviolet;
+}
+
+.editor .socket.component {
+  background: rgb(43, 137, 226);
+}
+
+.editor .socket.sampledata {
+  background: rgb(226, 131, 43);
+}
+
+.editor .socket.samplearray {
+  background: rgb(226, 43, 64);
+}
+
+.editor .socket.anyuri {
+  background: rgb(43, 137, 226);
+}
+
+.editor .socket.samplemask {
+  background: rgb(177, 226, 43);
+}
+
+.editor .socket.integer {
+  background: rgb(43, 165, 226);
+}
+
+.editor .socket .float {
+  background: rgb(226, 43, 67);
+}
+
+.editor .socket.double {
+  background: rgb(43, 147, 226);
+}
+
+.editor .socket.containerspec {
+  background: rgb(226, 134, 43);
+}
+
+.editor .socket.identified {
+  background: rgb(217, 43, 226);
+}

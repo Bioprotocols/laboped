@@ -6,8 +6,9 @@ import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
 
 import { MyNode } from "./components/Node";
-import { pamlSocket, loadComponentsFromAPI, PAMLComponent, PAMLProtocolComponent, numSocket } from "./components/Primitive";
-import { InputComponent, OutputComponent, ParameterComponent } from "./components/Control";
+import { loadComponentsFromAPI, PAMLComponent } from "./components/Primitive";
+import { PAMLProtocolComponent } from "./components/ProtocolComponent";
+import { InputComponent, OutputComponent } from "./components/IOComponents";
 import Menu from "./menu";
 
 import React from "react";
@@ -109,8 +110,10 @@ export class Editor extends Component {
 
     this.rebuildPrimitives(() => {
       this.getSpecializations(() => {
-        this.initializeComponents(() => {
-          this.retrieveProtocols();
+        this.initializePortTypes(() => {
+          this.initializeComponents(() => {
+            this.retrieveProtocols();
+          });
         });
       });
     });
@@ -124,10 +127,17 @@ export class Editor extends Component {
     // console.log("process");
     await this.engine.abort();
     await this.engine.process(this.editor.toJSON());
+    this.saveCurrentProtocol();
   }
 
-  getPortTypeSocket(portType) {
 
+  pamlShortDataType(item) {
+    let lastHash = item.indexOf("#");
+    let slashSplit = item.split("/");
+    return lastHash >= 0 ? item.split("#")[1] : slashSplit[slashSplit.length - 1];
+  }
+
+  initializePortTypes(callback) {
     let portMap = {
       "http://bioprotocols.org/uml#ValueSpecification": "valueSpecification",
       "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure": "measure",
@@ -146,33 +156,64 @@ export class Editor extends Component {
     }
 
     // Return one socket unique to each type
-    let portTypes = this.state.portTypes;
-    let pname = (portType in portMap) ? portMap[portType] : portType;
-
-    if (!(pname in portTypes)) {
-      portTypes[pname] = new Rete.Socket(pname);
-      this.setState({ portTypes: portTypes });
-    }
-    return portTypes[pname];
+    let portTypes = {};
+    Object.keys(portMap).map((key, index) => {
+      let typeName = this.pamlShortDataType(key);
+      portTypes[key] = {
+        typeName: typeName,
+        socket: new Rete.Socket(typeName)
+      };
+    });
+    this.setState({ portTypes: portTypes }, () => callback());
   }
+
+  // getPortTypeSocket(portType) {
+
+  //   let portMap = {
+  //     "http://bioprotocols.org/uml#ValueSpecification": "valueSpecification",
+  //     "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure": "measure",
+  //     "http://bioprotocols.org/paml#SampleCollection": "sampleCollection",
+  //     "http://sbols.org/v3#Component": "component",
+  //     "http://bioprotocols.org/paml#SampleData": "sampleData",
+  //     "http://bioprotocols.org/paml#SampleArray": "sampleArray",
+  //     "http://www.w3.org/2001/XMLSchema#anyURI": "anyURI",
+  //     "http://bioprotocols.org/paml#SampleMask": "sampleMask",
+  //     "http://www.w3.org/2001/XMLSchema#integer": "integer",
+  //     "http://www.w3.org/2001/XMLSchema#float": "float",
+  //     "http://www.w3.org/2001/XMLSchema#double": "double",
+  //     "http://bioprotocols.org/paml#ContainerSpec": "containerSpec",
+  //     "http://sbols.org/v3#Identified": "identified"
+
+  //   }
+
+  //   // Return one socket unique to each type
+  //   let portTypes = this.state.portTypes;
+  //   let pname = (portType in portMap) ? portMap[portType] : portType;
+
+  //   if (!(pname in portTypes)) {
+  //     portTypes[pname] = new Rete.Socket(pname);
+  //     this.setState({ portTypes: portTypes });
+  //   }
+  //   return portTypes[pname];
+  // }
+
 
   async initializeComponents(callback) {
     let components = await loadComponentsFromAPI(); //[new AddComponent()];
     components = components.map((primitive) => {
-      let c = new PAMLComponent(this.getPortTypeSocket.bind(this), primitive, this.saveCurrentProtocol.bind(this));
+      let c = new PAMLComponent(this.state.portTypes, primitive, this.saveCurrentProtocol.bind(this));
       // c.builder = function(node) {
       //   return node;
       // }
-      for (let item of c.dataTypes) this.dataTypes.add(item.indexOf("#") >= 0 ? item.split("#")[1] : item);
+      //for (let item of c.dataTypes) this.dataTypes.add(this.pamlShortDataType(item));
       return c;
     });
 
     var dataTypeArray = Array.from(this.dataTypes);
 
     components = components.concat([
-      new InputComponent(dataTypeArray),
-      new OutputComponent(dataTypeArray),
-      new ParameterComponent(dataTypeArray)
+      new InputComponent(this.state.portTypes, this.saveCurrentProtocol.bind(this)),
+      new OutputComponent(this.state.portTypes, this.saveCurrentProtocol.bind(this))
     ]);
 
     var primitiveComponents = this.state.primitiveComponents;
@@ -435,22 +476,22 @@ export class Editor extends Component {
   initializeProtocolComponent(protocol) {
 
     // var primitiveComponents = this.state.primitiveComponents;
-    let protocolComponent = new PAMLProtocolComponent(this.getPortTypeSocket.bind(this), this.state.protocols[protocol]);
+    let protocolComponent = new PAMLProtocolComponent(this.state.portTypes, this.state.protocols[protocol]);
     // primitiveComponents[protocolComponent.name] = protocolComponent;
 
-    if (this.editor.components.has(protocolComponent.name)) {
-      this.editor.components.set(protocolComponent.name, protocolComponent);
-    } else {
-      this.editor.register(protocolComponent);
-    }
-    if (this.engine.components.has(protocolComponent.name)) {
-      this.engine.components.set(protocolComponent.name, protocolComponent);
-    } else {
-      this.engine.register(protocolComponent);
-    }
+    // if (this.editor.components.has(protocolComponent.name)) {
+    //   this.editor.components.set(protocolComponent.name, protocolComponent);
+    // } else {
+    this.editor.register(protocolComponent);
+    // }
+    // if (this.engine.components.has(protocolComponent.name)) {
+    //   this.engine.components.set(protocolComponent.name, protocolComponent);
+    // } else {
+    //   this.engine.register(protocolComponent);
+    // }
     // this.setState({ primitiveComponents: primitiveComponents });
     // this.editor.trigger("process");
-    return protocolComponent
+    return protocolComponent;
 
   }
 

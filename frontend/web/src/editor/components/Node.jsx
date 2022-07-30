@@ -247,21 +247,12 @@ export class PAMLInputControlComponent extends React.Component {
         {button()}
         {this.getModal()}
       </div>
-      // <div
-      //   className={`socket ${type} ${kebab(socket.name)}`}
-      //   title={socket.name}
-      //   ref={el => this.createRef(el)} // force update for new IO with a same key
-      //   onDoubleClick={this.handleClick}
-      // >
-      //   {
-      //     this.getModal()
-      //   }
-      // </div >
     )
   }
 }
 
 export class MyNode extends Node {
+  state = {toggle: true};
 
   render() {
     const { node, bindSocket, bindControl } = this.props;
