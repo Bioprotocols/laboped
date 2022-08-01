@@ -1,8 +1,9 @@
 import Rete from "rete";
+
 import { axios, axios_csrf_options, endpoint } from "../../API";
 import { MyNode, } from "./Node";
-import { PAMLInputControlComponent } from "./IOComponents";
-
+import { PAMLInputPin, PAMLInputControl, TimepointIn, TimepointOut } from "./IOComponents";
+import { PAMLComponent } from ".";
 
 export var numSocket = new Rete.Socket("Number");
 export var floatSocket = new Rete.Socket("Float");
@@ -23,19 +24,13 @@ export async function loadComponentsFromAPI() {
   return primitives;
 }
 
-export class PAMLComponent extends Rete.Component {
-  constructor(portTypes, primitive, saveProtocol) {
-    super(primitive.name)
-    this.primitive = primitive;
-    this.portTypes = portTypes;
-    this.data.component = MyNode;
-    this.saveProtocol = saveProtocol;
 
-    // this.dataTypes = new Set();
-    // primitive.inputs.map((i) => this.dataTypes.add(i.type));
-    // primitive.outputs.map((i) => this.dataTypes.add(i.type));
+
+export class PAMLPrimitiveComponent extends PAMLComponent {
+  constructor(props) {
+    super({ name: props.primitive.name, ...props })
+    this.primitive = props.primitive;
   }
-
   async builder(node) {
     //node = new MyNode();
     var inputs = this.primitive.inputs.map(i => new
@@ -52,4 +47,3 @@ export class PAMLComponent extends Rete.Component {
     return node;
   }
 }
-

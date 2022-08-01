@@ -6,9 +6,10 @@ import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
 
 import { MyNode } from "./components/Node";
-import { loadComponentsFromAPI, PAMLComponent } from "./components/Primitive";
+import { loadComponentsFromAPI, PAMLPrimitiveComponent } from "./components/Primitive";
 import { PAMLProtocolComponent } from "./components/ProtocolComponent";
 import { InputComponent, OutputComponent } from "./components/IOComponents";
+
 import Menu from "./menu";
 
 import React from "react";
@@ -53,11 +54,14 @@ export class Editor extends Component {
       protocols: {},
       specializations: [],
       primitiveComponents: {},
+      protocolComponents: {},
       portTypes: {},
       isRebuildingPrimitives: true,
       download: null,
       renameProtocol: null,
-      userGuideVisible: null
+      userGuideVisible: null,
+      nodeToProtocol: {},
+      toggle: false
     }
 
     this.dataTypes = new Set();
@@ -77,6 +81,8 @@ export class Editor extends Component {
     this.getProtocolSpecialization = this.getProtocolSpecialization.bind(this);
     this.onUserGuide = this.onUserGuide.bind(this);
     this.onUserGuideDone = this.onUserGuideDone.bind(this);
+    this.nodeCreated = this.nodeCreated.bind(this);
+
   }
 
   componentDidMount() {
@@ -97,7 +103,7 @@ export class Editor extends Component {
     this.engine = new Rete.Engine("demo@0.1.0");
 
     this.editor.on("process nodecreated noderemoved connectioncreated connectionremoved", this.processHandler);
-
+    this.editor.on("nodecreated", this.nodeCreated);
 
     this.editor.view.resize();
 
@@ -128,6 +134,15 @@ export class Editor extends Component {
     await this.engine.abort();
     await this.engine.process(this.editor.toJSON());
     this.saveCurrentProtocol();
+  }
+
+  async nodeCreated(node) {
+    let nodeToProtocol = this.state.nodeToProtocol;
+    let currentProtocolName = this.state.currentProtocol;
+    // let currentProtocol = this.state.protocols[currentProtocolName];
+    //node.setProtocol(currentProtocol, this.updateProtocolComponent);
+    nodeToProtocol[node.id] = currentProtocolName;
+    this.setState({ nodeToProtocol: nodeToProtocol });
   }
 
 
@@ -201,7 +216,11 @@ export class Editor extends Component {
   async initializeComponents(callback) {
     let components = await loadComponentsFromAPI(); //[new AddComponent()];
     components = components.map((primitive) => {
-      let c = new PAMLComponent(this.state.portTypes, primitive, this.saveCurrentProtocol.bind(this));
+      let c = new PAMLPrimitiveComponent({
+        portTypes: this.state.portTypes,
+        primitive: primitive,
+        saveProtocol: this.saveCurrentProtocol.bind(this)
+      });
       // c.builder = function(node) {
       //   return node;
       // }
@@ -210,10 +229,14 @@ export class Editor extends Component {
     });
 
     var dataTypeArray = Array.from(this.dataTypes);
-
+    let props = {
+      portTypes: this.state.portTypes,
+      saveProtocol: this.saveCurrentProtocol.bind(this),
+      updateProtocolComponent: this.updateProtocolComponent.bind(this)
+    };
     components = components.concat([
-      new InputComponent(this.state.portTypes, this.saveCurrentProtocol.bind(this)),
-      new OutputComponent(this.state.portTypes, this.saveCurrentProtocol.bind(this))
+      new InputComponent(props),
+      new OutputComponent(props)
     ]);
 
     var primitiveComponents = this.state.primitiveComponents;
@@ -449,10 +472,13 @@ export class Editor extends Component {
       return p;
     });
 
+    let protocolComponents = {};
+    Object.keys(currentProtocols).map((name) => { protocolComponents[name] = this.initializeProtocolComponent(name) });
     let newState = {
       protocols: currentProtocols,
-      primitiveComponents: Object.keys(currentProtocols).map((name) => { return this.initializeProtocolComponent(name); })
-    }
+      protocolComponents: protocolComponents
+    };
+
 
     this.setState(newState, () => {
       // if we have a previous opened protocol in localstorage
@@ -476,7 +502,13 @@ export class Editor extends Component {
   initializeProtocolComponent(protocol) {
 
     // var primitiveComponents = this.state.primitiveComponents;
-    let protocolComponent = new PAMLProtocolComponent(this.state.portTypes, this.state.protocols[protocol]);
+    let protocolComponent = new PAMLProtocolComponent(
+      {
+        portTypes: this.state.portTypes,
+        protocol: this.state.protocols[protocol],
+        saveProtocol: this.saveProtocol,
+        updateProtocolComponent: this.updateProtocolComponent.bind(this)
+      });
     // primitiveComponents[protocolComponent.name] = protocolComponent;
 
     // if (this.editor.components.has(protocolComponent.name)) {
@@ -493,6 +525,42 @@ export class Editor extends Component {
     // this.editor.trigger("process");
     return protocolComponent;
 
+  }
+
+  async updateProtocolComponent(node) {
+    let protocol = this.state.nodeToProtocol[node.id];
+    let protocolComponents = this.state.protocolComponents;
+    let component = protocolComponents[protocol];
+    //await component.update();
+    if (this.editor.components.has(component.name)) {
+      this.editor.components.delete(component.name);
+      this.editor.components.set(component.name, component);
+      //this.editor.trigger("componentregister", component);
+
+      // this.forceUpdate();
+      // this.editor.plugins.delete("dock");
+      // this.editor.use(DockPlugin, {
+      //   container: this.palleteRef.current,
+      //   itemClass: 'item', // default: dock-item
+      //   plugins: [ReactRenderPlugin], // render plugins
+      // });
+      // this.palleteRef = React.createRef();
+      //this.palleteRef.current = React.createElement('div', {className: "editor-pallete"}, );
+      let protocolComponent = Array.from(this.palleteRef.current.children).find((elt) => (elt.textContent.startsWith(protocol)));
+      protocolComponent.remove();
+      this.editor.events.componentregister = [];
+      let options = {
+        container: this.palleteRef.current,
+        itemClass: 'item', // default: dock-item
+        plugins: [ReactRenderPlugin], // render plugins
+      };
+      DockPlugin.install(this.editor, options || {});
+      this.editor.trigger("componentregister", component);
+      // this.forceUpdate();
+      // this.setState({ toggle: !this.state.toggle });
+    } else {
+      this.editor.register(component);
+    }
   }
 
   rebuildPrimitives(callback) {

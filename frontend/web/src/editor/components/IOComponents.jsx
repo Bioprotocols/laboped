@@ -1,9 +1,11 @@
 
 import React from "react";
-import { Dropdown } from "react-bootstrap";
+import { Dropdown, Button, Modal } from "react-bootstrap";
 import Rete from "rete";
 import { MyNode } from "./Node";
-import { numSocket, floatSocket } from "./Primitive"
+import { numSocket } from "./Primitive";
+import { getTypeConfigurator } from "./IOConfiguration";
+import { PAMLComponent } from ".";
 
 /*
 *
@@ -11,20 +13,17 @@ import { numSocket, floatSocket } from "./Primitive"
 *
 */
 
-export class IOComponent extends Rete.Component {
+export class IOComponent extends PAMLComponent {
     constructor(props) {
-        super(props.type);
+        super({ name: props.type, ...props });
         this.type = props.type;
         this.nodeType = props.nodeType;
         this.module = {
             nodeType: props.nodeType,
             socket: numSocket
         }
-        this.data.component = MyNode;
-        this.portTypes = props.portTypes;
         this.defaultType = Object.keys(this.portTypes)[0];
         this.shortTypeNameOptions = Object.values(this.portTypes).map(p => p.typeName);
-        this.saveProtocolCallback = props.saveProtocolCallback;
     }
 
 
@@ -58,7 +57,6 @@ export class IOComponent extends Rete.Component {
         let nameCtrlName = this.getName(node);
         let nameCtrl = new TextControl(this.editor, "name", nameCtrlName);
 
-
         let typeSelectorCtrl = new ListControl(this.editor, "type", shortTypeName, this.shortTypeNameOptions, this.handleTypeChange.bind(this));
 
         node
@@ -70,8 +68,8 @@ export class IOComponent extends Rete.Component {
 }
 
 export class InputComponent extends IOComponent {
-    constructor(portTypes, saveProtocolCallback) {
-        super({ type: "Input", nodeType: "input", portTypes: portTypes, saveProtocolCallback: saveProtocolCallback });
+    constructor(props) {
+        super({ type: "Input", nodeType: "input", ...props });
     }
 
     async handleTypeChange(props) {
@@ -89,8 +87,8 @@ export class InputComponent extends IOComponent {
         node.removeOutput(node.outputs.get("input"));
         node.addOutput(this.getIO(node, socket));
         await node.update();
-
-        this.saveProtocolCallback();
+        this.updateProtocolComponent(node);
+        this.saveProtocol();
     }
 
     getIO(node, socket) {
@@ -128,8 +126,8 @@ export class InputComponent extends IOComponent {
 }
 
 export class OutputComponent extends IOComponent {
-    constructor(portTypes) {
-        super({ type: "Output", nodeType: "output", portTypes: portTypes });
+    constructor(props) {
+        super({ type: "Output", nodeType: "output", ...props });
     }
 
     async handleTypeChange(props) {
@@ -143,7 +141,8 @@ export class OutputComponent extends IOComponent {
         node.removeInput(node.inputs.get("output"));
         node.addInput(this.getIO(node, socket));
         await node.update();
-        this.saveProtocolCallback();
+        this.updateProtocolComponent(this);
+        this.saveProtocol();
     }
 
     getIO(node, socket) {
@@ -184,22 +183,22 @@ export class OutputComponent extends IOComponent {
     }
 }
 
-export class OutputFloatComponent extends Rete.Component {
-    constructor() {
-        super("Float Output");
-        this.module = {
-            nodeType: "output",
-            socket: floatSocket
-        };
-    }
+// export class OutputFloatComponent extends Rete.Component {
+//     constructor() {
+//         super("Float Output");
+//         this.module = {
+//             nodeType: "output",
+//             socket: floatSocket
+//         };
+//     }
 
-    builder(node) {
-        var inp = new Rete.Input("float", "Float", floatSocket);
-        var ctrl = new TextControl(this.editor, "name");
+//     builder(node) {
+//         var inp = new Rete.Input("float", "Float", floatSocket);
+//         var ctrl = new TextControl(this.editor, "name");
 
-        return node.addControl(ctrl).addInput(inp);
-    }
-}
+//         return node.addControl(ctrl).addInput(inp);
+//     }
+// }
 
 
 /*
@@ -380,15 +379,15 @@ export class PAMLInputPin extends Rete.Input {
 
 export class TimepointIn extends Rete.Input {
     constructor(key, title, socket) {
-      super(key, title, socket, true  /* multcons */);
+        super(key, title, socket, true  /* multcons */);
     }
-  }
+}
 
-  export class TimepointOut extends Rete.Output {
+export class TimepointOut extends Rete.Output {
     constructor(key, title, socket) {
-      super(key, title, socket, true  /* multcons */);
+        super(key, title, socket, true  /* multcons */);
     }
-  }
+}
 
 
 /*
@@ -465,3 +464,77 @@ class ReactListControl extends React.Component {
     }
 }
 
+export class PAMLInputControlComponent extends React.Component {
+    state = { show: false };
+
+    componentDidMount() {
+        this.props.onMount();
+        // this.setState({
+        //   value: this.props.value
+        // });
+    }
+    handleClick = () => {
+        console.log("Clicked! " + this.props.input.name);
+        this.setState({ show: true })
+    }
+    handleClose = () => {
+        console.log("Clicked! " + this.props.input.name);
+        // console.log("Clicked! " + this.props.io.node.name + " " + this.props.io.name);
+        this.setState({ show: false })
+    }
+
+    handleSave = (props) => {
+        //this.socket.data = { ...this.socket.data, ...props };
+        this.props.onChange(props)
+        // this.setState({ data: props });
+        try {
+            this.props.input.node.saveProtocol();
+        } catch (error) {
+            console.log("Error Saving Protocol in PAMLInputControl.doUpdate()");
+        }
+        //Object.entries(props).forEach((k, v) => this.props.io.control.putData(k, v));
+
+        //this.props.io.control.putData(this.props.io.name, props);
+        //this.props.io.control.setData(props);
+        // this.socket.change(props);
+    }
+
+    getModal = () => {
+
+        let title = this.props.input ? (<Modal.Title>{this.props.input.node.name}.{this.props.input.name}</Modal.Title>) : (<Modal.Title></Modal.Title>);
+        let type = this.props.input ? this.props.input.type : "";
+        let data = (this.props.input && this.props.input.control && this.props.input.name in this.props.input.control.getNode().data) ? this.props.input.control.getData(this.props.input.name) : {}
+        let configurator = this.props.input ? getTypeConfigurator({ pamlType: this.props.input.type, handleSave: this.handleSave, ...data }) : null;
+        return (
+            <Modal show={this.state.show} onHide={this.handleClose}>
+                <Modal.Header closeButton>
+                    {title}
+                </Modal.Header>
+                <Modal.Body>
+                    Type: {type}
+                    {configurator}
+                </Modal.Body>
+                <Modal.Footer>
+                </Modal.Footer>
+            </Modal>
+        )
+    }
+
+    render() {
+        // const { socket, type } = this.props;
+        let name = this.props.input ? this.props.input.name : "";
+        let button = () => {
+            if ((this.props.input.connections.length > 0)) {
+                return (<Button disabled onClick={this.handleClick}>{name}</Button>)
+            } else {
+                return (<Button onClick={this.handleClick}>{name}</Button>)
+            }
+        }
+        return (
+            <div>
+                {button()}
+                {this.getModal()}
+            </div>
+        )
+    }
+}

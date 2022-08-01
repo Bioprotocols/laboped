@@ -1,14 +1,13 @@
 import Rete from "rete";
-import { MyNode } from "./Node";
+import { TextControl } from "./IOComponents";
+import { PAMLComponent } from ".";
 
-export class ModuleComponent extends Rete.Component {
-    constructor(name) {
-        super(name);
-        this.data.component = MyNode;
+export class ModuleComponent extends PAMLComponent {
+    constructor(props) {
+        super(props);
         this.module = {
             nodeType: "module"
         };
-
     }
 
     builder(node) {
@@ -26,12 +25,9 @@ export class ModuleComponent extends Rete.Component {
 }
 
 export class PAMLProtocolComponent extends ModuleComponent {
-    constructor(portTypes, protocol) {
-        super(protocol.name)
-        this.protocol = protocol;
-        this.portTypes = portTypes;
-        this.data.component = MyNode;
-
+    constructor(props) {
+        super({ name: props.protocol.name, ...props })
+        this.protocol = props.protocol;
     }
 
     getFullTypeName(node) {
@@ -56,6 +52,7 @@ export class PAMLProtocolComponent extends ModuleComponent {
         }
 
         );
+
         inputs.forEach(i => node.addInput(i))
 
         var outputs = Object.values(this.protocol.graph.nodes).filter(
