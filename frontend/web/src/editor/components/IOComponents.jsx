@@ -141,8 +141,9 @@ export class OutputComponent extends IOComponent {
         node.removeInput(node.inputs.get("output"));
         node.addInput(this.getIO(node, socket));
         await node.update();
-        this.updateProtocolComponent(this);
+
         this.saveProtocol();
+        this.updateProtocolComponent(this);
     }
 
     getIO(node, socket) {
@@ -506,7 +507,7 @@ export class PAMLInputControlComponent extends React.Component {
         let data = (this.props.input && this.props.input.control && this.props.input.name in this.props.input.control.getNode().data) ? this.props.input.control.getData(this.props.input.name) : {}
         let configurator = this.props.input ? getTypeConfigurator({ pamlType: this.props.input.type, handleSave: this.handleSave, ...data }) : null;
         return (
-            <Modal show={this.state.show} onHide={this.handleClose}>
+            <Modal size="lg" show={this.state.show} onHide={this.handleClose}>
                 <Modal.Header closeButton>
                     {title}
                 </Modal.Header>

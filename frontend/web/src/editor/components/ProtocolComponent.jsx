@@ -66,7 +66,9 @@ export class PAMLProtocolComponent extends ModuleComponent {
         }
         );
         outputs.forEach(i => {
-            node.addOutput(i)
+            if (!(node.outputs.has(i.key))) {
+                node.addOutput(i)
+            }
 
         })
 

@@ -1,5 +1,7 @@
 import React from "react";
-import { Modal, Button, Form, Row, Col } from "react-bootstrap";
+import { Button, Form, Row, Col } from "react-bootstrap";
+import Spreadsheet, { createEmptyMatrix } from "react-spreadsheet";
+
 
 class TypeConfigurator extends React.Component {
     constructor(props) {
@@ -14,21 +16,64 @@ class TypeConfigurator extends React.Component {
 
     render() {
         return (
-            <Button>Hi</Button>
-            // <div></div>
+            // <Button></Button>
+            <div></div>
         );
+    }
+}
+
+class SampleDataConfigurator extends TypeConfigurator {
+    constructor(props) {
+        super(props)
+        this.state = {
+            data: [
+                [{ value: "Source Plate Name" },
+                { value: "Source plate type" },
+                { value: "Source Well" },
+                { value: "Destination Plate Name" },
+                { value: "Destination Well" },
+                { value: "Transfer Volume" },
+                { value: "Part name" }
+                ],
+                [],
+                []
+            ]
+        }
+
+    }
+
+    componentDidMount() {
+        this.setState({ data: this.props.data });
+    }
+
+    setData = (data) => {
+        this.setState({ data: data });
+        this.handleSave({ data: data });
+    }
+
+
+
+    render() {
+        const divStyle = {
+            overflowY: 'scroll',
+            overflowX: 'scroll',
+            border: '1px solid',
+            width: '100%',
+            float: 'left',
+            height: '500px',
+            position: 'relative'
+        };
+        return (
+            <div style={divStyle}>
+                <Spreadsheet data={this.state.data} onChange={this.setData} />
+            </div>
+        )
     }
 }
 
 class MeasureConfigurator extends TypeConfigurator {
     constructor(props) {
         super(props)
-        // this.state = {
-        //   unit: null,
-        //   unitType: null,
-        //   value: null
-        // }
-        this.handleSave = props.handleSave;
         this.measureGroup = {
             "volume": ["liters", "milliliters", "microliters"],
             "mass": ["kilograms", "grams", "milligrams", "micrograms"],
@@ -153,7 +198,7 @@ let typeConfigurators = {
     "http://bioprotocols.org/paml#SampleCollection": TypeConfigurator,
     "http://sbols.org/v3#Component": TypeConfigurator,
     "http://bioprotocols.org/paml#SampleArray": TypeConfigurator,
-    "http://bioprotocols.org/paml#SampleData": TypeConfigurator,
+    "http://bioprotocols.org/paml#SampleData": SampleDataConfigurator,
     "http://www.w3.org/2001/XMLSchema#anyURI": TypeConfigurator,
     "http://www.w3.org/2001/XMLSchema#integer": TypeConfigurator,
     "http://www.w3.org/2001/XMLSchema#double": TypeConfigurator,
