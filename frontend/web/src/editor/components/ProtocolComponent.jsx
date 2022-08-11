@@ -1,6 +1,8 @@
 import Rete from "rete";
 import { TextControl } from "./IOComponents";
 import { PAMLComponent } from ".";
+import { TimepointIn, TimepointOut } from "./IOComponents";
+import { timeSocket } from "./Primitive";
 
 export class ModuleComponent extends PAMLComponent {
     constructor(props) {
@@ -40,6 +42,10 @@ export class PAMLProtocolComponent extends ModuleComponent {
     }
 
     async builder(node) {
+        var start = new TimepointIn("Start", "Start", timeSocket);
+        var end = new TimepointOut("End", "End", timeSocket);
+        node.addInput(start);
+        node.addOutput(end);
 
         var inputs = Object.values(this.protocol.graph.nodes).filter(
             n => n.name === "Input"

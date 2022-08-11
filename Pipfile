@@ -19,6 +19,8 @@ python-decouple = "*"
 # - click>=8.0.0 (from black==22.1.0)
 black = "<22"
 paml = {editable = true, path = "./../paml"}
+sila2 = "*"
+opentrons = "*"
 
 [requires]
 python_version = "3.9"

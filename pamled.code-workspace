@@ -11,11 +11,39 @@
         "python.pipenvPath": "pipenv",
         "python.terminal.activateEnvironment": false,
         "python.linting.pylintEnabled": true,
-        "files.trimTrailingWhitespace": true
+        "files.trimTrailingWhitespace": true,
     },
     "launch": {
         "version": "0.2.0",
         "configurations": [
+            {
+                "name": "Python: Current File",
+                "type": "python",
+                "request": "launch",
+                "program": "${file}",
+                "console": "integratedTerminal",
+                "justMyCode": true
+            },
+            {
+                "name": "Python: FastAPI",
+                "type": "python",
+                "request": "launch",
+                "module": "uvicorn",
+                "args": [
+                    "main:app"
+                ],
+                "jinja": true
+            },
+            {
+                "name": "Python: Debug Unit Tests",
+                "type": "python",
+                "request": "launch",
+                "purpose": [
+                    "debug-test"
+                ],
+                "console": "integratedTerminal",
+                "justMyCode": false
+            },
             {
                 "name": "Django",
                 "type": "python",

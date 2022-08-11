@@ -1,8 +1,17 @@
 import React from "react";
+import { Modal, Form, FloatingLabel } from "react-bootstrap";
 import { Node, Socket, Control } from "rete-react-render-plugin";
+import { FileEarmark, FileEarmarkText, InfoCircle } from "react-bootstrap-icons";
 
 export class MyNode extends Node {
-  state = {toggle: true};
+  state = { toggle: true };
+
+  showNotes = () => {
+    this.setState({ showNotes: true })
+  }
+  handleClose = () => {
+    this.setState({ showNotes: false }, this.props.node.saveProtocol());
+  }
 
   render() {
     const { node, bindSocket, bindControl } = this.props;
@@ -10,6 +19,24 @@ export class MyNode extends Node {
 
     var start = inputs.find(element => element.key === "Start");
     var end = outputs.find(element => element.key === "End");
+
+    let notes = (<Modal size="lg" show={this.state.showNotes} onHide={this.handleClose}>
+      <Modal.Header closeButton>
+        {node.name} "Description"
+      </Modal.Header>
+      <Modal.Body>
+        <FloatingLabel controlId="floatingTextarea2" label="Description">
+          <Form.Control
+            as="textarea"
+            placeholder="Leave a description here"
+            style={{ height: '100px' }}
+            onChange={(e) => (node.data["description"] = e.target.value)}
+          >
+            {node.data["description"]}
+          </Form.Control>
+        </FloatingLabel>
+      </Modal.Body>
+    </Modal>);
 
     var startElt;
     if (start) {
@@ -51,7 +78,10 @@ export class MyNode extends Node {
         name={this.props.node.name}
         ismodule={`${"isModule" in node.data && node.data["isModule"]}`}
       >
+        <FileEarmarkText className="node-info" onClick={this.showNotes}></FileEarmarkText>
+        {notes}
         <div className="title">{node.name}</div>
+
         {/* Start */}
         {startElt}
         {/* End */}

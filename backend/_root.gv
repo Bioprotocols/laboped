@@ -1,0 +1,17 @@
+digraph _root {
+	compound=true
+	subgraph cluster_OT2Transfer {
+		graph [label=OT2Transfer shape=box]
+		OT2Transfer_InitialNode1 -> OT2Transfer_CallBehaviorAction1:"node" [color=blue]
+		OT2Transfer_ActivityParameterNode3 -> OT2Transfer_CallBehaviorAction1:InputPin2 [color=black]
+		OT2Transfer_ActivityParameterNode2 -> OT2Transfer_CallBehaviorAction1:InputPin1 [color=black]
+		OT2Transfer_CallBehaviorAction1 [label=<<table border="0" cellspacing="0">
+  <tr><td><table border="0" cellspacing="-2"><tr><td> </td><td port="InputPin1" border="1">source</td><td> </td><td port="InputPin2" border="1">destination</td><td> </td></tr></table></td></tr>
+  <tr><td port="node" bgcolor="white" border="1">TransferByMap</td></tr>
+</table>> fillcolor=white shape=none style=rounded]
+		OT2Transfer_InitialNode1 [label="" fillcolor=black shape=circle style=filled]
+		OT2Transfer_ActivityParameterNode1 [label="transfer-device" fillcolor=black peripheries=2 shape=rectangle]
+		OT2Transfer_ActivityParameterNode2 [label=source fillcolor=black peripheries=2 shape=rectangle]
+		OT2Transfer_ActivityParameterNode3 [label=destination fillcolor=black peripheries=2 shape=rectangle]
+	}
+}

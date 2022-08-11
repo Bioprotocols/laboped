@@ -3,7 +3,7 @@ import React from "react";
 import { Dropdown, Button, Modal } from "react-bootstrap";
 import Rete from "rete";
 import { MyNode } from "./Node";
-import { numSocket } from "./Primitive";
+
 import { getTypeConfigurator } from "./IOConfiguration";
 import { PAMLComponent } from ".";
 
@@ -20,7 +20,7 @@ export class IOComponent extends PAMLComponent {
         this.nodeType = props.nodeType;
         this.module = {
             nodeType: props.nodeType,
-            socket: numSocket
+            socket: Object.values(props.portTypes)[0]
         }
         this.defaultType = Object.keys(this.portTypes)[0];
         this.shortTypeNameOptions = Object.values(this.portTypes).map(p => p.typeName);
@@ -154,52 +154,12 @@ export class OutputComponent extends IOComponent {
         return node.addInput(io);
     }
 
-    // constructor(portTypes) {
-    //   super("Output");
-    //   this.module = {
-    //     nodeType: "output",
-    //     socket: numSocket
-    //   };
-    //   this.portTypes = portTypes;
-    //   this.data.component = MyNode;
-    // }
-
-    // builder(node) {
-    //   var typeValue = "type" in node.data ? node.data["type"] : Object.keys(this.portTypes)[0];
-    //   typeValue = typeValue in this.portTypes ? typeValue : Object.keys(this.portTypes).find(key => this.portTypes[key].typeName === typeValue);
-    //   var inp = new Rete.Input("input", "Value", this.portTypes[typeValue].socket);
-
-    //   var ctrlName = Object.keys(node.data).find(k => k === "name")
-    //   var value = ctrlName ? node.data[ctrlName] : "<New Output>";
-    //   var ctrl = new TextControl(this.editor, "name", value);
-
-    //   var typectrl = new ListControl(this.editor, "type", this.portTypes[typeValue].typeName, Object.values(this.portTypes).map(p => p.typeName), node.handleTypeChange);
-
-    //   return node.addControl(ctrl).addInput(inp).addControl(typectrl);
-    // }
 
     async worker(node, inputs, outputs) {
         if (!outputs['num'])
             outputs['num'] = node.data.number; // here you can modify received outputs of Input node
     }
 }
-
-// export class OutputFloatComponent extends Rete.Component {
-//     constructor() {
-//         super("Float Output");
-//         this.module = {
-//             nodeType: "output",
-//             socket: floatSocket
-//         };
-//     }
-
-//     builder(node) {
-//         var inp = new Rete.Input("float", "Float", floatSocket);
-//         var ctrl = new TextControl(this.editor, "name");
-
-//         return node.addControl(ctrl).addInput(inp);
-//     }
-// }
 
 
 /*
@@ -250,7 +210,13 @@ export class PAMLInputControl extends Rete.Control {
 
     setValue(val) {
         if (this.scope.input) {
-            this.putData(this.scope.input.key, val);
+            let priorData = this.getData(this.scope.input.key);
+            if (priorData) {
+                let newData = { ...priorData, ...val }
+                this.putData(this.scope.input.key, newData);
+            } else {
+                this.putData(this.scope.input.key, val);
+            }
         }
         // this.scope.value = val;
         // this.props.value = val;

@@ -41,6 +41,9 @@
   background: #EFEFEF;
 }
 
+.editor .node .node-info {
+  float: right;
+}
 
 .editor .node[name=Parameter] {
   /* background: #A9A9A9; */

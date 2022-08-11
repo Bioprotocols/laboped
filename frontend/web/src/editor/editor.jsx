@@ -9,12 +9,12 @@ import { MyNode } from "./components/Node";
 import { loadComponentsFromAPI, PAMLPrimitiveComponent } from "./components/Primitive";
 import { PAMLProtocolComponent } from "./components/ProtocolComponent";
 import { InputComponent, OutputComponent } from "./components/IOComponents";
-
+import { Palette } from "./palette";
 import Menu from "./menu";
 
 import React from "react";
 import { Component } from "react";
-import { Row, Col, Container } from "react-bootstrap";
+import { Row, Col, Container, Accordion } from "react-bootstrap";
 
 import { axios, axios_csrf_options, endpoint } from "../API";
 import "./editor.css"
@@ -39,7 +39,6 @@ function downloadStringAsFile(data, filename) {
 export class Editor extends Component {
   constructor(props) {
     super(props);
-    this.palleteRef = React.createRef();
     this.workspaceRef = React.createRef();
     this.menuRef = React.createRef();
     this.saveSpaceRef = React.createRef();
@@ -55,6 +54,7 @@ export class Editor extends Component {
       specializations: [],
       primitiveComponents: {},
       protocolComponents: {},
+      libraries: new Set(),
       portTypes: {},
       isRebuildingPrimitives: true,
       download: null,
@@ -65,6 +65,7 @@ export class Editor extends Component {
     }
 
     this.dataTypes = new Set();
+
 
     this.processHandler = this.processHandler.bind(this);
     this.displayProtocol = this.displayProtocol.bind(this);
@@ -89,11 +90,6 @@ export class Editor extends Component {
     //var editor = new Rete.NodeEditor("demo@0.1.0", document.querySelector('.editor'));
     this.editor = new Rete.NodeEditor("demo@0.1.0", this.workspaceRef.current);
     this.editor.use(ConnectionPlugin);
-    this.editor.use(DockPlugin, {
-      container: this.palleteRef.current,
-      itemClass: 'item', // default: dock-item
-      plugins: [ReactRenderPlugin], // render plugins
-    });
     this.editor.use(ReactRenderPlugin
       , {
         component: MyNode
@@ -169,6 +165,29 @@ export class Editor extends Component {
       "http://sbols.org/v3#Identified": "identified"
 
     }
+    let compatibleWithMap = {
+      "http://bioprotocols.org/uml#ValueSpecification":
+        [
+          "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure",
+          "http://www.w3.org/2001/XMLSchema#integer",
+          "http://www.w3.org/2001/XMLSchema#float",
+          "http://www.w3.org/2001/XMLSchema#double",
+          "http://bioprotocols.org/paml#ContainerSpec"
+        ],
+      "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure": ["http://bioprotocols.org/uml#ValueSpecification"],
+      "http://bioprotocols.org/paml#SampleCollection": ["http://bioprotocols.org/paml#SampleArray"],
+      "http://sbols.org/v3#Component": [],
+      "http://bioprotocols.org/paml#SampleData": [],
+      "http://bioprotocols.org/paml#SampleArray": ["http://bioprotocols.org/paml#SampleCollection"],
+      "http://www.w3.org/2001/XMLSchema#anyURI": [],
+      "http://bioprotocols.org/paml#SampleMask": [],
+      "http://www.w3.org/2001/XMLSchema#integer": ["http://bioprotocols.org/uml#ValueSpecification"],
+      "http://www.w3.org/2001/XMLSchema#float": ["http://bioprotocols.org/uml#ValueSpecification"],
+      "http://www.w3.org/2001/XMLSchema#double": ["http://bioprotocols.org/uml#ValueSpecification"],
+      "http://bioprotocols.org/paml#ContainerSpec": ["http://bioprotocols.org/uml#ValueSpecification", "http://sbols.org/v3#Identified"],
+      "http://sbols.org/v3#Identified": ["http://bioprotocols.org/paml#ContainerSpec"]
+
+    };
 
     // Return one socket unique to each type
     let portTypes = {};
@@ -179,6 +198,12 @@ export class Editor extends Component {
         socket: new Rete.Socket(typeName)
       };
     });
+    Object.keys(portTypes).map((key, index) => {
+      compatibleWithMap[key].map((elt, i) => {
+        portTypes[key].socket.combineWith(portTypes[elt].socket);
+      })
+    });
+
     this.setState({ portTypes: portTypes }, () => callback());
   }
 
@@ -213,8 +238,12 @@ export class Editor extends Component {
   // }
 
 
+
   async initializeComponents(callback) {
     let components = await loadComponentsFromAPI(); //[new AddComponent()];
+    let libraries = this.state.libraries;
+    components.map((c) => { libraries.add(c.library) });
+
     components = components.map((primitive) => {
       let c = new PAMLPrimitiveComponent({
         portTypes: this.state.portTypes,
@@ -248,7 +277,7 @@ export class Editor extends Component {
       }
       return c;
     });
-    this.setState({ primitiveComponents: primitiveComponents }, callback);
+    this.setState({ primitiveComponents: primitiveComponents, libraries: libraries }, callback);
   }
 
   initialGraph() {
@@ -535,17 +564,6 @@ export class Editor extends Component {
     if (this.editor.components.has(component.name)) {
       this.editor.components.delete(component.name);
       this.editor.components.set(component.name, component);
-      //this.editor.trigger("componentregister", component);
-
-      // this.forceUpdate();
-      // this.editor.plugins.delete("dock");
-      // this.editor.use(DockPlugin, {
-      //   container: this.palleteRef.current,
-      //   itemClass: 'item', // default: dock-item
-      //   plugins: [ReactRenderPlugin], // render plugins
-      // });
-      // this.palleteRef = React.createRef();
-      //this.palleteRef.current = React.createElement('div', {className: "editor-pallete"}, );
       let protocolComponent = Array.from(this.palleteRef.current.children).find((elt) => (elt.textContent.startsWith(protocol)));
       protocolComponent.remove();
       this.editor.events.componentregister = [];
@@ -896,6 +914,17 @@ export class Editor extends Component {
       <div className="editor-workspace" ref={this.workspaceRef} />
     )
 
+    let palette = (
+      Array.from(this.state.libraries).length > 0 &&
+      Object.keys(this.state.primitiveComponents).length > 0
+    ) ?
+      (<Palette
+        components={this.state.primitiveComponents}
+        libraries={this.state.libraries}
+        protocolComponents={this.state.protocolComponents}
+        editor={this.editor} />) :
+      null;
+
     return (
       <Container className="editor-container" fluid={true}>
         <Menu
@@ -904,7 +933,7 @@ export class Editor extends Component {
         />
         <Row className="editor" >
           <Col xs={2} sm={2} className="editor-pallete-column">
-            <div className="editor-pallete" ref={this.palleteRef} />
+            {palette}
           </Col>
 
           <Col xs={10} sm={10} className="editor-main-column">

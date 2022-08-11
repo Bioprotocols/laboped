@@ -9,9 +9,8 @@ class TypeConfigurator extends React.Component {
         this.pamlType = props.pamlType;
         this.handleSave = props.handleSave;
         this.state = {
-            unitType: null,
-            unit: null
-        }
+        };
+        this.instructions = "";
     }
 
     render() {
@@ -22,39 +21,15 @@ class TypeConfigurator extends React.Component {
     }
 }
 
-class SampleDataConfigurator extends TypeConfigurator {
+
+class TabularConfigurator extends TypeConfigurator {
     constructor(props) {
         super(props)
         this.state = {
-            data: [
-                [{ value: "Source Plate Name" },
-                { value: "Source plate type" },
-                { value: "Source Well" },
-                { value: "Destination Plate Name" },
-                { value: "Destination Well" },
-                { value: "Transfer Volume" },
-                { value: "Part name" }
-                ],
-                [],
-                []
-            ]
+            data: this.emptyArray()
         }
 
-    }
-
-    componentDidMount() {
-        this.setState({ data: this.props.data });
-    }
-
-    setData = (data) => {
-        this.setState({ data: data });
-        this.handleSave({ data: data });
-    }
-
-
-
-    render() {
-        const divStyle = {
+        this.style = {
             overflowY: 'scroll',
             overflowX: 'scroll',
             border: '1px solid',
@@ -62,12 +37,191 @@ class SampleDataConfigurator extends TypeConfigurator {
             float: 'left',
             height: '500px',
             position: 'relative'
-        };
+        }
+    };
+
+    emptyArray = () => ([])
+
+    componentDidMount() {
+        // If this.props.data is undefined, then use an empty table
+        if (!this.props.data || this.props.data.length === 0) {
+            this.setState({ data: this.emptyArray() })
+        } else {
+            this.setState({ data: this.props.data });
+        }
+    }
+
+    setData = (data) => {
+        this.setState({ data: data });
+        this.handleSave({ data: data });
+    }
+
+    render() {
+
         return (
-            <div style={divStyle}>
+            <div style={this.style}>
+                <p>{this.instructions}</p>
                 <Spreadsheet data={this.state.data} onChange={this.setData} />
             </div>
         )
+    }
+}
+
+class SampleDataConfigurator extends TabularConfigurator {
+    constructor(props) {
+        super(props)
+        // this.state = {
+        //     data: [
+        //         [{ value: "Source Plate Name" },
+        //         { value: "Source plate type" },
+        //         { value: "Source Well" },
+        //         { value: "Destination Plate Name" },
+        //         { value: "Destination Well" },
+        //         { value: "Transfer Volume" },
+        //         { value: "Part name" }
+        //         ],
+        //         [],
+        //         []]
+        // }
+        this.instructions = "SampleData";
+    }
+
+    emptyArray = () => {
+        return [
+            [
+                { value: "Source" },
+                { value: "Destination" },
+                { value: "Volume" }
+            ].concat([...new Array(7)].map(() => ({ value: "" }))),
+            ...[...new Array(500)].map(() => ([]))
+            //
+        ];
+    }
+}
+
+class SampleCollectionConfigurator extends TabularConfigurator {
+    constructor(props) {
+        super(props)
+        this.instructions = "Column A is an aliquot id, and Columns B, C, ... are the quantity of the material in Row 1";
+    }
+
+    emptyArray = () => {
+        return [
+            [{ value: "Aliquot" }].concat([...new Array(9)].map(() => ({ value: "" }))),
+            ...[...new Array(500)].map(() => ([]))
+            //
+        ];
+    }
+}
+
+
+class SampleArrayConfigurator extends SampleCollectionConfigurator {
+}
+
+class ContainerSpecConfigurator extends TypeConfigurator {
+    constructor(props) {
+        super(props)
+        this.containerGroup = {
+            "vessel": ["tube", "flask", "dish"],
+            "microplate": [6, 12, 24, 48, 96, 384, 1536],
+
+        }
+    }
+
+    componentDidMount() {
+        this.setState({ container: this.props.container, containerType: this.props.containerType });
+    }
+
+    // componentWillUnmount() {
+    //     this.handleSubmit()
+    // }
+
+    selectConatinerType = (e) => {
+        this.setState({ containerType: e.target.id }, () => this.handleSave(this.state));
+    }
+
+    selectContainer = (e) => {
+        this.setState({ container: e.target.id }, () => this.handleSave(this.state));
+    }
+
+    // handleSubmit = (e) => {
+    //     if (e) {
+    //         let container = Object.values(e.target).find((value) => (value.checked && value.name === "container"));
+    //         let containerType = Object.values(e.target).find((value) => (value.checked && value.name === "containerType"));
+    //         let containerTypeId = containerType ? containerType.id : null;
+    //         let containerId = container ? container.id : null;
+    //         this.handleSave({ container: containerId, containerType: containerTypeId });
+    //     }
+    //     return e;
+    // }
+
+    // changeRadio = (e) => {
+    //   setChecked(() => {
+    //     let sibling_id = e.target.name;
+    //     let siblings = (sibling_id === "unitType") ? Object.keys(this.measureGroup) : this.measureGroup[this.props.unitType]
+    //     return siblings.map((s) => {
+    //       apple: false,
+    //       orange: false,
+    //       [e.target.value]: true
+    //     };
+    //   });
+    // };
+
+
+    render() {
+
+
+        let containerTypes = (<Form.Group className="mb-3" controlId="formBasicUnits" >
+            <div>
+                {
+                    Object.keys(this.containerGroup).map((elt) => (
+                        <Form.Check name="containerType" type={'radio'} key={elt} id={elt} label={elt} checked={this.state.containerType === elt}
+                            onChange={this.selectConatinerType}
+                        />
+                    ))
+                }
+            </div>
+        </Form.Group>)
+
+
+
+        let subgroups = (
+            <div>
+                {
+                    Object.entries(this.containerGroup).map(([containerType, containers], i) => {
+                        if (this.state.containerType === containerType) {
+                            return (<Form.Group className="mb-3" controlId={containerType}>
+                                <div>
+                                    {
+                                        containers.map((elt) => (
+                                            <Form.Check name="unit" type={'radio'} id={elt} label={elt}
+                                                checked={this.state.container === elt} onClick={this.selectContainer}
+                                            />
+                                        ))
+                                    }
+                                </div>
+                            </Form.Group>)
+                        }
+                    })
+                }
+            </div>
+        )
+
+        return (
+            // <Form onSubmit={this.handleSubmit}>
+            <div>
+                <Row>
+                    <Col>
+                        {containerTypes}
+                    </Col>
+                    <Col>
+                        {subgroups}
+                    </Col>
+                </Row>
+                {/* <Button variant="primary" type="submit">Save</Button> */}
+            </div>
+            // </Form>
+        );
     }
 }
 
@@ -192,18 +346,131 @@ class MeasureConfigurator extends TypeConfigurator {
     }
 }
 
+class SubtypeConfigurator extends TypeConfigurator {
+    constructor(props) {
+        super(props)
+        this.subTypes = {}
+
+        this.state = {
+            subType: null,
+        }
+    }
+
+    componentDidMount() {
+        this.setState({ subType: this.props.subType });
+    }
+
+    selectSubType = (e) => {
+        this.setState({ subType: e.target.value }, () => this.handleSave(this.state));
+    }
+
+    render() {
+
+        let subTypes = (<Form.Select className="mb-3" controlId="subTypes" value={this.state.subType} onChange={this.selectSubType}>
+            {<option value={undefined}></option>}
+            {Object.keys(this.subTypes).map((elt) => {
+                if (this.state.subType === elt) {
+                    return (<option value={elt} selected>{elt}</option>);
+                } else {
+                    return (<option value={elt}>{elt}</option>);
+                }
+            })}
+
+        </Form.Select>)
+
+        let subgroups = (
+            <div>
+                {
+                    Object.entries(this.subTypes).map(([subTypeStr, configurator], i) => {
+                        if (this.state.subType === subTypeStr) {
+                            return (<Form.Group className="mb-3" controlId={subTypeStr}>
+                                <div>
+                                    {
+                                        React.createElement(configurator, this.props)
+
+                                    }
+                                </div>
+                            </Form.Group>)
+                        }
+                    })
+                }
+            </div>
+        )
+
+        return (
+            <Form onSubmit={this.handleSubmit}>
+                <Row>
+                    {subTypes}
+                </Row>
+                <Row>
+                    {subgroups}
+                </Row>
+                {/* <Button variant="primary" type="submit">Save</Button> */}
+            </Form>
+        );
+    }
+}
+
+class IdentifiedConfigurator extends SubtypeConfigurator {
+    constructor(props) {
+        super(props)
+        this.subTypes = {
+            "Container Specification": ContainerSpecConfigurator,
+            "Component": TypeConfigurator
+        }
+    }
+}
+
+class ValueSpecificationConfigurator extends SubtypeConfigurator {
+    constructor(props) {
+        super(props)
+        this.subTypes = {
+            "Aliquots": AliquotConfigurator
+        }
+    }
+}
+
+class AliquotConfigurator extends TypeConfigurator {
+    constructor(props) {
+        super(props)
+        this.state = {
+            rectangleList: ""
+        }
+    }
+
+    componentDidMount() {
+        this.setState({ rectangleList: this.props.rectangleList });
+    }
+
+    render() {
+        return (
+            <Form.Control
+                type="text"
+                placeholder="List aliquot rectangles as: 'A1:C4,B2:D7,C7:D8'"
+                // style={{ height: '100px' }}
+                value={this.state.rectangleList}
+                onChange={(e) => (
+                    this.setState({ rectangleList: e.target.value }, this.handleSave(this.state))
+                )}>
+
+            </Form.Control>
+        );
+    }
+}
+
+
 let typeConfigurators = {
-    "http://bioprotocols.org/uml#ValueSpecification": TypeConfigurator,
+    "http://bioprotocols.org/uml#ValueSpecification": ValueSpecificationConfigurator,
     "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure": MeasureConfigurator,
-    "http://bioprotocols.org/paml#SampleCollection": TypeConfigurator,
+    "http://bioprotocols.org/paml#SampleCollection": SampleCollectionConfigurator,
     "http://sbols.org/v3#Component": TypeConfigurator,
-    "http://bioprotocols.org/paml#SampleArray": TypeConfigurator,
+    "http://bioprotocols.org/paml#SampleArray": SampleArrayConfigurator,
     "http://bioprotocols.org/paml#SampleData": SampleDataConfigurator,
     "http://www.w3.org/2001/XMLSchema#anyURI": TypeConfigurator,
     "http://www.w3.org/2001/XMLSchema#integer": TypeConfigurator,
     "http://www.w3.org/2001/XMLSchema#double": TypeConfigurator,
-    "http://sbols.org/v3#Identified": TypeConfigurator,
-    "http://bioprotocols.org/paml#ContainerSpec": TypeConfigurator
+    "http://sbols.org/v3#Identified": IdentifiedConfigurator,
+    "http://bioprotocols.org/paml#ContainerSpec": ContainerSpecConfigurator
 };
 
 export function getTypeConfigurator(props) {
