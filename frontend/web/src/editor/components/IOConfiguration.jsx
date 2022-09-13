@@ -52,8 +52,7 @@ class TabularConfigurator extends TypeConfigurator {
     }
 
     setData = (data) => {
-        this.setState({ data: data });
-        this.handleSave({ data: data });
+        this.setState({ data: data }, () => this.handleSave({ data: data, paml_type: "array" }));
     }
 
     render() {
@@ -129,7 +128,7 @@ class ContainerSpecConfigurator extends TypeConfigurator {
     }
 
     componentDidMount() {
-        this.setState({ container: this.props.container, containerType: this.props.containerType });
+        this.setState({ container: this.props.container, containerType: this.props.containerType, paml_type: this.props.paml_type });
     }
 
     // componentWillUnmount() {
@@ -137,11 +136,11 @@ class ContainerSpecConfigurator extends TypeConfigurator {
     // }
 
     selectConatinerType = (e) => {
-        this.setState({ containerType: e.target.id }, () => this.handleSave(this.state));
+        this.setState({ containerType: e.target.id, paml_type: "container" }, () => this.handleSave(this.state));
     }
 
     selectContainer = (e) => {
-        this.setState({ container: e.target.id }, () => this.handleSave(this.state));
+        this.setState({ container: e.target.id, paml_type: "container" }, () => this.handleSave(this.state));
     }
 
     // handleSubmit = (e) => {
@@ -229,14 +228,15 @@ class MeasureConfigurator extends TypeConfigurator {
     constructor(props) {
         super(props)
         this.measureGroup = {
-            "volume": ["liters", "milliliters", "microliters"],
-            "mass": ["kilograms", "grams", "milligrams", "micrograms"],
-            "time": ["hours", "minutes", "seconds"]
+            "volume": ["liter", "milliliter", "microliter"],
+            "mass": ["kilogram", "gram", "milligram", "microgram"],
+            "time": ["hour", "minute", "second"],
+            "temperature": ["degree_Celsius"]
         }
     }
 
     componentDidMount() {
-        this.setState({ unit: this.props.unit, unitType: this.props.unitType, value: this.props.value });
+        this.setState({ unit: this.props.unit, unitType: this.props.unitType, value: this.props.value, paml_type: this.props.paml_type });
     }
 
     componentWillUnmount() {
@@ -261,7 +261,7 @@ class MeasureConfigurator extends TypeConfigurator {
             let unitType = Object.values(e.target).find((value) => (value.checked && value.name === "unitType"));
             let unitTypeId = unitType ? unitType.id : null;
             let unitId = unit ? unit.id : null;
-            this.handleSave({ value: value, unit: unitId, unitType: unitTypeId });
+            this.handleSave({ value: value, unit: unitId, unitType: unitTypeId, paml_type: "measure" });
         }
         return e;
     }
@@ -434,12 +434,13 @@ class AliquotConfigurator extends TypeConfigurator {
     constructor(props) {
         super(props)
         this.state = {
-            rectangleList: ""
+            rectangleList: "",
+            paml_type: "aliquots"
         }
     }
 
     componentDidMount() {
-        this.setState({ rectangleList: this.props.rectangleList });
+        this.setState({ rectangleList: this.props.rectangleList, paml_type: this.props.paml_type });
     }
 
     render() {

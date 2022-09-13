@@ -5,6 +5,7 @@ import DOMPurify from 'dompurify';
 // import { JSONEditor } from 'vanilla-jsoneditor';
 // import { useEffect, useRef } from "react";
 import ReactJson from 'react-json-view'
+import { ProtocolDetailsGroup } from './ProtocolDetails';
 
 
 
@@ -44,7 +45,6 @@ export class ProtocolInspectorGroup extends React.Component {
 
   render() {
     let emptyProtocol = "+";
-    let specializations = this.props.editor.state.specializations;
     let tabs = Object.entries(this.props.protocols).map(
       ([pname, protocol], i) => {
         let className = null
@@ -63,9 +63,6 @@ export class ProtocolInspectorGroup extends React.Component {
             <Dropdown.Divider />
             <Dropdown.Item key={pname + "exec"} onClick={() => this.props.editor.executeProtocol(pname)}>Execute</Dropdown.Item>
           </SplitButton>
-          // <Nav.Item>
-          //   <Nav.Link eventKey={pname}>{pname}</Nav.Link>
-          // </Nav.Item>
         )
       })
     let emptyTab = (
@@ -115,36 +112,7 @@ export class ProtocolInspectorGroup extends React.Component {
             {this.props.workspaceComponent()}
           </Col>
           <Col xs={4} sm={4} className='editor-inspector-column'>
-            <Tabs defaultActiveKey="detail" onSelect={(i) => {
-              console.log("Select tab: " + i)
-              if (i !== "detail") {
-                this.props.editor.getProtocolSpecialization(this.props.currentProtocol, parseInt(i));
-              }
-            }}>
-              {emptyDetail}
-              {Object.entries(specializations).map(
-                ([_, specialization], i) => {
-                  let protocol = this.props.editor.state.protocols[this.props.currentProtocol];
-                  let rendered = (protocol, specialization) => {
-                    if (protocol) {
-                      let spec = protocol.specializations.find((s) => (s && s.id === specialization.id));
-                      if (spec) {
-                        let rendered = spec.data ? ((specialization.name === "DefaultBehaviorSpecialization") ? (<ReactJson key={specialization.id} src={JSON.parse(spec.data)} displayDataTypes="False" name="Steps" indentWidth="2" />) : (<ProtocolInspector key={specialization.id} specialization={spec.data} />)) : null;
-                        return rendered;
-                      } else {
-                        return null;
-                      }
-                    } else {
-                      return null;
-                    }
-                  }
-                  return (<Tab title={specialization.name} key={specialization.id} eventKey={specialization.id}>
-                    {rendered(protocol, specialization)}
-                  </Tab>)
-                })}
-
-              {/* </Tab.Content> */}
-            </Tabs>
+            <ProtocolDetailsGroup editor={this.props.editor} />
           </Col>
         </Row>
 

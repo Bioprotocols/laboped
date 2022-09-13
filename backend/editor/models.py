@@ -30,6 +30,9 @@ class Protocol(AuthorizedModel):
     def to_rdf_string(self, format="nt"):
         return Protocol.to_paml(self.name, self.graph).document.write_string(format)
 
+    def get_subprotocol(self, subprotocol_name):
+        return Protocol.objects.get(name=subprotocol_name)
+
     @classmethod
     def to_paml(cls, name, graph):
         return PAMLMapping.graph_to_protocol(name, graph)

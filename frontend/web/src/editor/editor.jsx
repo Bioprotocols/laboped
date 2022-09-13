@@ -610,13 +610,16 @@ export class Editor extends Component {
       });
   }
 
-  getProtocolSpecialization(protocolName, specializationId) {
+  async getProtocolSpecialization(protocolName, specializationId) {
     if (protocolName) {
       let protocols = this.state.protocols;
       let protocol = protocols[protocolName];
-      let specialization = this.specializeProtocol(protocolName, specializationId);
-      protocol.specializations[specializationId] = specialization;
-      this.setState({ protocols: protocols });
+      let specialization = await this.specializeProtocol(protocolName, specializationId).then((specialization) => {
+        protocol.specializations[specializationId] = specialization;
+        protocols[protocolName] = protocol;
+        this.setState({ protocols: protocols });
+      });
+
       return specialization;
 
     }

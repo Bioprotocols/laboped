@@ -21,7 +21,7 @@ class PrimitiveSerializer(serializers.ModelSerializer):
 class ProtocolSpecializationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProtocolSpecialization
-        fields = ('id', 'data')
+        fields = ('id', 'data', 'specialization_id')
 
 class ProtocolSerializer(serializers.ModelSerializer):
     specializations = ProtocolSpecializationSerializer(many=True, read_only=True, source="get_specializations")
