@@ -162,7 +162,8 @@ export class Editor extends Component {
       "http://www.w3.org/2001/XMLSchema#float": "float",
       "http://www.w3.org/2001/XMLSchema#double": "double",
       "http://bioprotocols.org/paml#ContainerSpec": "containerSpec",
-      "http://sbols.org/v3#Identified": "identified"
+      "http://sbols.org/v3#Identified": "identified",
+      "http://www.w3.org/ns/prov#Agent": "agent"
 
     }
     let compatibleWithMap = {
@@ -185,7 +186,8 @@ export class Editor extends Component {
       "http://www.w3.org/2001/XMLSchema#float": ["http://bioprotocols.org/uml#ValueSpecification"],
       "http://www.w3.org/2001/XMLSchema#double": ["http://bioprotocols.org/uml#ValueSpecification"],
       "http://bioprotocols.org/paml#ContainerSpec": ["http://bioprotocols.org/uml#ValueSpecification", "http://sbols.org/v3#Identified"],
-      "http://sbols.org/v3#Identified": ["http://bioprotocols.org/paml#ContainerSpec"]
+      "http://sbols.org/v3#Identified": ["http://bioprotocols.org/paml#ContainerSpec"],
+      "http://www.w3.org/ns/prov#Agent": []
 
     };
 

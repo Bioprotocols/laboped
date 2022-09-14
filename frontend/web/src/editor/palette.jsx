@@ -51,7 +51,7 @@ export class Palette extends Component {
   render() {
     return (
       <Accordion defaultActiveKey={this.props.libraries.any} flush>
-        <Accordion.Item eventKey={PROTOCOLS}>
+        <Accordion.Item eventKey={PROTOCOLS} key={PROTOCOLS}>
           <Accordion.Header>{PROTOCOLS}</Accordion.Header>
           <Accordion.Body>
             <div className="editor-pallete" ref={this.palleteRefs[PROTOCOLS]} />
@@ -59,7 +59,7 @@ export class Palette extends Component {
         </Accordion.Item>
         {
           Array.from(this.props.libraries).map((lib) => {
-            return (<Accordion.Item eventKey={lib}>
+            return (<Accordion.Item eventKey={lib} key={lib}>
               <Accordion.Header>{lib}</Accordion.Header>
               <Accordion.Body>
                 <div className="editor-pallete" ref={this.palleteRefs[lib]} />

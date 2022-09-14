@@ -33,10 +33,16 @@ export class PAMLPrimitiveComponent extends PAMLComponent {
   }
   async builder(node) {
     //node = new MyNode();
-    var inputs = this.primitive.inputs.map(i => new
-      PAMLInputPin(i.name, i.name, this.portTypes[i.type].socket, i.type, this.saveProtocol));
-    inputs.forEach(i => i.addControl(new PAMLInputControl(node.editor, i, this.savexProtocol)));
-    inputs.forEach(i => node.addInput(i))
+    try {
+      var inputs = this.primitive.inputs.map(i => new
+        PAMLInputPin(i.name, i.name, this.portTypes[i.type].socket, i.type, this.saveProtocol));
+      inputs.forEach(i => i.addControl(new PAMLInputControl(node.editor, i, this.saveProtocol)));
+      inputs.forEach(i => node.addInput(i))
+    } catch (error) {
+      console.log("Could not create an input pin for " + node.name)
+    }
+
+
     var outputs = this.primitive.outputs.map(i => new Rete.Output(i.name, i.name, this.portTypes[i.type].socket))
     outputs.forEach(i => node.addOutput(i))
     var start = new TimepointIn("Start", "Start", timeSocket);
