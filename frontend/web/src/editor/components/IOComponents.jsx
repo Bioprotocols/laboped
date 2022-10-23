@@ -488,14 +488,7 @@ export class ListControl extends PAMLControl {
 }
 
 export class TextControl extends PAMLControl {
-    constructor(props) {
-        super(props);
-        // this.props.key = props.key;
-        // this.key = props.key;
-        // this.props.value = props.value;
-        // this.type = "text";
-        // this.scope.value = props.value;
-    }
+    
     // constructor(emitter, key, value = null, type = "text") {
     //     super(key);
     //     this.render = "react";
