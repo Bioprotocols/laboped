@@ -8,13 +8,13 @@ import AreaPlugin from "rete-area-plugin";
 import { MyNode } from "./components/Node";
 import { loadComponentsFromAPI, PAMLPrimitiveComponent } from "./components/Primitive";
 import { PAMLProtocolComponent } from "./components/ProtocolComponent";
-import { InputComponent, OutputComponent } from "./components/IOComponents";
+import { InputComponent, OutputComponent, ParameterComponent } from "./components/IOComponents";
 import { Palette } from "./palette";
 import Menu from "./menu";
 
 import React from "react";
 import { Component } from "react";
-import { Row, Col, Container, Accordion } from "react-bootstrap";
+import { Row, Col, Container } from "react-bootstrap";
 
 import { axios, axios_csrf_options, endpoint } from "../API";
 import "./editor.css"
@@ -23,6 +23,7 @@ import RenameProtocolModal from "./RenameProtocolModal";
 import DownloadProtocolModal from "./DownloadProtocolModal";
 import RebuildPrimitivesModal from "./RebuildPrimitivesModal";
 import UserGuideModal from "./UserGuideModal";
+import { portMap, compatibleWithMap } from "./components/ports";
 
 import { withRouter } from "../utils";
 
@@ -42,7 +43,7 @@ export class Editor extends Component {
     this.workspaceRef = React.createRef();
     this.menuRef = React.createRef();
     this.saveSpaceRef = React.createRef();
-
+    this.paletteRef = React.createRef();
 
     this.loginStatus = props.loginStatus;
 
@@ -54,6 +55,7 @@ export class Editor extends Component {
       specializations: [],
       primitiveComponents: {},
       protocolComponents: {},
+      controlsComponents: {},
       libraries: new Set(),
       portTypes: {},
       isRebuildingPrimitives: true,
@@ -61,7 +63,8 @@ export class Editor extends Component {
       renameProtocol: null,
       userGuideVisible: null,
       nodeToProtocol: {},
-      toggle: false
+      toggle: false,
+      initializing: false,
     }
 
     this.dataTypes = new Set();
@@ -87,6 +90,15 @@ export class Editor extends Component {
   }
 
   componentDidMount() {
+
+    this.setState({ initializing: true }, () => {
+      this.initialize(() => { })
+    });
+    this.setState({ initializing: false });
+    console.log("initialized");
+  }
+
+  initialize(callback) {
     //var editor = new Rete.NodeEditor("demo@0.1.0", document.querySelector('.editor'));
     this.editor = new Rete.NodeEditor("demo@0.1.0", this.workspaceRef.current);
     this.editor.use(ConnectionPlugin);
@@ -101,6 +113,7 @@ export class Editor extends Component {
     this.editor.on("process nodecreated noderemoved connectioncreated connectionremoved", this.processHandler);
     this.editor.on("nodecreated", this.nodeCreated);
 
+
     this.editor.view.resize();
 
     const background = document.createElement('div');
@@ -114,11 +127,12 @@ export class Editor extends Component {
       this.getSpecializations(() => {
         this.initializePortTypes(() => {
           this.initializeComponents(() => {
-            this.retrieveProtocols();
+            this.retrieveProtocols(callback);
           });
         });
       });
     });
+
   }
 
   componentWillUnmount() {
@@ -129,7 +143,7 @@ export class Editor extends Component {
     // console.log("process");
     await this.engine.abort();
     await this.engine.process(this.editor.toJSON());
-    this.saveCurrentProtocol();
+    // this.saveCurrentProtocol();
   }
 
   async nodeCreated(node) {
@@ -149,47 +163,7 @@ export class Editor extends Component {
   }
 
   initializePortTypes(callback) {
-    let portMap = {
-      "http://bioprotocols.org/uml#ValueSpecification": "valueSpecification",
-      "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure": "measure",
-      "http://bioprotocols.org/paml#SampleCollection": "sampleCollection",
-      "http://sbols.org/v3#Component": "component",
-      "http://bioprotocols.org/paml#SampleData": "sampleData",
-      "http://bioprotocols.org/paml#SampleArray": "sampleArray",
-      "http://www.w3.org/2001/XMLSchema#anyURI": "anyURI",
-      "http://bioprotocols.org/paml#SampleMask": "sampleMask",
-      "http://www.w3.org/2001/XMLSchema#integer": "integer",
-      "http://www.w3.org/2001/XMLSchema#float": "float",
-      "http://www.w3.org/2001/XMLSchema#double": "double",
-      "http://bioprotocols.org/paml#ContainerSpec": "containerSpec",
-      "http://sbols.org/v3#Identified": "identified",
-      "http://www.w3.org/ns/prov#Agent": "agent"
 
-    }
-    let compatibleWithMap = {
-      "http://bioprotocols.org/uml#ValueSpecification":
-        [
-          "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure",
-          "http://www.w3.org/2001/XMLSchema#integer",
-          "http://www.w3.org/2001/XMLSchema#float",
-          "http://www.w3.org/2001/XMLSchema#double",
-          "http://bioprotocols.org/paml#ContainerSpec"
-        ],
-      "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure": ["http://bioprotocols.org/uml#ValueSpecification"],
-      "http://bioprotocols.org/paml#SampleCollection": ["http://bioprotocols.org/paml#SampleArray"],
-      "http://sbols.org/v3#Component": [],
-      "http://bioprotocols.org/paml#SampleData": [],
-      "http://bioprotocols.org/paml#SampleArray": ["http://bioprotocols.org/paml#SampleCollection"],
-      "http://www.w3.org/2001/XMLSchema#anyURI": [],
-      "http://bioprotocols.org/paml#SampleMask": [],
-      "http://www.w3.org/2001/XMLSchema#integer": ["http://bioprotocols.org/uml#ValueSpecification"],
-      "http://www.w3.org/2001/XMLSchema#float": ["http://bioprotocols.org/uml#ValueSpecification"],
-      "http://www.w3.org/2001/XMLSchema#double": ["http://bioprotocols.org/uml#ValueSpecification"],
-      "http://bioprotocols.org/paml#ContainerSpec": ["http://bioprotocols.org/uml#ValueSpecification", "http://sbols.org/v3#Identified"],
-      "http://sbols.org/v3#Identified": ["http://bioprotocols.org/paml#ContainerSpec"],
-      "http://www.w3.org/ns/prov#Agent": []
-
-    };
 
     // Return one socket unique to each type
     let portTypes = {};
@@ -199,11 +173,14 @@ export class Editor extends Component {
         typeName: typeName,
         socket: new Rete.Socket(typeName)
       };
+      return key;
     });
     Object.keys(portTypes).map((key, index) => {
       compatibleWithMap[key].map((elt, i) => {
         portTypes[key].socket.combineWith(portTypes[elt].socket);
+        return elt;
       })
+      return key;
     });
 
     this.setState({ portTypes: portTypes }, () => callback());
@@ -244,7 +221,7 @@ export class Editor extends Component {
   async initializeComponents(callback) {
     let components = await loadComponentsFromAPI(); //[new AddComponent()];
     let libraries = this.state.libraries;
-    components.map((c) => { libraries.add(c.library) });
+    components.map((c) => { libraries.add(c.library); return c; });
 
     components = components.map((primitive) => {
       let c = new PAMLPrimitiveComponent({
@@ -259,16 +236,7 @@ export class Editor extends Component {
       return c;
     });
 
-    var dataTypeArray = Array.from(this.dataTypes);
-    let props = {
-      portTypes: this.state.portTypes,
-      saveProtocol: this.saveCurrentProtocol.bind(this),
-      updateProtocolComponent: this.updateProtocolComponent.bind(this)
-    };
-    components = components.concat([
-      new InputComponent(props),
-      new OutputComponent(props)
-    ]);
+    // var dataTypeArray = Array.from(this.dataTypes);
 
     var primitiveComponents = this.state.primitiveComponents;
     components.map(c => {
@@ -279,7 +247,26 @@ export class Editor extends Component {
       }
       return c;
     });
-    this.setState({ primitiveComponents: primitiveComponents, libraries: libraries }, callback);
+
+
+    let props = {
+      portTypes: this.state.portTypes,
+      saveProtocol: this.saveCurrentProtocol.bind(this),
+      updateProtocolComponent: this.updateProtocolComponent.bind(this),
+      editor: this
+    };
+    let controlsComponents = [
+      new InputComponent(props),
+      new OutputComponent(props),
+      new ParameterComponent(props)
+    ];
+    controlsComponents.map(c => {
+      this.editor.register(c);
+      this.engine.register(c);
+      return c;
+    });
+
+    this.setState({ primitiveComponents: primitiveComponents, libraries: libraries, controlsComponents: controlsComponents }, callback);
   }
 
   initialGraph() {
@@ -420,6 +407,10 @@ export class Editor extends Component {
   }
 
   saveProtocol(protocolName, overrideGraph = null) {
+    if (this.state.initializing) {
+      return;
+    }
+
     console.log(`Saving protocol ${protocolName}`)
     // retrieve the current protocol from the Rete editor
     this.saveProtocolGraphInState(protocolName, overrideGraph);
@@ -485,7 +476,7 @@ export class Editor extends Component {
     // this.retrieveProtocols()
   }
 
-  async retrieveProtocols() {
+  async retrieveProtocols(callback) {
     var protocols = await axios.get(endpoint.editor.protocol, axios_csrf_options)
       .then(function (response) {
         return response.data;
@@ -504,7 +495,7 @@ export class Editor extends Component {
     });
 
     let protocolComponents = {};
-    Object.keys(currentProtocols).map((name) => { protocolComponents[name] = this.initializeProtocolComponent(name) });
+    Object.keys(currentProtocols).map((name) => { protocolComponents[name] = this.initializeProtocolComponent(name); return name; });
     let newState = {
       protocols: currentProtocols,
       protocolComponents: protocolComponents
@@ -516,18 +507,22 @@ export class Editor extends Component {
       // and it can display then return
       let prev = localStorage.getItem('opened-protocol')
       if (prev in currentProtocols && this.displayProtocol(prev)) {
+        callback();
         return
       }
 
       // if we have no current protocols the create one
       if (currentProtocols.length < 1) {
-        this.displayNewProtocol()
+        this.displayNewProtocol();
+        callback();
         return
       }
 
       // otherwise just display the first protocol from currentProtocols
       this.displayAnyProtocol()
+      callback();
     });
+
   }
 
   initializeProtocolComponent(protocol) {
@@ -563,14 +558,14 @@ export class Editor extends Component {
     let protocolComponents = this.state.protocolComponents;
     let component = protocolComponents[protocol];
     //await component.update();
-    if (this.editor.components.has(component.name)) {
+    if (component && this.editor.components.has(component.name)) {
       this.editor.components.delete(component.name);
       this.editor.components.set(component.name, component);
-      let protocolComponent = Array.from(this.palleteRef.current.children).find((elt) => (elt.textContent.startsWith(protocol)));
+      let protocolComponent = Array.from(this.paletteRef.current.paletteRefs.Protocols.current.children).find((elt) => (elt.textContent.startsWith(protocol)));
       protocolComponent.remove();
       this.editor.events.componentregister = [];
       let options = {
-        container: this.palleteRef.current,
+        container: this.paletteRef.current.paletteRefs.Protocols.current,
         itemClass: 'item', // default: dock-item
         plugins: [ReactRenderPlugin], // render plugins
       };
@@ -578,8 +573,10 @@ export class Editor extends Component {
       this.editor.trigger("componentregister", component);
       // this.forceUpdate();
       // this.setState({ toggle: !this.state.toggle });
-    } else {
+    } else if (component) {
       this.editor.register(component);
+    } else {
+      console.log("Updating unknown component")
     }
   }
 
@@ -927,7 +924,8 @@ export class Editor extends Component {
         components={this.state.primitiveComponents}
         libraries={this.state.libraries}
         protocolComponents={this.state.protocolComponents}
-        editor={this.editor} />) :
+        controlsComponents={this.state.controlsComponents}
+        editor={this.editor} ref={this.paletteRef} />) :
       null;
 
     return (
@@ -937,7 +935,7 @@ export class Editor extends Component {
           editor={this}
         />
         <Row className="editor" >
-          <Col xs={2} sm={2} className="editor-pallete-column">
+          <Col xs={2} sm={2} className="editor-palette-column">
             {palette}
           </Col>
 

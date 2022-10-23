@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Form, Row, Col } from "react-bootstrap";
-import Spreadsheet, { createEmptyMatrix } from "react-spreadsheet";
+import Spreadsheet from "react-spreadsheet";
 
 
 class TypeConfigurator extends React.Component {
@@ -52,7 +52,7 @@ class TabularConfigurator extends TypeConfigurator {
     }
 
     setData = (data) => {
-        this.setState({ data: data }, () => this.handleSave({ data: data, paml_type: "array" }));
+        this.setState({ data: data }, () => this.handleSave({ data: data }));
     }
 
     render() {
@@ -128,7 +128,11 @@ class ContainerSpecConfigurator extends TypeConfigurator {
     }
 
     componentDidMount() {
-        this.setState({ container: this.props.container, containerType: this.props.containerType, paml_type: this.props.paml_type });
+        this.setState({
+            container: this.props.container,
+            containerType: this.props.containerType,
+            containerName: this.props.containerName
+        });
     }
 
     // componentWillUnmount() {
@@ -136,11 +140,15 @@ class ContainerSpecConfigurator extends TypeConfigurator {
     // }
 
     selectConatinerType = (e) => {
-        this.setState({ containerType: e.target.id, paml_type: "container" }, () => this.handleSave(this.state));
+        this.setState({ containerType: e.target.id }, () => this.handleSave(this.state));
     }
 
     selectContainer = (e) => {
-        this.setState({ container: e.target.id, paml_type: "container" }, () => this.handleSave(this.state));
+        this.setState({ container: e.target.id }, () => this.handleSave(this.state));
+    }
+
+    selectContainerName = (e) => {
+        this.setState({ containerName: e.target.value }, () => this.handleSave(this.state));
     }
 
     // handleSubmit = (e) => {
@@ -175,14 +183,22 @@ class ContainerSpecConfigurator extends TypeConfigurator {
                 {
                     Object.keys(this.containerGroup).map((elt) => (
                         <Form.Check name="containerType" type={'radio'} key={elt} id={elt} label={elt} checked={this.state.containerType === elt}
-                            onChange={this.selectConatinerType}
+                            onChange={this.selectContainerType}
                         />
                     ))
                 }
             </div>
         </Form.Group>)
 
-
+        let nameConfig = (
+            <Form.Group className="mb-3" controlId="formBasicValue">
+                <Form.Label>Name</Form.Label>
+                <Form.Control type="value" placeholder="Enter Container Name" value={this.state.containerName} id="name" onChange={this.selectContainerName} />
+                {/* <Form.Text className="text-muted">
+                    Provide a Container Name.
+                </Form.Text> */}
+            </Form.Group>
+        )
 
         let subgroups = (
             <div>
@@ -193,14 +209,18 @@ class ContainerSpecConfigurator extends TypeConfigurator {
                                 <div>
                                     {
                                         containers.map((elt) => (
+
+
                                             <Form.Check name="unit" type={'radio'} id={elt} label={elt}
                                                 checked={this.state.container === elt} onClick={this.selectContainer}
                                             />
+
                                         ))
                                     }
                                 </div>
                             </Form.Group>)
                         }
+                        return null;
                     })
                 }
             </div>
@@ -211,6 +231,7 @@ class ContainerSpecConfigurator extends TypeConfigurator {
             <div>
                 <Row>
                     <Col>
+                        {nameConfig}
                         {containerTypes}
                     </Col>
                     <Col>
@@ -236,7 +257,7 @@ class MeasureConfigurator extends TypeConfigurator {
     }
 
     componentDidMount() {
-        this.setState({ unit: this.props.unit, unitType: this.props.unitType, value: this.props.value, paml_type: this.props.paml_type });
+        this.setState({ unit: this.props.unit, unitType: this.props.unitType, value: this.props.value });
     }
 
     componentWillUnmount() {
@@ -261,7 +282,7 @@ class MeasureConfigurator extends TypeConfigurator {
             let unitType = Object.values(e.target).find((value) => (value.checked && value.name === "unitType"));
             let unitTypeId = unitType ? unitType.id : null;
             let unitId = unit ? unit.id : null;
-            this.handleSave({ value: value, unit: unitId, unitType: unitTypeId, paml_type: "measure" });
+            this.handleSave({ value: value, unit: unitId, unitType: unitTypeId });
         }
         return e;
     }
@@ -315,6 +336,7 @@ class MeasureConfigurator extends TypeConfigurator {
                                 </div>
                             </Form.Group>)
                         }
+                        return null;
                     })
                 }
             </div>
@@ -365,49 +387,53 @@ class SubtypeConfigurator extends TypeConfigurator {
     }
 
     render() {
+        if (this.state.subType) {
+            let subTypes = (<Form.Select className="mb-3" controlId="subTypes" value={this.state.subType} onChange={this.selectSubType}>
+                {<option value={undefined}></option>}
+                {Object.keys(this.subTypes).map((elt) => {
+                    if (this.state.subType === elt) {
+                        return (<option value={elt} selected>{elt}</option>);
+                    } else {
+                        return (<option key={elt} value={elt}>{elt}</option>);
+                    }
+                })}
 
-        let subTypes = (<Form.Select className="mb-3" controlId="subTypes" value={this.state.subType} onChange={this.selectSubType}>
-            {<option value={undefined}></option>}
-            {Object.keys(this.subTypes).map((elt) => {
-                if (this.state.subType === elt) {
-                    return (<option value={elt} selected>{elt}</option>);
-                } else {
-                    return (<option value={elt}>{elt}</option>);
-                }
-            })}
+            </Form.Select>)
 
-        </Form.Select>)
+            let subgroups = (
+                <div>
+                    {
+                        Object.entries(this.subTypes).map(([subTypeStr, configurator], i) => {
+                            if (this.state.subType === subTypeStr) {
+                                return (<Form.Group className="mb-3" controlId={subTypeStr}>
+                                    <div>
+                                        {
+                                            React.createElement(configurator, this.props)
 
-        let subgroups = (
-            <div>
-                {
-                    Object.entries(this.subTypes).map(([subTypeStr, configurator], i) => {
-                        if (this.state.subType === subTypeStr) {
-                            return (<Form.Group className="mb-3" controlId={subTypeStr}>
-                                <div>
-                                    {
-                                        React.createElement(configurator, this.props)
+                                        }
+                                    </div>
+                                </Form.Group>)
+                            }
+                            return null;
+                        })
+                    }
+                </div>
+            )
 
-                                    }
-                                </div>
-                            </Form.Group>)
-                        }
-                    })
-                }
-            </div>
-        )
-
-        return (
-            <Form onSubmit={this.handleSubmit}>
-                <Row>
-                    {subTypes}
-                </Row>
-                <Row>
-                    {subgroups}
-                </Row>
-                {/* <Button variant="primary" type="submit">Save</Button> */}
-            </Form>
-        );
+            return (
+                <Form onSubmit={this.handleSubmit}>
+                    <Row>
+                        {subTypes}
+                    </Row>
+                    <Row>
+                        {subgroups}
+                    </Row>
+                    {/* <Button variant="primary" type="submit">Save</Button> */}
+                </Form>
+            );
+        } else {
+            return null;
+        }
     }
 }
 
@@ -434,13 +460,12 @@ class AliquotConfigurator extends TypeConfigurator {
     constructor(props) {
         super(props)
         this.state = {
-            rectangleList: "",
-            paml_type: "aliquots"
+            rectangleList: ""
         }
     }
 
     componentDidMount() {
-        this.setState({ rectangleList: this.props.rectangleList, paml_type: this.props.paml_type });
+        this.setState({ rectangleList: this.props.rectangleList });
     }
 
     render() {

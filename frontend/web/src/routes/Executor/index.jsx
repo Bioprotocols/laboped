@@ -3,10 +3,10 @@ import { withRouter } from "../../utils";
 import LoginStatus from '../../login/LoginStatus';
 import { Container } from "react-bootstrap";
 import { Gitgraph, Orientation } from '@gitgraph/react';
-import { axios, endpoint } from "../../API";
-import rdf from 'rdf-ext';
-import N3Parser from 'rdf-parser-n3';
-import { Readable } from 'stream';
+// import { axios, endpoint } from "../../API";
+// import rdf from 'rdf-ext';
+// import N3Parser from 'rdf-parser-n3';
+// import { Readable } from 'stream';
 
 class Executor extends React.Component {
     constructor(props) {

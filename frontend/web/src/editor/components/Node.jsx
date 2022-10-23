@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal, Form, FloatingLabel } from "react-bootstrap";
 import { Node, Socket, Control } from "rete-react-render-plugin";
-import { FileEarmark, FileEarmarkText, InfoCircle } from "react-bootstrap-icons";
+import { FileEarmarkText } from "react-bootstrap-icons";
 
 export class MyNode extends Node {
   state = { toggle: true };
@@ -91,13 +91,25 @@ export class MyNode extends Node {
           if (output.key !== "End") {
             return (
               <div className="output" key={output.key}>
-                <div className="output-title">{output.name}</div>
+                {output.control && (
+                  <Control
+                    className="output-control"
+                    control={output.control}
+                    key={output.control.key}
+                    innerRef={bindControl}
+                  />
+                )}
+                {!output.control &&
+                  (<div className="output-title">{output.name}</div>)
+                }
                 <Socket
                   type="output"
                   socket={output.socket}
                   io={output}
                   innerRef={bindSocket}
                 />
+
+
               </div>
             )
           } else {

@@ -1,10 +1,10 @@
 import React from 'react';
-import { Tabs, Tab, Nav, Row, Col, Dropdown, SplitButton } from 'react-bootstrap';
-import Markdown from 'marked-react';
-import DOMPurify from 'dompurify';
+import { Tab, Nav, Row, Col, Dropdown, SplitButton } from 'react-bootstrap';
+// import Markdown from 'marked-react';
+// import DOMPurify from 'dompurify';
 // import { JSONEditor } from 'vanilla-jsoneditor';
 // import { useEffect, useRef } from "react";
-import ReactJson from 'react-json-view'
+// import ReactJson from 'react-json-view'
 import { ProtocolDetailsGroup } from './ProtocolDetails';
 
 
@@ -28,7 +28,7 @@ export class ProtocolInspectorGroup extends React.Component {
 
   loadProtocolFromFile(evt) {
     let file = evt.target.files[0];
-    console.log("Loading protocol from file...")
+    // console.log("Loading protocol from file...")
 
     let reader = new FileReader();
     reader.onload = readerEvent => {
@@ -79,14 +79,14 @@ export class ProtocolInspectorGroup extends React.Component {
     //   </Nav.Item>
     // )
 
-    let currentProtocol = this.props.editor.getCurrentProtocol();
-    console.log(currentProtocol ? currentProtocol.graph : "");
-    let emptyDetail = currentProtocol ? (
-      <Tab title="Detail" eventKey="detail">
-        <ReactJson key="detail" displayDataTypes="False" name="Steps" indentWidth="2"
-          src={currentProtocol.graph} />
-      </Tab>
-    ) : null;
+    // let currentProtocol = this.props.editor.getCurrentProtocol();
+    // console.log(currentProtocol ? currentProtocol.graph : "");
+    // let emptyDetail = currentProtocol ? (
+    //   <Tab title="Detail" eventKey="detail">
+    //     <ReactJson key="detail" displayDataTypes="False" name="Steps" indentWidth="2"
+    //       src={currentProtocol.graph} />
+    //   </Tab>
+    // ) : null;
 
 
     let tabcontainer = (
@@ -124,16 +124,16 @@ export class ProtocolInspectorGroup extends React.Component {
   };
 }
 
-function ProtocolInspector(props) {
-  return (
-    <div>
-      <pre>
-        <Markdown value={DOMPurify.sanitize(props.specialization)} />
-      </pre>
-    </div>
-  );
+// function ProtocolInspector(props) {
+//   return (
+//     <div>
+//       <pre>
+//         <Markdown value={DOMPurify.sanitize(props.specialization)} />
+//       </pre>
+//     </div>
+//   );
 
-};
+// };
 
 // class PrettyPrintJson extends React.Component {
 

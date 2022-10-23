@@ -5,6 +5,12 @@
         },
         {
             "path": "../paml"
+        },
+        {
+            "path": "../PAML-specification"
+        },
+        {
+            "path": "../paml-check"
         }
     ],
     "settings": {
@@ -22,7 +28,7 @@
                 "request": "launch",
                 "program": "${file}",
                 "console": "integratedTerminal",
-                "justMyCode": true
+                "justMyCode": false
             },
             {
                 "name": "Python: FastAPI",

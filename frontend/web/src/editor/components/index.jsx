@@ -11,5 +11,8 @@ export class PAMLComponent extends Rete.Component {
         this.updateProtocolComponent = props.updateProtocolComponent;
     }
 
+    nodeConfiguration() {
+        return null;
+    }
 
 }

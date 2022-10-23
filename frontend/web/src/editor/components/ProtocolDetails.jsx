@@ -10,18 +10,14 @@ import ReactJson from 'react-json-view'
 
 export class ProtocolDetailsGroup extends React.Component {
 
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         let specializations = this.props.editor.state.specializations;
 
         let currentProtocol = this.props.editor.getCurrentProtocol();
-        console.log(currentProtocol ? currentProtocol.graph : "");
+        // console.log(currentProtocol ? currentProtocol.graph : "");
 
         let emptyDetail = currentProtocol ? (
-            <Tab title="Detail" eventKey="detail">
+            <Tab title="Detail" key="detail" eventKey="detail">
                 <ReactJson key="detail" displayDataTypes="False" name="Steps" indentWidth="2"
                     src={currentProtocol.graph} />
             </Tab>
@@ -43,7 +39,7 @@ export class ProtocolDetailsGroup extends React.Component {
                     return null;
                 }
                 return (
-                    <Tab title={specialization.name} key={specialization.specialization_id} eventKey={specialization.id}>
+                    <Tab title={specialization.name} key={specialization.id} eventKey={specialization.id}>
                         {rendered(currentProtocol, specialization)}
                     </Tab>
                 )
