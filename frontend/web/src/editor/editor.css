@@ -10,22 +10,20 @@
     margin: 0px;
 }
 
-.editor-pallete-column
-{
+.editor-palette-column {
     overflow-y: scroll;
     overflow-x: hidden;
     height: 100%;
 }
 
-.editor-main-column
-{
+.editor-main-column {
     /* overflow-y: hidden;
     overflow-x: hidden; */
     height: 100%;
 }
 
 
-.editor-pallete {
+.editor-palette {
     padding-left: 10px;
     height: 100%;
 }
@@ -43,9 +41,10 @@
 
 .editor-inspector-column {
     overflow-y: scroll;
-    overflow-x: hidden;
+    /* overflow-x: hidden; */
     border: 1px solid black;
     height: 100%;
+    /* width: 100%; */
 }
 
 .editor-workspace-background.rete-background {
@@ -61,12 +60,12 @@
 
 /* Hide bootstrap outline around focused buttons */
 .btn:focus:not(:focus-visible) {
-  outline: 0;
-  box-shadow: none;
+    outline: 0;
+    box-shadow: none;
 }
 
-#editor-protocol-tabs .dropdown{
-  font-family: "DejaVu Sans Mono", "Courier New", monospace;
+#editor-protocol-tabs .dropdown {
+    font-family: "DejaVu Sans Mono", "Courier New", monospace;
 
 }
 
@@ -79,6 +78,7 @@
 #editor-protocol-tabs .dropdown.current-protocol {
     background-color: #FF3B3F;
 }
+
 #editor-protocol-tabs .dropdown.current-protocol::selection {
     background-color: #FF3B3F;
 }
@@ -87,6 +87,20 @@
 #editor-protocol-tabs .dropdown.current-protocol button {
     font-weight: 900;
 }
+
 #editor-protocol-tabs .dropdown:not(.current-protocol) {
     background-color: #CAEBF2;
 }
+
+/* .json-specialization-data .pre {
+    display: block;
+    padding: 10px 30px;
+    margin: 0;
+    overflow: scroll;
+} */
+
+/* .svelte-jsoneditor-react {
+    display: flex;
+    flex: 1;
+
+} */

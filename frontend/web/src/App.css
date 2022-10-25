@@ -3,7 +3,7 @@
 }
 
 .editor .node {
-  background: #CAEBF2;
+  background: #9acad7;
   border-color: #A9A9A9;
 }
 
@@ -21,6 +21,85 @@
 
 .editor .node .input {
   color: black;
+}
+
+.editor .node .output-control {
+  color: black;
+  display: inline-block;
+  /* vertical-align: middle; */
+  /* width: calc(100% - 36px); */
+}
+
+.editor .node .ordering {
+  display: inline-block;
+  display: flex;
+}
+
+.editor .node .ordering .input .socket {
+  float: left;
+  width: 0;
+  height: 0;
+  border-bottom: 13px solid transparent;
+  border-top: 13px solid transparent;
+  border-right: 24px solid white;
+  border-left: unset;
+  background: transparent;
+  border-radius: unset;
+  position: relative;
+
+}
+
+.editor .node .ordering .input .socket:after {
+  content: "";
+
+  width: 0;
+  height: 0;
+  border-bottom: 11px solid transparent;
+  border-top: 11px solid transparent;
+  border-right: 23px solid #49d30f;
+  position: absolute;
+  top: -11px;
+  right: -23px;
+  background: transparent;
+
+}
+
+.editor .node .ordering .output .socket {
+  float: right;
+  width: 0;
+  height: 0;
+  border-bottom: 13px solid transparent;
+  border-top: 13px solid transparent;
+  border-left: 24px solid white;
+  border-right: unset;
+  background: transparent;
+  border-radius: unset;
+  position: relative;
+
+}
+
+.editor .node .ordering .output .socket:after {
+  content: "";
+
+  width: 0;
+  height: 0;
+  border-bottom: 11px solid transparent;
+  border-top: 11px solid transparent;
+  border-left: 23px solid #49d30f;
+  position: absolute;
+  top: -11px;
+  left: -23px;
+  background: transparent;
+
+}
+
+
+.editor .node .ordering .ordering-sep {
+  flex: auto;
+}
+
+.editor .node .ordering .input {
+  float: left;
 }
 
 .editor .node .input-title {
@@ -41,6 +120,9 @@
   background: #EFEFEF;
 }
 
+.editor .node .node-info {
+  float: right;
+}
 
 .editor .node[name=Parameter] {
   /* background: #A9A9A9; */
@@ -54,6 +136,7 @@
 
 .editor .node .socket.timepoint {
   background: #49d30f;
+
 }
 
 .editor .node .socket.number {
@@ -61,3 +144,54 @@
 }
 
 
+.editor .socket.valuespecification {
+  background: orange;
+}
+
+.editor .socket.measure {
+  background: yellowgreen;
+}
+
+.editor .socket.sampleCollection {
+  background: blueviolet;
+}
+
+.editor .socket.component {
+  background: rgb(43, 137, 226);
+}
+
+.editor .socket.sampledata {
+  background: rgb(226, 131, 43);
+}
+
+.editor .socket.samplearray {
+  background: rgb(226, 43, 64);
+}
+
+.editor .socket.anyuri {
+  background: rgb(43, 137, 226);
+}
+
+.editor .socket.samplemask {
+  background: rgb(177, 226, 43);
+}
+
+.editor .socket.integer {
+  background: rgb(43, 165, 226);
+}
+
+.editor .socket .float {
+  background: rgb(226, 43, 67);
+}
+
+.editor .socket.double {
+  background: rgb(43, 147, 226);
+}
+
+.editor .socket.containerspec {
+  background: rgb(226, 134, 43);
+}
+
+.editor .socket.identified {
+  background: rgb(217, 43, 226);
+}

@@ -7,7 +7,7 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import "./menu.css"
 
 export default class Menu extends Component {
-  constructor(props){
+  constructor(props) {
     super(props);
     this.editor = props.editor;
   }
@@ -17,7 +17,7 @@ export default class Menu extends Component {
       <Container className="p-0 editor-navbar" fluid={true}>
         <Navbar className="h-100" bg="dark" variant="dark">
           <Container fluid={true}>
-            <Navbar.Brand href="#home">PAML Editor</Navbar.Brand>
+            <Navbar.Brand href="#home">LabOP Editor</Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse>
               <Nav className="me-auto">

@@ -1,114 +1,82 @@
 import Rete from "rete";
-import { axios, axios_csrf_options, endpoint } from "../../API";
-import { MyNode } from "./Node";
-import { ModuleComponent } from "./Control";
 
-export var numSocket = new Rete.Socket("Number");
-export var floatSocket = new Rete.Socket("Float");
+import { axios, axios_csrf_options, endpoint } from "../../API";
+import { LABOPInputPin, TimepointIn, TimepointOut, LABOPInputControlComponent, MyReactControl } from "./IOComponents";
+import { LABOPComponent, LABOPInputControl, TextControl } from ".";
+
+// export var numSocket = new Rete.Socket("Number");
+// export var floatSocket = new Rete.Socket("Float");
 export var timeSocket = new Rete.Socket("Timepoint");
+// export var labopSocket = new Rete.Socket("labopSocket");
 
 export async function loadComponentsFromAPI() {
-    let primitives = axios
-        .get(endpoint.editor.primitive, axios_csrf_options)
-        .then(function (response) {
-          return response.data;
-        })
-        .catch(function (error) {
-          // handle error
-          console.log(error);
-          return [];
-        });
+  let primitives = axios
+    .get(endpoint.editor.primitive, axios_csrf_options)
+    .then(function (response) {
+      return response.data;
+    })
+    .catch(function (error) {
+      // handle error
+      console.log(error);
+      return [];
+    });
   return primitives;
 }
 
 
-export class TimepointIn extends Rete.Input {
-  constructor(key, title, socket){
-    super(key, title, socket, true  /* multcons */);
-  }
-}
 
-export class TimepointOut extends Rete.Output {
-  constructor(key, title, socket){
-    super(key, title, socket, true  /* multcons */);
-  }
-}
-
-export class PAMLComponent extends Rete.Component {
-  constructor(socketFn, primitive) {
-    super(primitive.name)
-    this.primitive = primitive;
-    this.socketFn = socketFn;
-    this.data.component = MyNode;
-
-    this.dataTypes = new Set();
-    primitive.inputs.map((i) => this.dataTypes.add(i.type));
-    primitive.outputs.map((i) => this.dataTypes.add(i.type));
+export class LABOPPrimitiveComponent extends LABOPComponent {
+  constructor(props) {
+    super({ name: props.primitive.name, ...props })
+    this.primitive = props.primitive;
   }
 
   async builder(node) {
     //node = new MyNode();
-    var inputs = this.primitive.inputs.map(i => new Rete.Input(i.name, i.name, this.socketFn(i.type)))
-    inputs.forEach(i => node.addInput(i))
-    var outputs = this.primitive.outputs.map(i => new Rete.Output(i.name, i.name, this.socketFn(i.type)))
+    try {
+      let nameCtrl = new TextControl({
+        emitter: this.editor,
+        component: MyReactControl,
+        key: "name",
+        name: "name",
+        value: this.getName(node),
+        saveProtocol: this.saveProtocol,
+        //onChangeCallback: this.handleNameChange.bind(this)
+      });
+      node.addControl(nameCtrl);
+
+      var inputs = this.primitive.inputs.map(i => new
+        LABOPInputPin({
+          key: i.name,
+          title: i.name,
+          socket: this.portTypes[i.type].socket,
+          type: i.type,
+          saveProtocol: this.saveProtocol,
+          onChange: null
+        }));
+      inputs.forEach(i => i.addControl(new LABOPInputControl({
+        key: i.name,
+        name: i.name,
+        emitter: node.editor,
+        component: LABOPInputControlComponent,
+        value: null,
+        saveProtocol: this.saveProtocol,
+        onChangeCallback: null
+      })));
+      inputs.forEach(i => node.addInput(i))
+    } catch (error) {
+      console.log("Could not create an input pin for " + node.name)
+    }
+
+    var outputs = this.primitive.outputs.map(
+      i => new Rete.Output(i.name, i.name, this.portTypes[i.type].socket)
+    )
     outputs.forEach(i => node.addOutput(i))
     var start = new TimepointIn("Start", "Start", timeSocket);
     var end = new TimepointOut("End", "End", timeSocket);
     node.addInput(start);
     node.addOutput(end);
-    return node;
-  }
-}
-
-export class PAMLProtocolComponent extends ModuleComponent {
-  constructor(socketFn, protocol) {
-    super(protocol.name)
-    this.protocol = protocol;
-    this.socketFn = socketFn;
-    this.data.component = MyNode;
-
-  }
-
-  async builder(node) {
-
-    var inputs = Object.values(this.protocol.graph.nodes).filter(
-      n => n.name === "Input"
-    ).map((i, idx) => {
-      if (Object.keys(i.data).find(i => i === "name")){
-        return new Rete.Input(i.data.name, i.data.name, this.socketFn(i.type));
-      } else {
-        return new Rete.Input("i"+idx, "i"+idx, this.socketFn(i.type));
-      }
-    }
-
-    );
-    inputs.forEach(i => node.addInput(i))
-
-    var outputs = Object.values(this.protocol.graph.nodes).filter(
-      n => n.name === "Output"
-    ).map((i, idx) => {
-        if (Object.keys(i.data).find(i => i === "name")){
-          return new Rete.Output(i.data.name, i.data.name, this.socketFn(i.type));
-        } else {
-          return new Rete.Output("o"+idx, "o"+idx, this.socketFn(i.type));
-        }
-      }
-    );
-    outputs.forEach(i => {
-      node.addOutput(i)
-
-    })
-
-
-    // var outputs = this.primitive.outputs.map(i => new Rete.Output(i.name, i.name, this.socketFn(i.type)))
-    // outputs.forEach(i => node.addOutput(i))
-    // var start = new TimepointIn("Start", "Start", timeSocket);
-    // var end = new TimepointOut("End", "End", timeSocket);
-    // node.addInput(start);
-    // node.addOutput(end);
-
-    node.data['isModule'] = true;
-
+    node.saveProtocol = this.saveProtocol;
     return node;
   }
 }

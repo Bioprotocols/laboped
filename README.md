@@ -1,12 +1,12 @@
 # **Introduction**
 
-The PAML Editor (PAMLED) is a web application that supports the authoring and sharing of PAML protocols.  PAMLED consists of two components: `frontend` and `backend`.  The frontend is a React-based server for handling the graphical interface.   The backend is a Django REST server that handles persistent storage (protocols, user accounts, and primitives), and access to the pyPAML library.
+The LabOp Editor (LabOPEd) is a web application that supports the authoring and sharing of LabOp protocols.  LabOPEd consists of two components: `frontend` and `backend`.  The frontend is a React-based server for handling the graphical interface.   The backend is a Django REST server that handles persistent storage (protocols, user accounts, and primitives), and access to the pyLabOp library.
 
 # **User Guide**
 
 See the user guide at: [User Guide](frontend/web/src/USERGUIDE.md)
 
-# **Running the PAML Editor in Development**
+# **Running the LabOp Editor in Development**
 
 ## **Pre-requisites**
 - Backend <a name="backend-deps"></a>
@@ -21,14 +21,14 @@ See the user guide at: [User Guide](frontend/web/src/USERGUIDE.md)
 
 1. On your development system install [backend dependencies](#backend-deps)
 
-2. Get PAMLED:
+2. Get LabOPEd:
 ```bash
-git clone https://github.com/Bioprotocols/pamled.git
+git clone https://github.com/Bioprotocols/laboped.git
 ```
 
-3. Initialize the pamled pipenv environment:
+3. Initialize the laboped pipenv environment:
 ```bash
-cd pamled
+cd laboped
 pipenv install
 pipenv shell
 ```
@@ -61,7 +61,7 @@ Performing system checks...
 
 System check identified no issues (0 silenced).
 January 24, 2022 - 18:52:36
-Django version 3.2.9, using settings 'pamled.settings'
+Django version 3.2.9, using settings 'laboped.settings'
 Starting development server at http://127.0.0.1:8000/
 Quit the server with CONTROL-C.
 ```
@@ -94,7 +94,7 @@ If npm does not open a browser automatically then you can connect to the fronten
 
 ## **Development using Visual Studio Code**
 ---
-For those familiar with VSCode the backand and frontend instructions have mostly been encapsulated within a VSCode workspace. See the `pamled.code-workspace` in the root of the repo.
+For those familiar with VSCode the backand and frontend instructions have mostly been encapsulated within a VSCode workspace. See the `laboped.code-workspace` in the root of the repo.
 
 **Note** that this workspace does still require `pipenv` and `npm` to be installed.
 
@@ -122,3 +122,6 @@ These make it easier to launch all of the editor parts at once.
 >### Compound Launchers
 >- Django & React & Firefox
 >- Django & React & Chrome
+
+# Mac M1 install
+- The oso dependency requires manually building oso, per instructions at: https://github.com/osohq/oso/issues/808.  The final install step `make python-build` must be executed in the virtual environment (e.g., `pipenv run make python-build`).

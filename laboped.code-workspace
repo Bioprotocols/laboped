@@ -2,34 +2,75 @@
     "folders": [
         {
             "path": "."
+        },
+        {
+            "path": "../labop"
+        },
+        {
+            "path": "../labop-specification"
+        },
+        {
+            "path": "../labop-check"
         }
     ],
     "settings": {
         "python.pipenvPath": "pipenv",
         "python.terminal.activateEnvironment": false,
         "python.linting.pylintEnabled": true,
-        "files.trimTrailingWhitespace": true
+        "files.trimTrailingWhitespace": true,
     },
     "launch": {
         "version": "0.2.0",
         "configurations": [
             {
+                "name": "Python: Current File",
+                "type": "python",
+                "request": "launch",
+                "program": "${file}",
+                "console": "integratedTerminal",
+                "justMyCode": false
+            },
+            {
+                "name": "Python: FastAPI",
+                "type": "python",
+                "request": "launch",
+                "module": "uvicorn",
+                "args": [
+                    "main:app"
+                ],
+                "jinja": true
+            },
+            {
+                "name": "Python: Debug Unit Tests",
+                "type": "python",
+                "request": "launch",
+                "purpose": [
+                    "debug-test"
+                ],
+                "console": "integratedTerminal",
+                "justMyCode": false
+            },
+            {
                 "name": "Django",
                 "type": "python",
                 "request": "launch",
-                "program": "${workspaceFolder}/backend/manage.py",
+                "program": "${workspaceFolder:laboped}/backend/manage.py",
                 "args": [
                     "runserver"
                 ],
-                "django": true
+                "django": true,
+                "justMyCode": false
             },
             {
                 "name": "React",
                 "type": "node",
                 "request": "launch",
-                "cwd": "${workspaceRoot}/frontend/web",
+                "cwd": "${workspaceFolder:laboped}/frontend/web",
                 "runtimeExecutable": "npm",
-                "runtimeArgs": ["run", "start"],
+                "runtimeArgs": [
+                    "run",
+                    "start"
+                ],
                 "env": {
                     "BROWSER": "none",
                 }
@@ -39,14 +80,14 @@
                 "type": "firefox",
                 "request": "launch",
                 "url": "http://localhost:3000",
-                "webRoot": "${workspaceRoot}/frontend/web/src"
+                "webRoot": "${workspaceFolder:laboped}/frontend/web/src"
             },
             {
                 "name": "Chrome",
                 "type": "chrome",
                 "request": "launch",
                 "url": "http://localhost:3000",
-                "webRoot": "${workspaceRoot}/frontend/web/src"
+                "webRoot": "${workspaceFolder:laboped}/frontend/web/src"
             }
         ],
         "compounds": [
@@ -78,7 +119,7 @@
                 "args": [
                     "run",
                     "python",
-                    "${workspaceFolder}/backend/manage.py",
+                    "${workspaceFolder:laboped}/backend/manage.py",
                     "makemigrations",
                     "accounts",
                     "editor",
@@ -100,7 +141,7 @@
                 "args": [
                     "run",
                     "python",
-                    "${workspaceFolder}/backend/manage.py",
+                    "${workspaceFolder:laboped}/backend/manage.py",
                     "migrate",
                 ],
                 "presentation": {
@@ -120,7 +161,7 @@
                 "args": [
                     "run",
                     "python",
-                    "${workspaceFolder}/backend/manage.py",
+                    "${workspaceFolder:laboped}/backend/manage.py",
                     "createsuperuser",
                 ],
                 "presentation": {
@@ -136,11 +177,11 @@
             {
                 "label": "Nuke DB & Migrations",
                 "type": "process",
-                "command": "${workspaceFolder}/scripts/clean-all.sh",
+                "command": "${workspaceFolder:laboped}/scripts/clean-all.sh",
                 "args": [
-                    "${workspaceFolder}/backend/db.sqlite3",
-                    "${workspaceFolder}/backend/accounts/migrations",
-                    "${workspaceFolder}/backend/editor/migrations",
+                    "${workspaceFolder:laboped}/backend/db.sqlite3",
+                    "${workspaceFolder:laboped}/backend/accounts/migrations",
+                    "${workspaceFolder:laboped}/backend/editor/migrations",
                 ],
                 "presentation": {
                     "echo": true,

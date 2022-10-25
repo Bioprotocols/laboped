@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-import { Modal, Button, Alert, Spinner, Row, Col } from 'react-bootstrap';
+import { Modal, Button } from 'react-bootstrap';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import marked from "marked";
-//import ug from "USERGUIDE.md"
+
 
 export default class UserGuideModal extends Component {
 
@@ -37,17 +35,17 @@ export default class UserGuideModal extends Component {
       >
         <Modal.Header>
           {/* <Modal.Title id="contained-modal-title-vcenter">
-            PAMLED User Guide
+            LabOPEd User Guide
           </Modal.Title> */}
         </Modal.Header>
         <Modal.Body>
-          <ReactMarkdown children={markdown}  />
+          <ReactMarkdown children={markdown} />
 
         </Modal.Body>
         <Modal.Footer>
           <Button className="user-guide" variant="primary" onClick={() => this.props.handleDone()}>
-        Done
-      </Button>
+            Done
+          </Button>
         </Modal.Footer>
       </Modal>
     );

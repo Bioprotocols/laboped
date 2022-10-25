@@ -17,17 +17,17 @@ class Signup extends React.Component {
 
     this.loginStatus = React.createRef();
   }
-  
+
   handlePasswordChange(event) {
-    this.setState({password: event.target.value});
+    this.setState({ password: event.target.value });
   }
 
   handlePasswordConfirmChange(event) {
-    this.setState({passwordConfirm: event.target.value});
+    this.setState({ passwordConfirm: event.target.value });
   }
 
   handleEmailChange(event) {
-    this.setState({email: event.target.value});
+    this.setState({ email: event.target.value });
   }
 
   onAuthenticationChanged(isAuthenticated) {
@@ -59,7 +59,7 @@ class Signup extends React.Component {
     }
     return (
       <div className="container mt-3">
-        <h1>PAML Editor</h1>
+        <h1>LabOP Editor</h1>
         <br />
         <h2>Sign Up</h2>
         <form onSubmit={this.signup}>

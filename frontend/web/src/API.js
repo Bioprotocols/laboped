@@ -13,9 +13,10 @@ const EDITOR_API_URL = `${BASE_API_URL}/editor`;
 const ACCOUNTS_API_URL = `${BASE_API_URL}/accounts`;
 export let endpoint = {
   editor: {
-    protocol:`${EDITOR_API_URL}/protocol/`,
-    primitive:`${EDITOR_API_URL}/primitive/`,
-    rebuild:`${EDITOR_API_URL}/primitive/rebuild/`,
+    protocol: `${EDITOR_API_URL}/protocol/`,
+    primitive: `${EDITOR_API_URL}/primitive/`,
+    rebuild: `${EDITOR_API_URL}/primitive/rebuild/`,
+    specializations: `${EDITOR_API_URL}/specialization/`,
   },
   accounts: {
     csrf: `${ACCOUNTS_API_URL}/csrf/`,

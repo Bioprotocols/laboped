@@ -7,6 +7,7 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+.DS_store
 .Python
 build/
 develop-eggs/
@@ -39,17 +40,18 @@ instance/
 .webassets-cache
 
 **/__pycache__/**
-pamled/editor/static/**
-pamled/editor/templates/**
+laboped/editor/static/**
+laboped/editor/templates/**
 **/.vscode
-pamled/.env
+laboped/.env
 **/node_modules
 **/.editorconfig
-pamled/general.log
+laboped/general.log
 general.log
-backend/pamled_editor/migrations
+backend/laboped_editor/migrations
 backend/api/migrations
 backend/editor/migrations
 backend/accounts/migrations
 backend/media/
 oso
+**/*.gv*
