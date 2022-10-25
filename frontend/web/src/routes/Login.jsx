@@ -91,7 +91,7 @@ class Login extends React.Component {
 
     return (
       <div className="container">
-        <h1>PAML Editor</h1>
+        <h1>LabOP Editor</h1>
         <br />
         <h2>Login</h2>
         <form onSubmit={this.login}>

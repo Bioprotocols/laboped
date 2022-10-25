@@ -4,13 +4,13 @@
             "path": "."
         },
         {
-            "path": "../paml"
+            "path": "../labop"
         },
         {
-            "path": "../PAML-specification"
+            "path": "../labop-specification"
         },
         {
-            "path": "../paml-check"
+            "path": "../labop-check"
         }
     ],
     "settings": {
@@ -54,7 +54,7 @@
                 "name": "Django",
                 "type": "python",
                 "request": "launch",
-                "program": "${workspaceFolder:pamlEd}/backend/manage.py",
+                "program": "${workspaceFolder:laboped}/backend/manage.py",
                 "args": [
                     "runserver"
                 ],
@@ -65,7 +65,7 @@
                 "name": "React",
                 "type": "node",
                 "request": "launch",
-                "cwd": "${workspaceFolder:pamlEd}/frontend/web",
+                "cwd": "${workspaceFolder:laboped}/frontend/web",
                 "runtimeExecutable": "npm",
                 "runtimeArgs": [
                     "run",
@@ -80,14 +80,14 @@
                 "type": "firefox",
                 "request": "launch",
                 "url": "http://localhost:3000",
-                "webRoot": "${workspaceFolder:pamlEd}/frontend/web/src"
+                "webRoot": "${workspaceFolder:laboped}/frontend/web/src"
             },
             {
                 "name": "Chrome",
                 "type": "chrome",
                 "request": "launch",
                 "url": "http://localhost:3000",
-                "webRoot": "${workspaceFolder:pamlEd}/frontend/web/src"
+                "webRoot": "${workspaceFolder:laboped}/frontend/web/src"
             }
         ],
         "compounds": [
@@ -119,7 +119,7 @@
                 "args": [
                     "run",
                     "python",
-                    "${workspaceFolder:pamlEd}/backend/manage.py",
+                    "${workspaceFolder:laboped}/backend/manage.py",
                     "makemigrations",
                     "accounts",
                     "editor",
@@ -141,7 +141,7 @@
                 "args": [
                     "run",
                     "python",
-                    "${workspaceFolder:pamlEd}/backend/manage.py",
+                    "${workspaceFolder:laboped}/backend/manage.py",
                     "migrate",
                 ],
                 "presentation": {
@@ -161,7 +161,7 @@
                 "args": [
                     "run",
                     "python",
-                    "${workspaceFolder:pamlEd}/backend/manage.py",
+                    "${workspaceFolder:laboped}/backend/manage.py",
                     "createsuperuser",
                 ],
                 "presentation": {
@@ -177,11 +177,11 @@
             {
                 "label": "Nuke DB & Migrations",
                 "type": "process",
-                "command": "${workspaceFolder:pamlEd}/scripts/clean-all.sh",
+                "command": "${workspaceFolder:laboped}/scripts/clean-all.sh",
                 "args": [
-                    "${workspaceFolder:pamlEd}/backend/db.sqlite3",
-                    "${workspaceFolder:pamlEd}/backend/accounts/migrations",
-                    "${workspaceFolder:pamlEd}/backend/editor/migrations",
+                    "${workspaceFolder:laboped}/backend/db.sqlite3",
+                    "${workspaceFolder:laboped}/backend/accounts/migrations",
+                    "${workspaceFolder:laboped}/backend/editor/migrations",
                 ],
                 "presentation": {
                     "echo": true,

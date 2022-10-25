@@ -1,10 +1,9 @@
 import Rete from "rete";
-import { TextControl } from "./IOComponents";
-import { PAMLComponent } from ".";
+import { LABOPComponent, TextControl } from ".";
 import { TimepointIn, TimepointOut } from "./IOComponents";
 import { timeSocket } from "./Primitive";
 
-export class ModuleComponent extends PAMLComponent {
+export class ModuleComponent extends LABOPComponent {
     constructor(props) {
         super(props);
         this.module = {
@@ -26,7 +25,7 @@ export class ModuleComponent extends PAMLComponent {
     }
 }
 
-export class PAMLProtocolComponent extends ModuleComponent {
+export class LABOPProtocolComponent extends ModuleComponent {
     constructor(props) {
         super({ name: props.protocol.name, ...props })
         this.protocol = props.protocol;

@@ -6,7 +6,7 @@ import Spreadsheet from "react-spreadsheet";
 class TypeConfigurator extends React.Component {
     constructor(props) {
         super(props)
-        this.pamlType = props.pamlType;
+        this.type = props.type;
         this.handleSave = props.handleSave;
         this.state = {
         };
@@ -123,6 +123,17 @@ class ContainerSpecConfigurator extends TypeConfigurator {
         this.containerGroup = {
             "vessel": ["tube", "flask", "dish"],
             "microplate": [6, 12, 24, 48, 96, 384, 1536],
+            "opentrons": [
+                'opentrons_96_tiprack_10ul',
+                'opentrons_96_tiprack_300ul',
+                'opentrons_96_tiprack_1000ul',
+                'opentrons_96_filtertiprack_10ul',
+                'opentrons_96_filtertiprack_200ul',
+                'opentrons_96_filtertiprack_1000ul',
+                'opentrons_24_tuberack_eppendorf_1.5ml_safelock_snapcap',
+                'corning_96_wellplate_360ul_flat',
+                'biorad_96_wellplate_200ul_pcr',
+            ]
 
         }
     }
@@ -139,7 +150,7 @@ class ContainerSpecConfigurator extends TypeConfigurator {
     //     this.handleSubmit()
     // }
 
-    selectConatinerType = (e) => {
+    selectContainerType = (e) => {
         this.setState({ containerType: e.target.id }, () => this.handleSave(this.state));
     }
 
@@ -178,11 +189,12 @@ class ContainerSpecConfigurator extends TypeConfigurator {
     render() {
 
 
-        let containerTypes = (<Form.Group className="mb-3" controlId="formBasicUnits" >
+        let containerTypes = (<Form.Group className="mb-3" >
             <div>
                 {
                     Object.keys(this.containerGroup).map((elt) => (
-                        <Form.Check name="containerType" type={'radio'} key={elt} id={elt} label={elt} checked={this.state.containerType === elt}
+                        <Form.Check name="containerType" type={'radio'} id={elt} value={elt} key={elt} label={elt}
+                            checked={this.state.containerType === elt}
                             onChange={this.selectContainerType}
                         />
                     ))
@@ -191,9 +203,9 @@ class ContainerSpecConfigurator extends TypeConfigurator {
         </Form.Group>)
 
         let nameConfig = (
-            <Form.Group className="mb-3" controlId="formBasicValue">
+            <Form.Group className="mb-3" >
                 <Form.Label>Name</Form.Label>
-                <Form.Control type="value" placeholder="Enter Container Name" value={this.state.containerName} id="name" onChange={this.selectContainerName} />
+                <Form.Control placeholder="Enter Container Name" value={this.state.containerName} id="name" onChange={this.selectContainerName} />
                 {/* <Form.Text className="text-muted">
                     Provide a Container Name.
                 </Form.Text> */}
@@ -205,7 +217,7 @@ class ContainerSpecConfigurator extends TypeConfigurator {
                 {
                     Object.entries(this.containerGroup).map(([containerType, containers], i) => {
                         if (this.state.containerType === containerType) {
-                            return (<Form.Group className="mb-3" controlId={containerType}>
+                            return (<Form.Group className="mb-3" >
                                 <div>
                                     {
                                         containers.map((elt) => (
@@ -379,7 +391,9 @@ class SubtypeConfigurator extends TypeConfigurator {
     }
 
     componentDidMount() {
-        this.setState({ subType: this.props.subType });
+        let currSubType = this.props.subType ? this.props.subType : Object.keys(this.subTypes)[0];
+
+        this.setState({ subType: currSubType });
     }
 
     selectSubType = (e) => {
@@ -388,14 +402,14 @@ class SubtypeConfigurator extends TypeConfigurator {
 
     render() {
         if (this.state.subType) {
-            let subTypes = (<Form.Select className="mb-3" controlId="subTypes" value={this.state.subType} onChange={this.selectSubType}>
+            let subTypes = (<Form.Select className="mb-3" value={this.state.subType} onChange={this.selectSubType}>
                 {<option value={undefined}></option>}
                 {Object.keys(this.subTypes).map((elt) => {
-                    if (this.state.subType === elt) {
-                        return (<option value={elt} selected>{elt}</option>);
-                    } else {
-                        return (<option key={elt} value={elt}>{elt}</option>);
-                    }
+                    // if (this.state.subType === elt) {
+                    // return (<option value={elt} selected>{elt}</option>);
+                    // } else {
+                    return (<option key={elt} value={elt}>{elt}</option>);
+                    // }
                 })}
 
             </Form.Select>)
@@ -451,7 +465,8 @@ class ValueSpecificationConfigurator extends SubtypeConfigurator {
     constructor(props) {
         super(props)
         this.subTypes = {
-            "Aliquots": AliquotConfigurator
+            "Aliquots": AliquotConfigurator,
+            "Container Specification": ContainerSpecConfigurator,
         }
     }
 }
@@ -476,7 +491,7 @@ class AliquotConfigurator extends TypeConfigurator {
                 // style={{ height: '100px' }}
                 value={this.state.rectangleList}
                 onChange={(e) => (
-                    this.setState({ rectangleList: e.target.value }, this.handleSave(this.state))
+                    this.setState({ rectangleList: e.target.value }, () => { this.handleSave(this.state) })
                 )}>
 
             </Form.Control>
@@ -488,20 +503,20 @@ class AliquotConfigurator extends TypeConfigurator {
 let typeConfigurators = {
     "http://bioprotocols.org/uml#ValueSpecification": ValueSpecificationConfigurator,
     "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure": MeasureConfigurator,
-    "http://bioprotocols.org/paml#SampleCollection": SampleCollectionConfigurator,
+    "http://bioprotocols.org/labop#SampleCollection": SampleCollectionConfigurator,
     "http://sbols.org/v3#Component": TypeConfigurator,
-    "http://bioprotocols.org/paml#SampleArray": SampleArrayConfigurator,
-    "http://bioprotocols.org/paml#SampleData": SampleDataConfigurator,
+    "http://bioprotocols.org/labop#SampleArray": SampleArrayConfigurator,
+    "http://bioprotocols.org/labop#SampleData": SampleDataConfigurator,
     "http://www.w3.org/2001/XMLSchema#anyURI": TypeConfigurator,
     "http://www.w3.org/2001/XMLSchema#integer": TypeConfigurator,
     "http://www.w3.org/2001/XMLSchema#double": TypeConfigurator,
     "http://sbols.org/v3#Identified": IdentifiedConfigurator,
-    "http://bioprotocols.org/paml#ContainerSpec": ContainerSpecConfigurator
+    "http://bioprotocols.org/labop#ContainerSpec": ContainerSpecConfigurator
 };
 
 export function getTypeConfigurator(props) {
-    if (props.pamlType in typeConfigurators) {
-        let tc = typeConfigurators[props.pamlType];
+    if (props.type in typeConfigurators) {
+        let tc = typeConfigurators[props.type];
 
         let tcObj = React.createElement(tc, props);
         return tcObj;

@@ -1,4 +1,4 @@
-# Examples for PAMLED
+# Examples for LabOPEd
 
 # Overview
 

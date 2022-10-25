@@ -1,8 +1,13 @@
 from typing import List, TYPE_CHECKING
+from numpy import isin
 import sbol3
 import inspect
 import rdflib as rdfl
 import json
+
+import logging
+
+l: logging.Logger = logging.Logger("LABOPMapping")
 
 if TYPE_CHECKING:
     from editor.models import (
@@ -13,11 +18,20 @@ if TYPE_CHECKING:
     )
 
 
-class PAMLMappingException(Exception):
+class LABOPMappingException(Exception):
     pass
 
 
-class PAMLMapping:
+CONT_NS = rdfl.Namespace(
+    "https://sift.net/container-ontology/container-ontology#"
+)
+OM_NS = rdfl.Namespace(
+    "http://www.ontology-of-units-of-measure.org/resource/om-2/"
+)
+PREFIX_MAP = json.dumps({"cont": CONT_NS, "om": OM_NS})
+
+
+class LABOPMapping:
     """
     This class maps labop library primitives to Django models so that they can be exposed to the API.
     The mapping from labop to models is incomplete so that the front end can include less data.
@@ -34,22 +48,22 @@ class PAMLMapping:
         import labop
         import uml
 
-        for lib in PAMLMapping.labop_libraries:
+        for lib in LABOPMapping.labop_libraries:
             labop.import_library(lib)
         return labop, uml
 
     def graph_to_protocol(protocol: "Protocol", doc=None):
         """
-        Convert an editor graph to a PAML protocol.
+        Convert an editor graph to a LABOP protocol.
         """
-        labop, uml = PAMLMapping._load_labop()
+        labop, uml = LABOPMapping._load_labop()
 
         name = protocol.name
         graph = protocol.graph
 
         if not doc:
             doc = sbol3.Document()
-        sbol3.set_namespace("https://bbn.com/scratch/")
+        sbol3.set_namespace("https://labop.io/scratch/")
 
         protocol_name = "".join(
             [c for c in name if c.isalpha() or c.isdecimal()]
@@ -65,20 +79,20 @@ class PAMLMapping:
         final = labop_protocol.final()
 
         # Collect parameters for call behaviors
-        parameters = PAMLMapping.map_parameters(graph)
+        parameters = LABOPMapping.map_parameters(doc, graph)
 
         # Create protcol nodes
         node_to_call_behavior = {}
         for _, node in graph["nodes"].items():
             node_to_call_behavior[
                 node["id"]
-            ] = PAMLMapping.node_to_call_behavior(
+            ] = LABOPMapping.node_to_call_behavior(
                 labop_protocol, protocol, node, parameters
             )
 
         # Create protocol edges
         for _, node in graph["nodes"].items():
-            PAMLMapping.make_incoming_edges(
+            LABOPMapping.make_incoming_edges(
                 labop_protocol, node, node_to_call_behavior
             )
 
@@ -86,7 +100,11 @@ class PAMLMapping:
 
         # Add ordering for all nodes wrt. initial and final
         for node in labop_protocol.nodes:
-            if node != initial and node != final:
+            if (
+                node != initial
+                and node != final
+                and not isinstance(node, uml.ControlNode)
+            ):
                 labop_protocol.order(initial, node)
                 labop_protocol.order(node, final)
 
@@ -145,7 +163,7 @@ class PAMLMapping:
                             ):
                                 pass  # This is a parameter that was already made into a value pin
                             else:
-                                raise PAMLMappingException(
+                                raise LABOPMappingException(
                                     f"Unable to process ObjectFlow for pin: {input_pin_id}"
                                 )
 
@@ -155,7 +173,7 @@ class PAMLMapping:
                     ## Protocol doesn't connect to output, but can still make the output
                     node = labop_protocol.designate_output(
                         node["data"]["name"],
-                        PAMLMapping.map_type(node["data"]["type"]),
+                        LABOPMapping.map_type(node["data"]["type"]),
                         None,  # no source if no connections
                     )
                     # labop_protocol.nodes.append(node)
@@ -172,14 +190,14 @@ class PAMLMapping:
                         )
                         output = labop_protocol.designate_output(
                             node["data"]["name"],
-                            PAMLMapping.map_type(node["data"]["type"]),
+                            LABOPMapping.map_type(node["data"]["type"]),
                             source_pin,
                         )
                         labop_protocol.order(source_call_behavior, output)
         elif node["name"] in skipped_nodes:
             pass
         else:
-            raise PAMLMappingException(
+            raise LABOPMappingException(
                 f"Do not know how to make incoming edges for node: {node}"
             )
 
@@ -210,21 +228,28 @@ class PAMLMapping:
             input_pin_map = {}
             if node["id"] in parameters:
                 input_pin_map = parameters[node["id"]]
+            # Remove None values
+            input_pin_map = {k:v for k, v in input_pin_map.items() if v is not None}
 
             # Get ValuePins
             value_pin_map = {
-                x.property_value.name: PAMLMapping.map_value(
-                    node["data"][x.property_value.name], x.property_value.type
+                x.property_value.name: LABOPMapping.map_value(
+                    labop_protocol.document,
+                    node["data"][x.property_value.name],
+                    x.property_value.type,
                 )
                 for x in primitive.get_inputs()
                 if x.property_value.direction == uml.PARAMETER_IN
                 and x.property_value.name in node["data"]
+                and x.property_value.name not in input_pin_map
             }
+            # Remove None values
+            value_pin_map = {k:v for k, v in value_pin_map.items() if v is not None}
 
             node = labop_protocol.execute_primitive(
                 primitive, **input_pin_map, **value_pin_map
             )
-            labop_protocol.order(labop_protocol.initial(), node)
+            # labop_protocol.order(labop_protocol.initial(), node)
             return node
         elif "isModule" in node["data"] and node["data"]["isModule"]:
             # Subprotocol
@@ -235,7 +260,7 @@ class PAMLMapping:
                 f"{sbol3.get_namespace()}{node['name']}"
             )
             if not labop_subprotocol:
-                labop_subprotocol = PAMLMapping.graph_to_protocol(
+                labop_subprotocol = LABOPMapping.graph_to_protocol(
                     subprotocol, doc=labop_protocol.document
                 )
             return labop_protocol.execute_primitive(
@@ -257,7 +282,7 @@ class PAMLMapping:
                 ]["connections"]
 
             if len(sources) > 1:
-                raise PAMLMappingException(
+                raise LABOPMappingException(
                     f"There is more than one Activity linked to the Output node: {node}"
                 )
             # elif len(sources) == 0:
@@ -278,54 +303,64 @@ class PAMLMapping:
         elif node["name"] == "Parameter":
             return None
         else:
-            raise PAMLMappingException(
+            raise LABOPMappingException(
                 f"Do not know how to convert node: {node}"
             )
 
-    def map_parameters(graph):
+    def map_parameters(doc, graph):
         ## Find the Parameter nodes and make a mapping from Activity nodes to parameter, value pairs
         parameters = {}
         for _, node in graph["nodes"].items():
             if node["name"] == "Parameter":
-                parameters = PAMLMapping.map_parameter(
-                    node, graph, parameters
+                parameters = LABOPMapping.map_parameter(
+                    doc, node, graph, parameters
                 )  # side effect setting parameters
         return parameters
 
-    def map_parameter(node, graph, parameters):
+    def map_parameter(doc, node, graph, parameters):
         ## Need to create a parameter object and save for populating the Activities it connects with
-        for activity_node in node["outputs"]["output"]["connections"]:
+        for outpin in node["outputs"]:
             # This parameter node is a parameter for the activity_node
-            parameter_value = PAMLMapping.map_value(
-                node["data"]["value"], node["data"]["type"]
+            data = node["data"][outpin] if outpin in node["data"] else {}
+            data.update({"name": node["data"]["name"]})
+            parameter_value = LABOPMapping.map_value(
+                doc,
+                data,
+                node["data"]["type"],
             )
-            activity_graph_node = graph["nodes"][str(activity_node["node"])]
+            for activity_node in node["outputs"][outpin]["connections"]:
+                activity_graph_node = graph["nodes"][str(activity_node["node"])]
 
-            if activity_graph_node["id"] not in parameters:
-                parameters[activity_graph_node["id"]] = {}
+                if activity_graph_node["id"] not in parameters:
+                    parameters[activity_graph_node["id"]] = {}
 
-            parameters[activity_graph_node["id"]][
-                activity_node["input"]
-            ] = parameter_value
+                parameters[activity_graph_node["id"]][
+                    activity_node["input"]
+                ] = parameter_value
 
         return parameters
 
-    def map_value(value, value_type):
+    def map_value(doc, value, value_type):
         ## Convert value to a literal
         import uml
 
         try:
 
             type_map = {
-                "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure": PAMLMapping.map_measure,
-                "http://bioprotocols.org/labop#SampleData": PAMLMapping.map_sample_data,
-                "http://sbols.org/v3#Identified": PAMLMapping.map_identified,
-                "http://bioprotocols.org/uml#ValueSpecification": PAMLMapping.map_value_specification,
+                "Measure": LABOPMapping.map_measure,
+                "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure": LABOPMapping.map_measure,
+                "SampleData": LABOPMapping.map_sample_data,
+                "Identified": LABOPMapping.map_identified,
+                "ValueSpecification": LABOPMapping.map_value_specification,
+                "http://bioprotocols.org/uml#ValueSpecification": LABOPMapping.map_value_specification,
+                "ContainerSpec": LABOPMapping.map_container_spec,
+                "Agent": LABOPMapping.map_agent,
+                "http://bioprotocols.org/labop#SampleArray": LABOPMapping.map_sample_array,
             }
 
             if value_type in type_map:
                 handler = type_map[value_type]
-                return handler(value, value_type)
+                return handler(doc, value, value_type)
             else:
                 raise ValueError(
                     f"Cannot covert parameter of type {value_type}. Do you need a new handler?"
@@ -334,7 +369,7 @@ class PAMLMapping:
             l.warn(f"Could not map value {value} of type {value_type}: {e}")
             return uml.literal(None)
 
-    def map_measure(value, value_type):
+    def map_measure(doc, value, value_type):
         import tyto
         import uml
 
@@ -343,7 +378,7 @@ class PAMLMapping:
         unit_type = eval(f"tyto.OM.{measure_units}")
         return uml.literal(sbol3.Measure(measure_value, unit_type))
 
-    def map_sample_data(value, value_type):
+    def map_sample_data(doc, value, value_type):
         import labop
 
         data = value["data"]
@@ -353,7 +388,15 @@ class PAMLMapping:
         sample_data.from_table(data)
         return sample_data
 
-    def map_identified(value, value_type):
+    def map_sample_array(doc, value, value_type):
+        # FIXME sample_array is not needed if have a container-ontology spec.
+        l.warning(
+            "Not mapping a SampleArray ..., see LABOPMapping.map_sample_array()"
+        )
+        return None
+
+    # FIXME use the map_container_spec function instead.
+    def map_identified(doc, value, value_type):
         import labop
 
         if value["subType"] == "Container Specification":
@@ -373,26 +416,70 @@ class PAMLMapping:
         else:
             raise Exception(f"Cannot map an Identified object {value}")
 
-    def map_value_specification(value, value_type):
+    def map_value_specification(doc, value, value_type):
         import labop
         import uml
 
-        if value["subType"] == "Aliquots":
+
+        # FIXME add back subType for ValueSpecification
+        if "rectangleList" in value:  # or value["subType"] == "Aliquots":
             return uml.literal(value["rectangleList"])
         else:
             raise Exception(f"Cannot map an ValueSpecification object {value}")
 
+    def map_container_spec(doc, value, value_type):
+        import tyto
+        import uml
+        import labop
+        from labop_convert.opentrons.opentrons_specialization import (
+            LABWARE_MAP,
+            REVERSE_LABWARE_MAP,
+        )
+
+        if value["containerType"] == "opentrons":
+            if value["container"] in REVERSE_LABWARE_MAP:
+                container_ontology_term = REVERSE_LABWARE_MAP[
+                    value["container"]
+                ]
+
+                plate_spec = labop.ContainerSpec(
+                    value["name"].replace(" ", "_"),
+                    name=value["name"],
+                    queryString=container_ontology_term,
+                    prefixMap=PREFIX_MAP,
+                )
+                # if not doc.find(plate_spec.display_id):
+                #     doc.add(plate_spec)
+
+                # return uml.literal(plate_spec, reference=True)
+                return plate_spec
+            else:
+                raise LABOPMappingException(
+                    f"Could not find container {value['container']} in the opentrons specialization"
+                )
+        else:
+            raise NotImplementedError(
+                f"Mapping for containerType: {value['containerType']} not implemented."
+            )
+
+    def map_agent(doc, value, value_type):
+        import sbol3
+
+        agent = sbol3.Agent(value["name"].replace(" ", "_"), name=value["name"])
+        doc.add(agent)
+        return agent
+
     def map_type(string_type):
         """
-        Map the type specified in the string to a PAML type
+        Map the type specified in the string to a LABOP type
         """
         return sbol3.Identified
 
     def reload_models():
-        labop, _ = PAMLMapping._load_labop()
+        labop, _ = LABOPMapping._load_labop()
         for l, lib_doc in labop.loaded_libraries.items():
             for p in lib_doc.objects:
-                PAMLMapping._initialize_primitive(p, l)
+                LABOPMapping._initialize_primitive(p, l)
 
     def _initialize_primitive(p, library):
         """
@@ -442,7 +529,7 @@ class PAMLMapping:
         specializations: List["Specialization"],
         protocol_specialization: "ProtocolSpecialization",
     ):
-        labop, uml = PAMLMapping._load_labop()
+        labop, uml = LABOPMapping._load_labop()
         import sbol3
         import labop_convert
         from labop.execution_engine import ExecutionEngine
@@ -475,31 +562,34 @@ class PAMLMapping:
             id: specialization_class(*(args[id]), **(kwargs[id]))
             for id, specialization_class in specialization_classes.items()
         }
-        labop_protocol = PAMLMapping.graph_to_protocol(protocol)
+        labop_protocol = LABOPMapping.graph_to_protocol(protocol)
         ee = ExecutionEngine(
             specializations=specialization_objects.values(),
             permissive=True,  # Allow execution to proceed even if not all pins have tokens (i.e., control flow only)
         )
         parameter_values = []  # FIXME
         execution_id = f"protocol_specialization_{protocol_specialization.id}"
-        execution = ee.execute(
-            labop_protocol,
-            sbol3.Agent("laboped_agent"),
-            parameter_values,
-            id=execution_id,
-            start_time=None,
-        )
+        try:
+            execution = ee.execute(
+                labop_protocol,
+                sbol3.Agent("laboped_agent"),
+                parameter_values,
+                id=execution_id,
+                start_time=None,
+            )
+        except Exception as e:
+            l.exception(f"Execution failed because: {e}")
         specialization_data = {
             id: s.data for id, s in specialization_objects.items()
         }
         return specialization_data
 
     def execute(protocol: "Protocol", protocol_execution: "ProtocolExecution"):
-        labop, uml = PAMLMapping._load_labop()
+        labop, uml = LABOPMapping._load_labop()
         import sbol3
         from labop.execution_engine import ExecutionEngine
 
-        labop_protocol = PAMLMapping.graph_to_protocol(protocol)
+        labop_protocol = LABOPMapping.graph_to_protocol(protocol)
         ee = ExecutionEngine()
         parameter_values = []  # FIXME
         execution_id = f"protocol_execution_{protocol_execution.id}"

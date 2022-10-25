@@ -4,4 +4,4 @@ django-oso
 djangorestframework
 jsonfield
 python-decouple
-pypaml
+labop

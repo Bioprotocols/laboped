@@ -64,7 +64,7 @@ class Executor extends React.Component {
             //     }).then(function (response) {
             //         // let store = $rdf.graph()
             //         let mimeType = null; //'application/rdf+xml';
-            //         let uri = null; //"http://bioprotocols.org/paml/";
+            //         let uri = null; //"http://bioprotocols.org/labop/";
             //         let parser = new N3Parser({ factory: rdf });
             //         let s = new Readable();
             //         s.push(eval(response.data.data));

@@ -6,8 +6,8 @@ import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
 
 import { MyNode } from "./components/Node";
-import { loadComponentsFromAPI, PAMLPrimitiveComponent } from "./components/Primitive";
-import { PAMLProtocolComponent } from "./components/ProtocolComponent";
+import { loadComponentsFromAPI, LABOPPrimitiveComponent } from "./components/Primitive";
+import { LABOPProtocolComponent } from "./components/ProtocolComponent";
 import { InputComponent, OutputComponent, ParameterComponent } from "./components/IOComponents";
 import { Palette } from "./palette";
 import Menu from "./menu";
@@ -156,7 +156,7 @@ export class Editor extends Component {
   }
 
 
-  pamlShortDataType(item) {
+  labopShortDataType(item) {
     let lastHash = item.indexOf("#");
     let slashSplit = item.split("/");
     return lastHash >= 0 ? item.split("#")[1] : slashSplit[slashSplit.length - 1];
@@ -168,7 +168,7 @@ export class Editor extends Component {
     // Return one socket unique to each type
     let portTypes = {};
     Object.keys(portMap).map((key, index) => {
-      let typeName = this.pamlShortDataType(key);
+      let typeName = this.labopShortDataType(key);
       portTypes[key] = {
         typeName: typeName,
         socket: new Rete.Socket(typeName)
@@ -191,16 +191,16 @@ export class Editor extends Component {
   //   let portMap = {
   //     "http://bioprotocols.org/uml#ValueSpecification": "valueSpecification",
   //     "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure": "measure",
-  //     "http://bioprotocols.org/paml#SampleCollection": "sampleCollection",
+  //     "http://bioprotocols.org/labop#SampleCollection": "sampleCollection",
   //     "http://sbols.org/v3#Component": "component",
-  //     "http://bioprotocols.org/paml#SampleData": "sampleData",
-  //     "http://bioprotocols.org/paml#SampleArray": "sampleArray",
+  //     "http://bioprotocols.org/labop#SampleData": "sampleData",
+  //     "http://bioprotocols.org/labop#SampleArray": "sampleArray",
   //     "http://www.w3.org/2001/XMLSchema#anyURI": "anyURI",
-  //     "http://bioprotocols.org/paml#SampleMask": "sampleMask",
+  //     "http://bioprotocols.org/labop#SampleMask": "sampleMask",
   //     "http://www.w3.org/2001/XMLSchema#integer": "integer",
   //     "http://www.w3.org/2001/XMLSchema#float": "float",
   //     "http://www.w3.org/2001/XMLSchema#double": "double",
-  //     "http://bioprotocols.org/paml#ContainerSpec": "containerSpec",
+  //     "http://bioprotocols.org/labop#ContainerSpec": "containerSpec",
   //     "http://sbols.org/v3#Identified": "identified"
 
   //   }
@@ -224,7 +224,7 @@ export class Editor extends Component {
     components.map((c) => { libraries.add(c.library); return c; });
 
     components = components.map((primitive) => {
-      let c = new PAMLPrimitiveComponent({
+      let c = new LABOPPrimitiveComponent({
         portTypes: this.state.portTypes,
         primitive: primitive,
         saveProtocol: this.saveCurrentProtocol.bind(this)
@@ -232,7 +232,7 @@ export class Editor extends Component {
       // c.builder = function(node) {
       //   return node;
       // }
-      //for (let item of c.dataTypes) this.dataTypes.add(this.pamlShortDataType(item));
+      //for (let item of c.dataTypes) this.dataTypes.add(this.labopShortDataType(item));
       return c;
     });
 
@@ -528,7 +528,7 @@ export class Editor extends Component {
   initializeProtocolComponent(protocol) {
 
     // var primitiveComponents = this.state.primitiveComponents;
-    let protocolComponent = new PAMLProtocolComponent(
+    let protocolComponent = new LABOPProtocolComponent(
       {
         portTypes: this.state.portTypes,
         protocol: this.state.protocols[protocol],

@@ -1,4 +1,4 @@
-# PAML User Guide
+# LabOP User Guide
 
 - Getting Started
     - From the homepage, login with existing credentials (registering if needed).
@@ -7,9 +7,9 @@
     - If you have a graph file (json) that you previously downloaded, or were given (see `examples`), then click the triangle dropdown button next to the `+` button, and select `Load Rete Graph`.
     - Your saved protocols will also be listed across the top of the screen and can be selected by clicking on the name.
 - Saving Protocols
-    - Click the triangle dropdown next to the protocol name and select `Save`.  This will save the protocol to the PAMLED database and it will be available when you login in at a later time.
+    - Click the triangle dropdown next to the protocol name and select `Save`.  This will save the protocol to the LabOPEd database and it will be available when you login in at a later time.
 - Downloading Protocols
-    - Click the triangle dropdown next to the protocol name and select `Download Protocol` to save the PAML RDF.  Similarly, click `Download Rete Graph` to save the visual script graph representing the protocol. This file can also be used later to upload the protocol into PAMLED for other users or yourself.
+    - Click the triangle dropdown next to the protocol name and select `Download Protocol` to save the LabOP RDF.  Similarly, click `Download Rete Graph` to save the visual script graph representing the protocol. This file can also be used later to upload the protocol into LabOPEd for other users or yourself.
 - Create a new Protocol
     - Click the "+" button at the top of the screen in the list of protocols.
 - Edit a Protocol
@@ -35,5 +35,5 @@
         - Create a protocol and only use Input and Output nodes to define its interface.  This protocol can be used as a new primitive.
 
 # Getting Help
-- Create an issue on the Github project: https://github.com/Bioprotocols/pamled
+- Create an issue on the Github project: https://github.com/Bioprotocols/laboped
 - Contact dbryce@sift.net

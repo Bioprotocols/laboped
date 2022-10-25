@@ -8,16 +8,17 @@ from accounts.models import User
 from django_oso.models import AuthorizedModel
 from django.core.files.base import ContentFile
 
-from editor.paml_utils.paml_mapping import PAMLMapping
+from editor.labop_utils.labop_mapping import LABOPMapping
 
 # Create your models here.
+
 
 class Protocol(AuthorizedModel):
     id = models.BigAutoField(primary_key=True, editable=False)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     graph = models.JSONField()
-    rdf_file = models.FileField(upload_to='editor/protocols/', null=True)
+    rdf_file = models.FileField(upload_to="editor/protocols/", null=True)
 
     def get_specializations(self):
         specializations = ProtocolSpecialization.objects.filter(protocol=self)
@@ -28,14 +29,14 @@ class Protocol(AuthorizedModel):
         return executions
 
     def to_rdf_string(self, format="nt"):
-        return Protocol.to_paml(self.name, self.graph).document.write_string(format)
+        return Protocol.to_labop(self).document.write_string(format)
 
     def get_subprotocol(self, subprotocol_name):
         return Protocol.objects.get(name=subprotocol_name)
 
     @classmethod
-    def to_paml(cls, name, graph):
-        return PAMLMapping.graph_to_protocol(name, graph)
+    def to_labop(cls, self):
+        return LABOPMapping.graph_to_protocol(self)
 
 
 class Primitive(models.Model):
@@ -57,29 +58,41 @@ class Pin(models.Model):
 
 
 class PrimitiveInput(Pin):
-    primitive = models.ForeignKey(Primitive, related_name='inputs', on_delete=models.CASCADE)
+    primitive = models.ForeignKey(
+        Primitive, related_name="inputs", on_delete=models.CASCADE
+    )
+
 
 class PrimitiveOutput(Pin):
-    primitive = models.ForeignKey(Primitive, related_name='outputs', on_delete=models.CASCADE)
+    primitive = models.ForeignKey(
+        Primitive, related_name="outputs", on_delete=models.CASCADE
+    )
+
 
 class Specialization(models.Model):
     id = models.BigAutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=100)
 
+
 def specialization_path(instance, filename):
-        return 'editor/protocols/{0}/specializations/{1}/{2}'.format(instance.protocol, instance.specialization, filename)
+    return "editor/protocols/{0}/specializations/{1}/{2}".format(
+        instance.protocol, instance.specialization, filename
+    )
+
 
 class ProtocolSpecialization(models.Model):
     id = models.BigAutoField(primary_key=True, editable=False)
-    protocol = models.ForeignKey(Protocol, related_name='protocol', on_delete=models.CASCADE)
-    specialization = models.ForeignKey(Specialization, related_name='specialization', on_delete=models.CASCADE)
+    protocol = models.ForeignKey(
+        Protocol, related_name="protocol", on_delete=models.CASCADE
+    )
+    specialization = models.ForeignKey(
+        Specialization, related_name="specialization", on_delete=models.CASCADE
+    )
     data = models.TextField()
+
 
 class ProtocolExecution(AuthorizedModel):
     id = models.BigAutoField(primary_key=True, editable=False)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     protocol = models.ForeignKey(Protocol, on_delete=models.CASCADE)
     data = models.TextField(null=True)
-
-
-

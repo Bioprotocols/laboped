@@ -1,13 +1,13 @@
 import Rete from "rete";
 
 import { axios, axios_csrf_options, endpoint } from "../../API";
-import { PAMLInputPin, PAMLInputControl, TimepointIn, TimepointOut, PAMLInputControlComponent } from "./IOComponents";
-import { PAMLComponent } from ".";
+import { LABOPInputPin, TimepointIn, TimepointOut, LABOPInputControlComponent, MyReactControl } from "./IOComponents";
+import { LABOPComponent, LABOPInputControl, TextControl } from ".";
 
 // export var numSocket = new Rete.Socket("Number");
 // export var floatSocket = new Rete.Socket("Float");
 export var timeSocket = new Rete.Socket("Timepoint");
-// export var pamlSocket = new Rete.Socket("pamlSocket");
+// export var labopSocket = new Rete.Socket("labopSocket");
 
 export async function loadComponentsFromAPI() {
   let primitives = axios
@@ -25,16 +25,28 @@ export async function loadComponentsFromAPI() {
 
 
 
-export class PAMLPrimitiveComponent extends PAMLComponent {
+export class LABOPPrimitiveComponent extends LABOPComponent {
   constructor(props) {
     super({ name: props.primitive.name, ...props })
     this.primitive = props.primitive;
   }
+
   async builder(node) {
     //node = new MyNode();
     try {
+      let nameCtrl = new TextControl({
+        emitter: this.editor,
+        component: MyReactControl,
+        key: "name",
+        name: "name",
+        value: this.getName(node),
+        saveProtocol: this.saveProtocol,
+        //onChangeCallback: this.handleNameChange.bind(this)
+      });
+      node.addControl(nameCtrl);
+
       var inputs = this.primitive.inputs.map(i => new
-        PAMLInputPin({
+        LABOPInputPin({
           key: i.name,
           title: i.name,
           socket: this.portTypes[i.type].socket,
@@ -42,11 +54,11 @@ export class PAMLPrimitiveComponent extends PAMLComponent {
           saveProtocol: this.saveProtocol,
           onChange: null
         }));
-      inputs.forEach(i => i.addControl(new PAMLInputControl({
+      inputs.forEach(i => i.addControl(new LABOPInputControl({
         key: i.name,
         name: i.name,
         emitter: node.editor,
-        component: PAMLInputControlComponent,
+        component: LABOPInputControlComponent,
         value: null,
         saveProtocol: this.saveProtocol,
         onChangeCallback: null

@@ -14,11 +14,17 @@ from editor.serializers import ProtocolExecutionSerializer
 from editor.models import ProtocolSpecialization
 from editor.models import Specialization
 from editor.models import Primitive
-from editor.paml_utils.paml_mapping import PAMLMapping
+from editor.labop_utils.labop_mapping import LABOPMapping
 
 from editor.models import Protocol
-from editor.protocol.protocol import Protocol as PAMLProtocol
-from editor.serializers import PrimitiveSerializer, ProtocolSerializer, SpecializationSerializer, ProtocolSpecializationSerializer
+from editor.protocol.protocol import Protocol as LABOPProtocol
+from editor.serializers import (
+    PrimitiveSerializer,
+    ProtocolSerializer,
+    SpecializationSerializer,
+    ProtocolSpecializationSerializer,
+)
+
 # Create your views here.
 
 from django.http import HttpResponse, Http404, HttpResponseServerError
@@ -53,7 +59,7 @@ class PrimitiveViewSet(viewsets.ModelViewSet):
     @action(detail=False)
     def rebuild(self, request, *args, **kwargs):
         print("Rebuilding primitives...")
-        PAMLMapping.reload_models()
+        LABOPMapping.reload_models()
         return HttpResponse(f"Rebuilt: {Primitive.objects.all()}")
 
 
@@ -69,21 +75,23 @@ class ProtocolViewSet(viewsets.ModelViewSet):
         user = request.user
         created = []
         to_update = []
-        update_fields = ['name', 'graph', 'rdf_file']
+        update_fields = ["name", "graph", "rdf_file"]
         for p in request.data:
             try:
-                if p['id'] is not None:
+                if p["id"] is not None:
                     print(f"Updating protocol with id: {p['id']}")
-                    protocol = Protocol.objects.get(id=p['id'])
-                    protocol.name = p['name']
-                    protocol.graph = p['graph']
-                    protocol.rdf_file = p['rdf_file']
+                    protocol = Protocol.objects.get(id=p["id"])
+                    protocol.name = p["name"]
+                    protocol.graph = p["graph"]
+                    protocol.rdf_file = p["rdf_file"]
                     to_update.append(protocol)
                 else:
-                    protocol = Protocol.objects.create(owner=user,
-                                                       name=p['name'],
-                                                       graph=p['graph'],
-                                                       rdf_file=p['rdf_file'])
+                    protocol = Protocol.objects.create(
+                        owner=user,
+                        name=p["name"],
+                        graph=p["graph"],
+                        rdf_file=p["rdf_file"],
+                    )
                     print(f"Creating new protocol with id: {protocol.id}")
                     created.append(protocol)
             except Exception as e:
@@ -125,7 +133,6 @@ class ProtocolViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-
     @action(detail=True)
     def download(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -138,8 +145,12 @@ class ProtocolViewSet(viewsets.ModelViewSet):
             print(f"Converting protocol {protocol.id} to rdf...")
             file_data = protocol.to_rdf_string(format)
             print("Done")
-            response = HttpResponse(file_data, content_type="application/octet-stream")
-            response['Content-Disposition'] = f'attachment;filename="{fname}.{format}"'
+            response = HttpResponse(
+                file_data, content_type="application/octet-stream"
+            )
+            response[
+                "Content-Disposition"
+            ] = f'attachment;filename="{fname}.{format}"'
             return response
         except Exception as e:
             return HttpResponseServerError(e)
@@ -153,30 +164,29 @@ class ProtocolViewSet(viewsets.ModelViewSet):
         protocol.delete()
         return HttpResponse(f"Deleted protocol {protocol.id}.")
 
-
     @action(detail=True)
     def execute(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             raise NotAuthenticated
         try:
-            protocol: Protocol = Protocol.objects.get(id=kwargs['pk'])
+            protocol: Protocol = Protocol.objects.get(id=kwargs["pk"])
             authorize(request, protocol)
 
             prior_pe = ProtocolExecution.objects.filter(protocol=protocol)
             if not any(prior_pe):
                 pe = ProtocolExecution.objects.create(
-                    protocol=protocol, owner=request.user)
+                    protocol=protocol, owner=request.user
+                )
             else:
                 pe = prior_pe.first()
 
-            execution = PAMLMapping.execute(protocol, pe)
+            execution = LABOPMapping.execute(protocol, pe)
             pe.data = json.dumps(execution)
             pe.save()
             pe_serializer = ProtocolExecutionSerializer(pe, many=False)
             return Response(pe_serializer.data)
         except Exception as e:
             return HttpResponseServerError(e)
-
 
 
 class SpecializationViewSet(viewsets.ModelViewSet):
@@ -187,7 +197,7 @@ class SpecializationViewSet(viewsets.ModelViewSet):
         if not request.user.is_authenticated:
             raise NotAuthenticated
         try:
-            specializations = PAMLMapping.get_specializations()
+            specializations = LABOPMapping.get_specializations()
             for s in specializations:
                 if not any(self.queryset.filter(name=s)):
                     Specialization.objects.create(name=s)
@@ -198,6 +208,7 @@ class SpecializationViewSet(viewsets.ModelViewSet):
             print(e)
             return HttpResponseServerError("Failed to get specializations")
 
+
 class ProtocolSpecializationViewSet(viewsets.ModelViewSet):
     serializer_class = ProtocolSpecializationSerializer
     queryset = ProtocolSpecialization.objects.all()
@@ -207,18 +218,22 @@ class ProtocolSpecializationViewSet(viewsets.ModelViewSet):
         if not request.user.is_authenticated:
             raise NotAuthenticated
         try:
-            specialization = Specialization.objects.get(id=kwargs['pk1'])
-            protocol: Protocol = Protocol.objects.get(id=kwargs['pk'])
+            specialization = Specialization.objects.get(id=kwargs["pk1"])
+            protocol: Protocol = Protocol.objects.get(id=kwargs["pk"])
             authorize(request, protocol)
 
-            prior_ps = ProtocolSpecialization.objects.filter(protocol=protocol, specialization=specialization)
+            prior_ps = ProtocolSpecialization.objects.filter(
+                protocol=protocol, specialization=specialization
+            )
             if not any(prior_ps):
                 ps = ProtocolSpecialization.objects.create(
-                    protocol=protocol,
-                    specialization=specialization)
+                    protocol=protocol, specialization=specialization
+                )
             else:
                 ps = prior_ps.first()
-            specialization_data = PAMLMapping.specialize(protocol, [specialization], ps)
+            specialization_data = LABOPMapping.specialize(
+                protocol, [specialization], ps
+            )
             ps.data = str(specialization_data[specialization.id])
             ps.save()
 

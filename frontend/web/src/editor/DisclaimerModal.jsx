@@ -35,7 +35,7 @@ export default class DisclaimerModal extends Component {
       >
         <Modal.Header>
           {/* <Modal.Title id="contained-modal-title-vcenter">
-            PAMLED User Guide
+            LabOPEd User Guide
           </Modal.Title> */}
         </Modal.Header>
         <Modal.Body>

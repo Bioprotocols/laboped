@@ -10,7 +10,7 @@ export class MyNode extends Node {
     this.setState({ showNotes: true })
   }
   handleClose = () => {
-    this.setState({ showNotes: false }, this.props.node.saveProtocol());
+    this.setState({ showNotes: false }, ()=> {this.props.node.saveProtocol()});
   }
 
   render() {
@@ -68,6 +68,7 @@ export class MyNode extends Node {
           socket={end.socket}
           io={end}
           innerRef={bindSocket}
+
         />
       </div>)
     }
@@ -81,16 +82,27 @@ export class MyNode extends Node {
         <FileEarmarkText className="node-info" onClick={this.showNotes}></FileEarmarkText>
         {notes}
         <div className="title">{node.name}</div>
+        {/* Controls */}
+        {controls.map(control => (
+          // <div className="control-title">{control.key}
+          <Control
+            className="control"
+            key={control.key}
+            control={control}
+            innerRef={bindControl}
+          />
+          // </div>
+        ))}
 
-        {/* Start */}
-        {startElt}
-        {/* End */}
-        {endElt}
         {/* Outputs */}
         {outputs.map(output => {
           if (output.key !== "End") {
             return (
+
               <div className="output" key={output.key}>
+                {!output.control &&
+                  (<div className="output-title">{output.name}</div>)
+                }
                 {output.control && (
                   <Control
                     className="output-control"
@@ -99,9 +111,7 @@ export class MyNode extends Node {
                     innerRef={bindControl}
                   />
                 )}
-                {!output.control &&
-                  (<div className="output-title">{output.name}</div>)
-                }
+
                 <Socket
                   type="output"
                   socket={output.socket}
@@ -116,17 +126,7 @@ export class MyNode extends Node {
             return null;
           }
         })}
-        {/* Controls */}
-        {controls.map(control => (
-          // <div className="control-title">{control.key}
-          <Control
-            className="control"
-            key={control.key}
-            control={control}
-            innerRef={bindControl}
-          />
-          // </div>
-        ))}
+
         {/* Inputs */}
         {inputs.map(input => {
           if (input.key !== "Start") {
@@ -154,7 +154,13 @@ export class MyNode extends Node {
             return null;
           }
         })}
-      </div>
+
+        <div className="ordering">
+          {startElt}
+          <div className="ordering-sep" />
+          {endElt}
+        </div>
+      </div >
     );
   }
 }
