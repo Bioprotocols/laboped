@@ -13,6 +13,7 @@
     "dompurify": "^2.3.9",
     "eslint-plugin-react": "^7.28.0",
     "fs": "^0.0.1-security",
+    "graphviz-react": "^1.2.5",
     "history": "^5.1.0",
     "marked-react": "^1.1.2",
     "rdf-ext": "^2.0.1",
